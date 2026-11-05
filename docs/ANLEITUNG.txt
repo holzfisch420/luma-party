@@ -1,0 +1,32 @@
+LUMA PARTY – SO GEHT'S
+======================
+
+1. STARTEN (auf dem PC / Laptop)
+   Windows:  Doppelklick auf "LumaParty-Windows.exe"
+   Mac:      Doppelklick auf "LumaParty-Mac-AppleSilicon" (neuere Macs) bzw. "LumaParty-Mac-Intel"
+
+   Es öffnet sich ein schwarzes Fenster (das ist der Spielserver – offen lassen!)
+   und kurz danach automatisch der Spielbildschirm.
+
+   Beim allerersten Start:
+   - Windows fragt evtl. "Windows hat den PC geschützt" → "Weitere Informationen" → "Trotzdem ausführen".
+   - Windows-Firewall fragt nach Netzwerkzugriff → "Zulassen" klicken (wichtig, sonst können
+     die Handys nicht beitreten).
+   - Mac: Rechtsklick auf die Datei → "Öffnen" → "Öffnen" bestätigen.
+
+2. AUF DEN FERNSEHER
+   PC per HDMI an den Fernseher anschließen (oder Bildschirm spiegeln).
+   Mit F11 bzw. dem Vollbild-Symbol oben rechts auf Vollbild schalten.
+
+3. MITSPIELEN (Smartphones)
+   Die Handys müssen im GLEICHEN WLAN sein wie der PC – einfach euer normales WLAN zu Hause.
+   Ein spezielles WLAN ist nicht nötig. Dann:
+   → QR-Code auf dem Bildschirm mit der Handy-Kamera scannen, Namen eingeben, fertig.
+
+   Kein WLAN vorhanden? Ein Handy als Hotspot einschalten und PC + alle anderen Handys
+   mit diesem Hotspot verbinden.
+
+4. BEENDEN
+   Das schwarze Fenster schließen.
+
+Eigene Wortlisten bleiben gespeichert (Windows: %APPDATA%\LumaParty).

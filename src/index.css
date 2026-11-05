@@ -1,0 +1,80 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --color-ink-950: #050508;
+  --color-ink-900: #0a0a10;
+  --color-ink-800: #12121a;
+  --color-ink-700: #1b1b26;
+  --color-ink-600: #262634;
+  --color-accent: #ff5a7a;
+  --color-success: #34d399;
+  --ease-tv: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+:root {
+  color-scheme: dark;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ink-950);
+  color: #f5f5f7;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+}
+
+/* sanfter Hintergrund-Glow im Apple-TV-Stil */
+.app-backdrop {
+  background:
+    radial-gradient(1200px 700px at 15% -10%, rgba(120, 90, 255, 0.18), transparent 60%),
+    radial-gradient(900px 600px at 100% 0%, rgba(255, 90, 140, 0.12), transparent 60%),
+    radial-gradient(1000px 800px at 50% 120%, rgba(40, 140, 255, 0.1), transparent 60%),
+    var(--color-ink-950);
+}
+
+.glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035));
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.touch-none-all,
+.touch-none-all * {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.safe-pt {
+  padding-top: max(env(safe-area-inset-top), 0.75rem);
+}
+.safe-pb {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+}
+
+:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 3px;
+}

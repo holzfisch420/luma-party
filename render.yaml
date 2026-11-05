@@ -1,0 +1,17 @@
+# Render Blueprint – Luma Party online (https://render.com)
+# Render → "New" → "Blueprint" → dieses Repository auswählen → "Apply". Fertig.
+services:
+  - type: web
+    name: luma-party
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: LUMA_PUBLIC
+        value: "1"

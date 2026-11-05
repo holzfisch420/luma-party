@@ -1,0 +1,225 @@
+# Luma Party
+
+Ein Multi-Game-Party-Launcher im Apple-TV-Stil. Ein Fernseher, Beamer oder Laptop ist der **Hauptbildschirm**,
+alle Mitspielenden nutzen ihr **Smartphone als Controller** – ohne App und ohne Anmeldung.
+
+Erstes vollständig spielbares Spiel: **Montagsmaler** (Zeichnen & Raten) mit 586 integrierten deutschen Wörtern.
+
+---
+
+## Am einfachsten: als Programm (ohne Installation)
+
+1. `LumaParty-Windows.zip` entpacken (Mac: `LumaParty-Mac-….zip`).
+2. Doppelklick auf **LumaParty-Windows.exe** – der Spielbildschirm öffnet sich automatisch als App-Fenster.
+3. Smartphones im **gleichen WLAN** scannen den QR-Code auf dem Bildschirm. Fertig.
+
+Beim ersten Start unter Windows: SmartScreen → „Weitere Informationen“ → „Trotzdem ausführen“;
+Firewall-Abfrage mit **„Zulassen“** bestätigen (sonst erreichen die Handys den PC nicht).
+Zum Beenden das schwarze Konsolenfenster schließen. Details: `docs/ANLEITUNG.txt`.
+
+Programme selbst bauen (Windows, macOS Intel/Apple Silicon, Linux – von jedem Betriebssystem aus):
+
+```bash
+npm install
+npm run desktop          # alle Plattformen → release/
+npm run desktop:windows  # nur Windows
+```
+
+Das Programm bettet Frontend und Laufzeitumgebung (Bun) ein; Wortlisten liegen unter
+`%APPDATA%\LumaParty` (Windows), `~/Library/Application Support/LumaParty` (Mac) bzw. `~/.local/share/luma-party`.
+
+### Müssen alle im gleichen WLAN sein?
+
+Ja – PC und Smartphones müssen im selben Netzwerk sein, ein spezielles WLAN ist aber nicht nötig (normales Heim-WLAN).
+Ohne WLAN: ein Handy als Hotspot einschalten und PC + alle anderen Handys damit verbinden.
+Gäste-WLANs mit „Client-Isolation“ blockieren die Verbindung zwischen Geräten – dann ebenfalls den Hotspot nutzen.
+
+## Online spielen (ohne gemeinsames WLAN)
+
+Online braucht ihr kein gemeinsames WLAN: Jeder öffnet die Internetadresse, auch mit mobilen Daten oder von woanders.
+Das Projekt ist für **Render** vorbereitet (kostenloser Tarif, Server in Frankfurt, `render.yaml`):
+
+1. Code in ein GitHub-Repository legen.
+2. Auf <https://render.com> mit GitHub anmelden → **New** → **Blueprint** → Repository wählen → **Apply**.
+3. Nach ca. 3–5 Minuten ist die App unter `https://luma-party-xxxx.onrender.com` erreichbar.
+   TV/PC öffnet `…/host`, Handys scannen den QR-Code.
+
+Jeder Push auf GitHub aktualisiert die Online-Version automatisch.
+
+**Online-Modus** (`LUMA_PUBLIC=1`, in `render.yaml` gesetzt):
+- Eigene Wortlisten sind **pro Gerät privat** (zufällige Gerätekennung im Browser) – Fremde sehen sie nicht.
+- Jedes Gerät sichert seine Listen zusätzlich im Browser. Kostenlose Server löschen bei jedem Neustart ihre Dateien;
+  beim nächsten Öffnen werden die Listen automatisch wiederhergestellt.
+- Missbrauchsschutz: Rate-Limits für API, neue Räume pro IP und Fehlversuche beim Raumcode; Obergrenze aktiver Räume.
+
+**Hinweise zum kostenlosen Tarif:** Nach 15 Minuten ohne Besucher schläft der Server ein. Der erste Aufruf danach
+dauert bis zu einer Minute. Laufende Spiele sind davon nicht betroffen (aktive Verbindungen halten ihn wach).
+
+Andere Anbieter (Railway, Fly.io, eigener Server): Das `Dockerfile` baut einen fertigen Container
+(Port über `PORT`, Online-Modus bereits aktiv).
+
+## Entwicklung
+
+Voraussetzung: Node.js ≥ 20.
+
+```bash
+npm install
+npm run dev
+```
+
+- Hauptbildschirm: <http://localhost:5173/host>
+- Smartphones (im selben WLAN): QR-Code auf dem Hauptbildschirm scannen oder `http://<LAN-IP>:5173/play` öffnen und den Raumcode eingeben.
+
+Im Entwicklungsmodus laufen zwei Prozesse: Vite (Frontend, Port 5173) und der Spielserver (Port 3001). Vite leitet
+`/api` und `/socket.io` an den Server weiter.
+
+### Produktion (ein Port)
+
+```bash
+npm run build
+npm start          # Port 3000, mit PORT=… änderbar
+```
+
+Der Server liefert dann das gebaute Frontend aus und gibt die LAN-Adressen für die Smartphones in der Konsole aus.
+
+### Weitere Befehle
+
+| Befehl | Zweck |
+| --- | --- |
+| `npm test` | Unit- und Multiplayer-Integrationstests (Vitest, echte Socket.IO-Clients) |
+| `npm run typecheck` | Strikte TypeScript-Prüfung für Client und Server |
+| `npm run desktop` | Desktop-Programme für Windows/Mac/Linux bauen (`release/`) |
+
+---
+
+## So wird gespielt
+
+1. `/host` auf dem TV öffnen – ein Raum mit 4-stelligem Code (z. B. `KNBH`) wird erstellt.
+2. Mitspielende öffnen `/play` auf dem Smartphone (oder scannen den QR-Code), geben Code und Namen ein.
+3. Spiel wählen:
+   - **am TV** mit Maus, Tastatur oder Fernbedienung (`←` `→` wählen, `Enter` starten, `E` Einstellungen), oder
+   - **per Smartphone**: Die zuerst beigetretene Person sieht die Spielauswahl auf dem Handy (Badge „Wahl“).
+     Der Host kann die Auswahl jederzeit übernehmen (Menü → „Spielauswahl am Bildschirm“).
+4. **Montagsmaler**: Wer dran ist, wählt ein Wort und zeichnet auf dem Handy. Die Zeichnung erscheint live auf dem TV,
+   die anderen raten über ihr Handy. Vermutungen erscheinen als Chat-Bubbles links oder rechts unten.
+5. Nach der letzten Runde: Rangliste mit Siegertreppchen, „Nochmal spielen“ oder „Zurück zum Launcher“.
+
+Eigene Wörter: TV-Menü → „Eigene Wörter“, auf dem Handy in der Lobby oder unter `/words`. Im Spiel unter
+Einstellungen → Wörter → **Eigene Wörter** (nur eigene) oder **Mix** wählen und die Listen aktivieren.
+
+---
+
+## Architektur
+
+```
+src/
+├── app/                    # Bildschirme (Routing-Ziele)
+│   ├── landing/            # Startseite: TV oder Smartphone
+│   ├── launcher/           # Hauptbildschirm: HostApp, Top-Bar, Menü, Launcher
+│   ├── game-screen/        # generische TV-Spielansicht (lädt das Spielmodul)
+│   ├── mobile/             # Smartphone-App (Beitritt, Lobby, Spiel, Ergebnis)
+│   ├── words/              # Seite zur Wortverwaltung
+│   └── session/            # Socket, Session-Store, Host-/Spieler-Verbindung, Hooks
+├── components/
+│   ├── ui/                 # Button, Modal, Toast, Toggle, Countdown, Logo, Ladezustände, Verbindungsstatus
+│   ├── launcher/           # GameCard (Parallax-Tilt), GameCarousel, GameInfo, Einstellungs-Sheet
+│   ├── lobby/              # Raumcode, Spielerliste, Avatar, QR-Beitritt
+│   ├── mobile-controller/  # Join-Screen, Lobby, Spielauswahl auf dem Handy
+│   ├── game/               # Scoreboard, Rangliste (spielunabhängig)
+│   └── word-manager/       # Wortlisten-Verwaltung + API-Client
+├── games/
+│   ├── game-types.ts       # Client-Interface für Spiele
+│   ├── game-registry.ts    # Client-Registry
+│   ├── game-catalog.ts     # Metadaten aller Spiele (für Launcher & Server)
+│   ├── montagsmaler/
+│   │   ├── index.ts        # Client-Modul (Cover, TV-Ansicht, Handy-Ansicht, Einstellungen)
+│   │   ├── game-config.ts  # Metadaten, Einstellungen (Zod), Punkte, Palette
+│   │   ├── game-engine.ts  # Server-Engine (maßgebliche Spiellogik)
+│   │   ├── types.ts        # Zustände, Aktionen, Events, Zeichenoperationen
+│   │   ├── logic/          # Zeichenmodell, Wortvergleich, Punkte (Client + Server)
+│   │   ├── words/          # 586 Standardwörter
+│   │   ├── components/     # UI für TV und Smartphone
+│   │   └── hooks/          # Live-Canvas, gebündeltes Senden
+│   └── future-games/       # Platzhalter („Bald verfügbar“) + Cover-Icons
+├── server/
+│   ├── index.ts            # Express + Socket.IO (startServer)
+│   ├── main.ts             # Startpunkt für npm run dev / npm start
+│   ├── rooms/              # Room (Spieler, Rechte, Lebenszyklus), RoomManager (Codes, Aufräumen)
+│   ├── sockets/            # Event-Handler mit Berechtigungsprüfung & Rate-Limit
+│   ├── game-engine/        # Server-Interface für Spiele (GameEngine, GameContext, ServerGameModule)
+│   ├── game-manager/       # GameSession (Zustandsversand, Timer, Cleanup), Server-Registry
+│   ├── storage/            # Persistente Wortlisten (JSON-Datei)
+│   └── routes/             # REST-API für Wortlisten
+├── desktop/                # Desktop-Programm: startet Server, öffnet App-Fenster
+└── shared/                 # Typen, Socket-Events, Konstanten, Hilfsfunktionen
+```
+
+### Datenfluss
+
+- **Server ist die einzige Quelle der Wahrheit.** Clients senden nur Absichten (`game:action`), der Server validiert
+  und verschickt Zustände.
+- Pro Spiel gibt es einen **öffentlichen Zustand** (an alle) und einen **privaten Zustand** pro Spieler.
+  Das geheime Wort existiert nur im privaten Zustand des Zeichners (und von Spielern, die es bereits erraten haben).
+- Kurzlebige Ereignisse (Zeichenoperationen, Chat, Treffer) laufen über `game:event`.
+- Zustandsänderungen werden pro Tick gebündelt; vor jedem Event wird ausstehender Zustand zuerst gesendet,
+  damit die Reihenfolge stimmt.
+
+### Zeichnen in Echtzeit
+
+- Pointer Events (Touch, Maus, Stift) inkl. `getCoalescedEvents` für flüssige Linien.
+- Übertragen werden **Zeichenoperationen**, keine Bilder: `Strich beginnen`, `Punkte anhängen`, `Undo`, `Leeren`.
+  Koordinaten sind auf 0–1000 normalisiert (geräteunabhängig), Farben werden als Palettenindex gesendet.
+- Punkte werden ~30× pro Sekunde gebündelt und zusammengefasst.
+- Der Server prüft Absender (nur der aktuelle Zeichner), Phase, Wertebereiche und Obergrenzen, speichert den Stand
+  und schickt ihn bei (Wieder-)Verbindung an TV oder Handy (`canvas-sync`).
+
+### Sicherheit & Stabilität
+
+- Antworten werden nur serverseitig geprüft (Groß-/Kleinschreibung, Umlaute `ä/ae`, `ß/ss`, Akzente egal).
+  „Knapp daneben“ wird nur privat an die ratende Person gemeldet.
+- Richtige Antworten werden nicht als Chat angezeigt; wer richtig geraten hat, kann nicht erneut punkten.
+- Rate-Limits: Token-Bucket pro Socket für alle Spielaktionen, zusätzlich max. 5 Rateversuche pro 4 s.
+- Eingaben (Namen, Wörter, Rateversuche) werden bereinigt und in der Länge begrenzt; Einstellungen per Zod validiert.
+- Berechtigungen: Host-Aktionen nur mit Host-Token; Spielauswahl/Start nur Host oder berechtigter Spieler.
+- **Wiederverbindung**: Host und Spieler erhalten ein geheimes Token (im `localStorage`). Nach Neuladen oder
+  Netzabbruch wird die Sitzung automatisch fortgesetzt. Getrennte Spieler bleiben 3 Minuten reserviert;
+  verliert der Zeichner die Verbindung, endet sein Zug nach 15 s. Kurz getrennte Rater zählen 10 s lang weiter mit.
+- Wer mit einem bereits verwendeten Namen beitritt, während dieser Spieler getrennt ist, übernimmt dessen Platz.
+- Spieler können jederzeit beitreten (auch während eines Spiels) und zeichnen ab der nächsten Runde mit.
+
+---
+
+## Ein neues Spiel hinzufügen
+
+1. **Modul anlegen**: `src/games/<spiel>/`
+2. **Metadaten & Einstellungen** in `game-config.ts` (React-frei): `GameMeta`, Default-Einstellungen, `parseSettings`.
+3. **Server-Engine** in `game-engine.ts`: `GameEngine` implementieren (`start`, `getPublicState`, `getPrivateState`,
+   `handleAction`, optionale Spieler-Hooks, `dispose`) und ein `ServerGameModule` exportieren.
+   Kommunikation ausschließlich über den übergebenen `GameContext` (`publishState`, `emit`, `setTimer`, `endGame`).
+4. **Registrieren**: Server in `src/server/game-manager/server-game-registry.ts`,
+   Metadaten in `src/games/game-catalog.ts`.
+5. **Oberflächen** in `index.ts` als `ClientGameModule`: `HostView` (TV), `PlayerView` (Handy),
+   optional `SettingsPanel` und `Cover`; in `src/games/game-registry.ts` registrieren.
+6. Fertig – der Launcher zeigt das Spiel automatisch an, inklusive Einstellungen, Start, Rangliste und Wiederverbindung.
+
+Ergebnisse meldet die Engine mit `ctx.endGame({ scores })`; die Rangliste rendert der Launcher generisch.
+
+---
+
+## Technische Entscheidungen
+
+| Entscheidung | Begründung |
+| --- | --- |
+| **Vite + React + TypeScript** statt Next.js | Die App ist eine reine Echtzeit-SPA; SSR bringt hier nichts. Vite ist schneller und einfacher. |
+| **Ein Paket** mit `src/server` und `src/shared` | Gemeinsame Typen ohne Monorepo-Overhead; `tsx` führt den Server direkt aus. |
+| **Kein PostgreSQL/Redis** in Version 1 | Spielzustände sind kurzlebig (im Speicher). Wortlisten werden als JSON-Datei (`data/word-lists.json`) atomar gespeichert. Der `WordListStore` ist klein genug, um später gegen Prisma/PostgreSQL getauscht zu werden. |
+| **Wortlisten serverseitig** statt `localStorage` | Listen sollen von TV *und* Handys gepflegt werden und in jedem Raum verfügbar sein. Spieleinstellungen merkt sich der Hauptbildschirm zusätzlich im `localStorage`. |
+| **Zod** für Einstellungen & REST | Strikte Validierung an der Vertrauensgrenze. |
+| **Tailwind CSS v4, Framer Motion, Lucide** | Wie gewünscht; Cover sind eigene SVG/CSS-Grafiken (keine fremden Assets). |
+| **Quadratische Zeichenfläche** | Passt gleichermaßen auf Hochkant-Handys und 16:9-TVs und lässt links/rechts Platz für Punkte und Chat-Bubbles. |
+
+### Bekannte Grenzen
+
+- Spielstände liegen im Arbeitsspeicher; ein Server-Neustart beendet laufende Räume.
+- Für eine Verteilung über mehrere Server-Instanzen wäre ein Redis-Adapter für Socket.IO nötig.
+- Es gibt keine Benutzerkonten: Im Heimnetz teilen sich alle Geräte die Wortlisten, online gehören sie dem jeweiligen Gerät (Browser-Daten löschen = Listen weg, sofern nicht auf dem Server vorhanden).
