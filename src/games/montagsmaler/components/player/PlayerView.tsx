@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { haptics } from '../../../../app/haptics';
 import { PaperSheet } from '../../../../components/comic/PaperSheet';
 import type { PlayerViewProps } from '../../../game-types';
 import { useRemoteCanvas } from '../../hooks/useRemoteCanvas';
@@ -19,7 +20,7 @@ export function MontagsmalerPlayerView({ room, me, state, sendAction }: PlayerVi
 
   // kurzes Vibrieren, wenn man an der Reihe ist
   useEffect(() => {
-    if (isDrawer && pub.phase !== 'reveal') navigator.vibrate?.([80, 60, 80]);
+    if (isDrawer && pub.phase !== 'reveal') haptics.play('double');
   }, [isDrawer, pub.turn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   let content;

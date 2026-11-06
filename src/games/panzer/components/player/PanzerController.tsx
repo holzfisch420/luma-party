@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { haptics } from '../../../../app/haptics';
 import { Check, Maximize, RotateCcw, Settings2, Smartphone } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCountdown } from '../../../../app/session/hooks';
@@ -149,6 +150,7 @@ function ColorPicker({
             })}
           </div>
           <SteeringSwitch value={priv.steering} onChange={(mode) => sendAction('steering', { mode })} />
+          <HapticsSwitch />
           {!landscape && (
             <button onClick={() => void goFullscreenLandscape()} className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-lg font-black text-[#4a752c] shadow-[0_4px_0_rgba(0,0,0,0.2)]">
               <Maximize className="size-5" /> Vollbild &amp; quer drehen
@@ -232,12 +234,34 @@ function Gamepad({
     flush(true);
   }, [pub.round, priv.alive, flush]);
 
-  // Vibration beim Zerstören
+  // Haptik bei Spielereignissen
   const wasAlive = useRef(priv.alive);
   useEffect(() => {
-    if (wasAlive.current && !priv.alive && pub.phase !== 'countdown') navigator.vibrate?.([120, 60, 220]);
+    if (wasAlive.current && !priv.alive && pub.phase !== 'countdown') haptics.play('error');
     wasAlive.current = priv.alive;
   }, [priv.alive, pub.phase]);
+  const prevPower = useRef(priv.power);
+  useEffect(() => {
+    if (priv.power && priv.power !== prevPower.current) haptics.play('success');
+    prevPower.current = priv.power;
+  }, [priv.power]);
+  const prevKills = useRef(mine?.kills ?? 0);
+  useEffect(() => {
+    const k = mine?.kills ?? 0;
+    if (k > prevKills.current) haptics.play('double');
+    prevKills.current = k;
+  }, [mine?.kills]);
+  const prevShield = useRef(priv.shieldUntil);
+  useEffect(() => {
+    // Schild von aktiv auf 0 = Treffer abgefangen
+    if (prevShield.current > Date.now() + offset && priv.shieldUntil === 0 && priv.alive) haptics.play('heavy');
+    prevShield.current = priv.shieldUntil;
+  }, [priv.shieldUntil, priv.alive, offset]);
+  const cdSecs = Math.ceil(useCountdown(pub.phase === 'countdown' ? pub.phaseEndsAt : null, 200) / 1000);
+  useEffect(() => {
+    if (pub.phase === 'countdown' && cdSecs > 0) haptics.play('tick');
+    if (pub.phase === 'battle') haptics.play('medium');
+  }, [cdSecs, pub.phase]);
 
   const press = (bit: number) => (down: boolean) => {
     input.current.b = down ? input.current.b | bit : input.current.b & ~bit;
@@ -290,10 +314,10 @@ function Gamepad({
         <div className="relative h-full flex-1">
           <div className="absolute left-1/2 top-1/2 size-[min(78vh,300px)] -translate-x-1/2 -translate-y-1/2">
             <div className="absolute left-1/2 top-0 -translate-x-1/2">
-              <PadButton label="Y" ariaLabel="Y" sub="Hupe" color="#f9ab00" size={76} onPress={press(BTN.honk)} />
+              <PadButton label="Y" ariaLabel="Y" sub="Hupe" color="#f9ab00" size={76} haptic="light" onPress={press(BTN.honk)} />
             </div>
             <div className="absolute left-0 top-1/2 -translate-y-1/2">
-              <PadButton label="X" ariaLabel="X" sub={turboLeft > 0 ? `${Math.ceil(turboLeft / 1000)} s` : 'Turbo'} color="#4285f4" size={84} cooldown={turboLeft / 4000} onPress={press(BTN.turbo)} />
+              <PadButton label="X" ariaLabel="X" sub={turboLeft > 0 ? `${Math.ceil(turboLeft / 1000)} s` : 'Turbo'} color="#4285f4" size={84} cooldown={turboLeft / 4000} haptic={turboLeft > 0 ? 'tick' : 'medium'} onPress={press(BTN.turbo)} />
             </div>
             <div className="absolute right-0 top-1/2 -translate-y-1/2">
               <PadButton
@@ -303,11 +327,12 @@ function Gamepad({
                 color={power ? power.color : '#9aa0a6'}
                 size={92}
                 disabled={!power}
+                haptic="heavy"
                 onPress={press(BTN.special)}
               />
             </div>
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
-              <PadButton label="A" ariaLabel="A" sub="Feuer" color="#ea4335" size={104} onPress={press(BTN.fire)} />
+              <PadButton label="A" ariaLabel="A" sub="Feuer" color="#ea4335" size={104} haptic="medium" onPress={press(BTN.fire)} />
             </div>
           </div>
         </div>
@@ -327,6 +352,7 @@ function Gamepad({
           <div className="w-full max-w-md rounded-2xl bg-[#578a34] p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="text-2xl font-black">Optionen</div>
             <SteeringSwitch value={priv.steering} onChange={(mode) => sendAction('steering', { mode })} />
+            <HapticsSwitch />
             <div className="mt-3 flex gap-2">
               <button onClick={() => void goFullscreenLandscape()} className="flex flex-1 items-center justify-center gap-2 rounded-full bg-white px-3 py-2.5 text-lg font-black text-[#4a752c]">
                 <Maximize className="size-5" /> Vollbild
@@ -339,5 +365,30 @@ function Gamepad({
         </div>
       )}
     </Shell>
+  );
+}
+
+/** Vibration an/aus – mit Hinweis, was auf diesem Gerät möglich ist */
+function HapticsSwitch() {
+  const [on, setOn] = useState(haptics.isEnabled());
+  if (!haptics.supported) return null;
+  return (
+    <button
+      onClick={() => {
+        haptics.setEnabled(!on);
+        setOn(!on);
+      }}
+      className="mt-3 flex w-full items-center justify-between gap-3 rounded-xl bg-[#4a752c] px-3 py-2.5 text-left"
+    >
+      <span>
+        <span className="block text-lg font-black leading-tight">📳 Vibration</span>
+        <span className="block text-[11px] font-bold leading-tight text-white/75">
+          {haptics.mode === 'ios' ? 'iPhone: kurze Klicks bei Tastendruck (ab iOS 18)' : 'Spürbare Rückmeldung bei Tasten und Treffern'}
+        </span>
+      </span>
+      <span className={`relative h-7 w-12 shrink-0 rounded-full transition ${on ? 'bg-[#1a73e8]' : 'bg-white/25'}`}>
+        <span className={`absolute top-0.5 size-6 rounded-full bg-white shadow transition-all ${on ? 'left-[22px]' : 'left-0.5'}`} />
+      </span>
+    </button>
   );
 }

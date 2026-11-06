@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, UserRound } from 'lucide-react';
+import { ArrowRight, Share, UserRound, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { accountActions, getAuthToken, useAccount } from '../../app/account/account-store';
 import { PlayerAvatar } from '../lobby/PlayerAvatar';
@@ -128,10 +128,54 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
 
         {error && <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">{error}</div>}
 
+        <HomeScreenTip />
+
         <Button type="submit" variant="primary" size="xl" disabled={!valid} loading={busy} className="w-full">
           Beitreten <ArrowRight className="size-6" />
         </Button>
       </motion.form>
+    </div>
+  );
+}
+
+const TIP_KEY = 'luma.homescreen-tip';
+
+/** iPhone in Safari: Tipp „Zum Home-Bildschirm“ – Vollbild ohne Safari-Leisten */
+function HomeScreenTip() {
+  const [visible, setVisible] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    const standalone = (navigator as Navigator & { standalone?: boolean }).standalone === true || window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches;
+    let dismissed = false;
+    try {
+      dismissed = localStorage.getItem(TIP_KEY) === 'off';
+    } catch {
+      /* ignorieren */
+    }
+    return ios && !standalone && !dismissed;
+  });
+  if (!visible) return null;
+  return (
+    <div className="home-tile relative flex gap-3 rounded-[20px] p-4 pr-10 text-sm font-bold text-home-muted">
+      <Share className="mt-0.5 size-5 shrink-0 text-cyan" />
+      <span>
+        Tipp fürs iPhone: Tippe unten auf <b className="text-home-text">Teilen</b> → <b className="text-home-text">Zum Home-Bildschirm</b>. Dann läuft der Controller im Vollbild – ohne Safari-Leisten.
+      </span>
+      <button
+        type="button"
+        aria-label="Tipp ausblenden"
+        className="absolute right-2 top-2 grid size-7 place-items-center rounded-full text-home-muted"
+        onClick={() => {
+          try {
+            localStorage.setItem(TIP_KEY, 'off');
+          } catch {
+            /* ignorieren */
+          }
+          setVisible(false);
+        }}
+      >
+        <X className="size-4" />
+      </button>
     </div>
   );
 }

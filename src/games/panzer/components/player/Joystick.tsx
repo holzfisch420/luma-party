@@ -1,4 +1,5 @@
 import { useRef, useState, type PointerEvent } from 'react';
+import { haptics } from '../../../../app/haptics';
 
 /**
  * Schwebender Joystick: erscheint dort, wo der Daumen die Fläche berührt.
@@ -7,6 +8,7 @@ import { useRef, useState, type PointerEvent } from 'react';
 export function Joystick({ onChange, color }: { onChange: (x: number, y: number) => void; color: string }) {
   const zone = useRef<HTMLDivElement>(null);
   const active = useRef<{ id: number; cx: number; cy: number } | null>(null);
+  const edge = useRef(false);
   const [view, setView] = useState<{ cx: number; cy: number; kx: number; ky: number } | null>(null);
   const RADIUS = 56;
 
@@ -16,6 +18,10 @@ export function Joystick({ onChange, color }: { onChange: (x: number, y: number)
     let dx = e.clientX - a.cx;
     let dy = e.clientY - a.cy;
     const d = Math.hypot(dx, dy);
+    // spürbarer „Anschlag“, wenn der Stick den Rand erreicht
+    const atEdge = d >= RADIUS * 0.97;
+    if (atEdge && !edge.current) haptics.play('tick');
+    edge.current = atEdge;
     if (d > RADIUS) {
       dx = (dx / d) * RADIUS;
       dy = (dy / d) * RADIUS;
@@ -46,7 +52,7 @@ export function Joystick({ onChange, color }: { onChange: (x: number, y: number)
         }
         active.current = { id: e.pointerId, cx: e.clientX, cy: e.clientY };
         setView({ cx: e.clientX, cy: e.clientY, kx: 0, ky: 0 });
-        navigator.vibrate?.(8);
+        haptics.play('light');
       }}
       onPointerMove={(e) => active.current?.id === e.pointerId && update(e)}
       onPointerUp={end}

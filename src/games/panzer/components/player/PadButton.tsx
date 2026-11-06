@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { haptics, type HapticKind } from '../../../../app/haptics';
 
 interface Props {
   label: ReactNode;
@@ -9,6 +10,8 @@ interface Props {
   disabled?: boolean;
   /** 0..1 Abklingzeit (zeigt einen Füllstand) */
   cooldown?: number;
+  /** Art der haptischen Rückmeldung beim Drücken */
+  haptic?: HapticKind;
   onPress: (down: boolean) => void;
 }
 
@@ -19,7 +22,7 @@ function darken(hex: string) {
 }
 
 /** Runde, flache Gamepad-Taste (Google-Minispiel-Stil), mehrfach-touchfähig. */
-export function PadButton({ label, ariaLabel, sub, color, size, disabled, cooldown = 0, onPress }: Props) {
+export function PadButton({ label, ariaLabel, sub, color, size, disabled, cooldown = 0, haptic = 'light', onPress }: Props) {
   return (
     <button
       type="button"
@@ -33,7 +36,7 @@ export function PadButton({ label, ariaLabel, sub, color, size, disabled, cooldo
         } catch {
           /* z. B. synthetische Ereignisse */
         }
-        navigator.vibrate?.(12);
+        haptics.play(disabled ? 'tick' : haptic);
         onPress(true);
       }}
       onPointerUp={() => onPress(false)}

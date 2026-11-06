@@ -135,6 +135,18 @@ mit eigenen Grafiken, eigenem Namen und eigenen Arenen.
 - Technik: Server-Simulation mit 60 Hz, Positionsdaten mit 20 Hz an den Fernseher (dort auf 60 fps interpoliert),
   Handys senden nur Joystick und Tasten.
 
+## Handy als Controller: Haptik & Home-Bildschirm
+
+- **Haptik** (`src/app/haptics.ts`, für alle Spiele nutzbar): Tasten, Joystick-Anschlag und Spielereignisse
+  (Power-up, Treffer, zerstört, Countdown) geben spürbare Rückmeldung. Im Gamepad-Menü abschaltbar.
+  - **Android:** echte Vibrationsmuster über die Vibration API.
+  - **iPhone (ab iOS 18):** Safari kennt keine Vibration API. Genutzt wird, dass Safari beim Umschalten
+    eines `<input type="checkbox" switch>` einen kurzen haptischen Klick auslöst – zuverlässig bei
+    Tastendrücken, stärkere Rückmeldungen als mehrere Klicks. Abgestufte Stärken gibt es auf dem iPhone
+    nur in einer nativen App.
+- **Als App installieren:** Web-App-Manifest + App-Symbole. Auf dem iPhone in Safari: *Teilen → Zum Home-Bildschirm*
+  (der Beitrittsbildschirm zeigt dazu einen Tipp) – dann läuft der Controller im Vollbild ohne Safari-Leisten.
+
 ## Konten & Avatare
 
 - **Konto (optional):** Benutzername + Passwort. Gäste können weiterhin ohne Konto mitspielen.
