@@ -37,5 +37,5 @@ export const CanvasView = forwardRef<HTMLCanvasElement, CanvasViewProps>(functio
     };
   }, [model]);
 
-  return <canvas ref={canvasRef} className={`block aspect-square w-full bg-white ${className}`} {...rest} />;
+  return <canvas ref={canvasRef} className={`block aspect-square w-full ${className}`} {...rest} />;
 });

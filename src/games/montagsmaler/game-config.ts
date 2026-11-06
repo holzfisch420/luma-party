@@ -105,7 +105,6 @@ export const PALETTE = [
   '#2f9e44', '#74c0fc', '#1c7ed6', '#7048e8', '#e64980', '#8d5524',
 ] as const;
 export const ERASER_COLOR_INDEX = -1;
-export const CANVAS_BACKGROUND = '#ffffff';
 /** Pinselgrößen in Tausendstel der Zeichenflächenbreite */
 export const BRUSH_SIZES = [4, 9, 18, 34] as const;
 export const COORD_MAX = 1000;

@@ -2,21 +2,23 @@ import { motion, type HTMLMotionProps } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { forwardRef, type ReactNode } from 'react';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'accent';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg' | 'xl';
 
+/** Launcher-Buttons im hellen Home-Menü-Stil (Spiele nutzen ComicButton). */
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-white text-black hover:bg-white/90 shadow-lg shadow-white/10',
-  accent: 'text-white shadow-lg shadow-rose-500/25 bg-gradient-to-r from-orange-400 via-rose-500 to-violet-500',
-  secondary: 'bg-white/10 text-white hover:bg-white/15 border border-white/10',
-  ghost: 'bg-transparent text-white/80 hover:bg-white/10 hover:text-white',
-  danger: 'bg-rose-500/15 text-rose-200 hover:bg-rose-500/25 border border-rose-400/20',
+  primary:
+    'text-white bg-gradient-to-b from-[#3ccbe8] to-[#16a6c8] border border-[#1192b3] shadow-[0_4px_0_#0f86a4,0_8px_16px_-6px_rgba(17,146,179,0.6)] hover:brightness-105',
+  secondary:
+    'text-home-text bg-gradient-to-b from-white to-[#eef1f4] border border-home-line shadow-[0_3px_0_#c9cfd6,0_6px_12px_-6px_rgba(60,70,85,0.35)] hover:to-white',
+  ghost: 'text-home-muted hover:bg-black/5 hover:text-home-text',
+  danger: 'text-white bg-gradient-to-b from-[#ff7a7a] to-[#e64646] border border-[#cc3a3a] shadow-[0_3px_0_#b83232]',
 };
 const SIZES: Record<Size, string> = {
-  sm: 'h-9 px-3.5 text-sm gap-1.5 rounded-xl',
-  md: 'h-11 px-5 text-[15px] gap-2 rounded-2xl',
-  lg: 'h-14 px-7 text-lg gap-2.5 rounded-2xl',
-  xl: 'h-16 px-9 text-xl gap-3 rounded-3xl',
+  sm: 'h-9 px-4 text-sm gap-1.5 rounded-full',
+  md: 'h-11 px-5 text-[15px] gap-2 rounded-full',
+  lg: 'h-14 px-7 text-lg gap-2.5 rounded-full',
+  xl: 'h-16 px-10 text-xl gap-3 rounded-full',
 };
 
 export interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
@@ -34,10 +36,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   return (
     <motion.button
       ref={ref}
-      whileTap={disabled || loading ? undefined : { scale: 0.96 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+      whileTap={disabled || loading ? undefined : { scale: 0.95, y: 2 }}
+      transition={{ type: 'spring', stiffness: 600, damping: 30 }}
       disabled={disabled || loading}
-      className={`inline-flex select-none items-center justify-center font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
+      className={`inline-flex select-none items-center justify-center font-extrabold transition-[filter,background] duration-200 disabled:cursor-not-allowed disabled:opacity-45 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
       {...rest}
     >
       {loading ? <Loader2 className="size-5 animate-spin" /> : icon}

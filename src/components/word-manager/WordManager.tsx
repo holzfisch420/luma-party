@@ -8,10 +8,8 @@ import { Spinner } from '../ui/Feedback';
 import { useToast } from '../ui/Toast';
 import { parseBulkInput, useWordLists, wordApi } from './word-api';
 
-const selectCls =
-  'h-11 rounded-2xl border border-white/10 bg-white/[0.07] px-3 text-sm text-white outline-none focus:border-white/40 [&>option]:bg-ink-800';
-const inputCls =
-  'h-11 min-w-0 rounded-2xl border border-white/10 bg-white/[0.07] px-4 text-[15px] text-white outline-none transition placeholder:text-white/35 focus:border-white/40';
+const selectCls = 'home-input !h-11 !px-3 text-sm font-bold';
+const inputCls = 'home-input !h-11 font-semibold';
 
 /**
  * Verwaltung eigener Wortlisten: Listen anlegen/umbenennen/löschen,
@@ -73,7 +71,7 @@ export function WordManager({ onChanged }: { onChanged?: () => void }) {
     onChanged?.();
   };
 
-  if (error) return <div className="rounded-2xl bg-rose-500/10 p-4 text-rose-200">Wortlisten konnten nicht geladen werden: {error}</div>;
+  if (error) return <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 font-bold text-rose-600">Wortlisten konnten nicht geladen werden: {error}</div>;
   if (!lists) return <div className="grid h-40 place-items-center"><Spinner /></div>;
 
   return (
@@ -84,11 +82,11 @@ export function WordManager({ onChanged }: { onChanged?: () => void }) {
             key={l.id}
             onClick={() => setActiveId(l.id)}
             className={`flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
-              l.id === activeId ? 'bg-white text-black' : 'bg-white/[0.07] text-white/75 hover:bg-white/15'
+              l.id === activeId ? 'bg-cyan text-white shadow' : 'border border-home-line bg-white text-home-muted hover:text-home-text'
             }`}
           >
             {l.name}
-            <span className={`rounded-full px-1.5 text-xs ${l.id === activeId ? 'bg-black/10' : 'bg-white/10'}`}>{l.wordCount}</span>
+            <span className={`rounded-full px-1.5 text-xs ${l.id === activeId ? 'bg-white/25' : 'bg-home-bg'}`}>{l.wordCount}</span>
           </button>
         ))}
         <Button size="sm" variant="ghost" icon={<Plus className="size-4" />} onClick={createList} className="shrink-0">
@@ -97,11 +95,11 @@ export function WordManager({ onChanged }: { onChanged?: () => void }) {
       </div>
 
       {lists.length === 0 && (
-        <div className="flex flex-col items-center gap-4 rounded-3xl border border-dashed border-white/15 p-10 text-center">
-          <ListPlus className="size-10 text-white/40" />
+        <div className="flex flex-col items-center gap-4 rounded-3xl border-2 border-dashed border-home-line p-10 text-center">
+          <ListPlus className="size-10 text-cyan" />
           <div>
-            <div className="text-lg font-semibold">Noch keine eigenen Wörter</div>
-            <div className="text-sm text-white/50">Lege eine Liste an und füge eure Insider-Wörter hinzu.</div>
+            <div className="text-lg font-black">Noch keine eigenen Wörter</div>
+            <div className="text-sm font-bold text-home-muted">Lege eine Liste an und füge eure Insider-Wörter hinzu.</div>
           </div>
           <Button variant="primary" icon={<Plus className="size-4" />} onClick={createList}>
             Erste Wortliste erstellen
@@ -175,11 +173,11 @@ function ListEditor({ list, onUpdate, onDeleted }: { list: WordList; onUpdate: (
           onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
           maxLength={40}
           aria-label="Name der Wortliste"
-          className="min-w-0 flex-1 bg-transparent text-2xl font-semibold tracking-tight outline-none focus:underline decoration-white/30 underline-offset-4"
+          className="min-w-0 flex-1 bg-transparent text-2xl font-black tracking-tight outline-none focus:underline decoration-cyan underline-offset-4"
         />
         {confirmDelete ? (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-white/60">Liste wirklich löschen?</span>
+            <span className="text-sm font-bold text-home-muted">Liste wirklich löschen?</span>
             <Button size="sm" variant="danger" onClick={() => run(async () => { await wordApi.remove(list.id); onDeleted(); toast('Wortliste gelöscht.', 'success'); })}>
               Löschen
             </Button>
@@ -192,7 +190,7 @@ function ListEditor({ list, onUpdate, onDeleted }: { list: WordList; onUpdate: (
         )}
       </div>
 
-      <form onSubmit={add} className="glass flex flex-col gap-3 rounded-3xl p-4">
+      <form onSubmit={add} className="flex flex-col gap-3 rounded-3xl border border-home-line bg-[#f5f7f9] p-4">
         <Segmented
           layoutId="word-add-mode"
           value={mode}
@@ -210,7 +208,7 @@ function ListEditor({ list, onUpdate, onDeleted }: { list: WordList; onUpdate: (
             onChange={(e) => setBulk(e.target.value)}
             rows={5}
             placeholder={'Ein Wort pro Zeile, z. B.\nKühlschrank\nRakete\nDinosaurier; Tiere\nSchneemann'}
-            className="min-h-32 resize-y rounded-2xl border border-white/10 bg-white/[0.07] px-4 py-3 text-[15px] outline-none placeholder:text-white/35 focus:border-white/40"
+            className="home-input !h-auto min-h-32 resize-y py-3 font-semibold"
           />
         )}
         <div className="flex flex-wrap gap-2">
@@ -224,14 +222,14 @@ function ListEditor({ list, onUpdate, onDeleted }: { list: WordList; onUpdate: (
             Hinzufügen
           </Button>
         </div>
-        {mode === 'bulk' && <p className="text-xs text-white/45">Tipp: „Wort; Kategorie“ weist eine eigene Kategorie zu. Doppelte Wörter werden übersprungen.</p>}
+        {mode === 'bulk' && <p className="text-xs font-bold text-home-muted">Tipp: „Wort; Kategorie“ weist eine eigene Kategorie zu. Doppelte Wörter werden übersprungen.</p>}
       </form>
 
       <div className="flex items-center gap-3">
-        <div className="text-sm font-semibold text-white/60">{list.words.length} Wörter</div>
+        <div className="text-sm font-black text-home-muted">{list.words.length} Wörter</div>
         {list.words.length > 8 && (
           <div className="relative ml-auto">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/40" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-home-muted" />
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Suchen …" className={`${inputCls} h-9 w-48 pl-9 text-sm`} />
           </div>
         )}
@@ -243,7 +241,7 @@ function ListEditor({ list, onUpdate, onDeleted }: { list: WordList; onUpdate: (
             <WordRow key={w.id} entry={w} listId={list.id} onUpdate={onUpdate} />
           ))}
         </AnimatePresence>
-        {list.words.length === 0 && <div className="py-6 text-center text-sm text-white/40">Diese Liste ist noch leer.</div>}
+        {list.words.length === 0 && <div className="py-6 text-center text-sm font-bold text-home-muted">Diese Liste ist noch leer.</div>}
       </div>
     </div>
   );
@@ -277,7 +275,7 @@ function WordRow({ entry, listId, onUpdate }: { entry: WordEntry; listId: string
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, height: 0 }}
-      className="flex items-center gap-2 rounded-2xl bg-white/[0.04] px-3 py-2"
+      className="flex items-center gap-2 rounded-2xl border border-home-line bg-white px-3 py-2"
     >
       {editing ? (
         <input
@@ -292,7 +290,7 @@ function WordRow({ entry, listId, onUpdate }: { entry: WordEntry; listId: string
           className={`${inputCls} h-9 flex-1`}
         />
       ) : (
-        <button className="min-w-0 flex-1 truncate text-left font-medium" onClick={() => setEditing(true)} title="Bearbeiten">
+        <button className="min-w-0 flex-1 truncate text-left font-extrabold" onClick={() => setEditing(true)} title="Bearbeiten">
           {entry.word}
         </button>
       )}
@@ -304,17 +302,17 @@ function WordRow({ entry, listId, onUpdate }: { entry: WordEntry; listId: string
       </select>
       {editing ? (
         <>
-          <button onClick={() => void save()} className="grid size-9 place-items-center rounded-xl bg-white text-black" aria-label="Speichern"><Check className="size-4" /></button>
-          <button onClick={() => { setValue(entry.word); setEditing(false); }} className="grid size-9 place-items-center rounded-xl bg-white/10" aria-label="Abbrechen"><X className="size-4" /></button>
+          <button onClick={() => void save()} className="grid size-9 place-items-center rounded-xl bg-cyan text-white" aria-label="Speichern"><Check className="size-4" /></button>
+          <button onClick={() => { setValue(entry.word); setEditing(false); }} className="grid size-9 place-items-center rounded-xl bg-home-bg" aria-label="Abbrechen"><X className="size-4" /></button>
         </>
       ) : (
         <>
-          <button onClick={() => setEditing(true)} className="grid size-9 place-items-center rounded-xl text-white/50 hover:bg-white/10 hover:text-white" aria-label={`${entry.word} bearbeiten`}><Pencil className="size-4" /></button>
+          <button onClick={() => setEditing(true)} className="grid size-9 place-items-center rounded-xl text-home-muted hover:bg-home-bg hover:text-home-text" aria-label={`${entry.word} bearbeiten`}><Pencil className="size-4" /></button>
           <button
             onClick={async () => {
               try { onUpdate(await wordApi.removeWord(listId, entry.id)); } catch (e) { toast((e as Error).message, 'error'); }
             }}
-            className="grid size-9 place-items-center rounded-xl text-white/50 hover:bg-rose-500/20 hover:text-rose-200"
+            className="grid size-9 place-items-center rounded-xl text-home-muted hover:bg-rose-50 hover:text-rose-500"
             aria-label={`${entry.word} löschen`}
           >
             <Trash2 className="size-4" />

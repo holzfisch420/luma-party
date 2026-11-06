@@ -1,19 +1,42 @@
+@import '@fontsource/nunito/latin-500.css';
+@import '@fontsource/nunito/latin-700.css';
+@import '@fontsource/nunito/latin-800.css';
+@import '@fontsource/nunito/latin-900.css';
+@import '@fontsource/bangers/latin-400.css';
+@import '@fontsource/comic-neue/latin-400.css';
+@import '@fontsource/comic-neue/latin-700.css';
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --color-ink-950: #050508;
-  --color-ink-900: #0a0a10;
-  --color-ink-800: #12121a;
-  --color-ink-700: #1b1b26;
-  --color-ink-600: #262634;
-  --color-accent: #ff5a7a;
-  --color-success: #34d399;
-  --ease-tv: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Launcher: runde, freundliche Schrift */
+  --font-sans: 'Nunito', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  /* Spiele: Comic-Schriften */
+  --font-comic: 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', cursive;
+  --font-bangers: 'Bangers', 'Impact', 'Arial Black', sans-serif;
+
+  /* Launcher-Farben (hell, Home-Menü-Stil) */
+  --color-home-bg: #eef1f4;
+  --color-home-tile: #ffffff;
+  --color-home-line: #d5dbe1;
+  --color-home-text: #4a4f57;
+  --color-home-muted: #8b929b;
+  --color-cyan: #1fb3d4;
+  --color-cyan-dark: #138fae;
+
+  /* Comic-Farben */
+  --color-ink: #161616;
+  --color-paper: #fcfcf7;
+  --color-grid: #a9d9ee;
+  --color-margin: #e2565c;
+  --color-pop-yellow: #ffd93b;
+  --color-pop-red: #ff4b4b;
+  --color-pop-blue: #3aa8ff;
+  --color-pop-green: #3fd07a;
+  --color-pop-pink: #ff7ab8;
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -25,29 +48,137 @@ body,
 
 body {
   margin: 0;
-  background: var(--color-ink-950);
-  color: #f5f5f7;
+  background: var(--color-home-bg);
+  color: var(--color-home-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
 }
 
-/* sanfter Hintergrund-Glow im Apple-TV-Stil */
-.app-backdrop {
+/* ------------------------------------------------------------------ Launcher (Home-Menü) */
+
+.home-bg {
   background:
-    radial-gradient(1200px 700px at 15% -10%, rgba(120, 90, 255, 0.18), transparent 60%),
-    radial-gradient(900px 600px at 100% 0%, rgba(255, 90, 140, 0.12), transparent 60%),
-    radial-gradient(1000px 800px at 50% 120%, rgba(40, 140, 255, 0.1), transparent 60%),
-    var(--color-ink-950);
+    radial-gradient(900px 600px at 85% 15%, rgba(255, 255, 255, 0.95), transparent 60%),
+    radial-gradient(800px 600px at 10% 90%, rgba(255, 255, 255, 0.8), transparent 60%),
+    linear-gradient(160deg, #f7f9fb 0%, #e9edf1 55%, #e2e7ec 100%);
+  color: var(--color-home-text);
 }
 
-.glass {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035));
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  backdrop-filter: blur(24px) saturate(140%);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
+/* schwebende, weiche Formen im Hintergrund */
+.home-shape {
+  position: absolute;
+  border-radius: 28px;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(220, 226, 232, 0.35));
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  filter: blur(1.5px);
+  pointer-events: none;
 }
+
+/* glänzender Kachelrahmen */
+.home-tile {
+  background: linear-gradient(180deg, #ffffff 0%, #f3f5f7 100%);
+  border: 1px solid #d8dde3;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 6px 14px -6px rgba(60, 70, 85, 0.35),
+    0 2px 3px rgba(60, 70, 85, 0.12);
+}
+
+.home-panel {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #dfe4e9;
+  box-shadow: 0 20px 50px -20px rgba(50, 60, 80, 0.35);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.home-input {
+  height: 3rem;
+  min-width: 0;
+  border-radius: 14px;
+  border: 2px solid #d5dbe1;
+  background: #fff;
+  padding: 0 1rem;
+  font-size: 1rem;
+  color: var(--color-home-text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.home-input:focus {
+  border-color: var(--color-cyan);
+  box-shadow: 0 0 0 4px rgba(31, 179, 212, 0.18);
+}
+.home-input::placeholder {
+  color: #a7adb5;
+}
+
+/* ------------------------------------------------------------------ Spiele (Comic auf Karopapier) */
+
+.paper-grid {
+  background-color: var(--color-paper);
+  background-image:
+    linear-gradient(var(--color-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
+  background-size: 26px 26px;
+  background-position: -1px -1px;
+}
+
+.comic {
+  font-family: var(--font-comic);
+  color: var(--color-ink);
+}
+
+.font-bangers {
+  font-family: var(--font-bangers);
+  letter-spacing: 0.04em;
+  font-weight: 400;
+}
+
+.comic-box {
+  background: #fff;
+  border: 3px solid var(--color-ink);
+  border-radius: 14px;
+  box-shadow: 5px 5px 0 var(--color-ink);
+}
+
+.comic-box-sm {
+  background: #fff;
+  border: 2.5px solid var(--color-ink);
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 var(--color-ink);
+}
+
+/* Rasterpunkte (Halbton) als Akzent */
+.halftone {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.18) 1.2px, transparent 1.4px);
+  background-size: 8px 8px;
+}
+
+.comic-input {
+  height: 3.5rem;
+  min-width: 0;
+  border-radius: 14px;
+  border: 3px solid var(--color-ink);
+  background: #fff;
+  padding: 0 1.1rem;
+  font-family: var(--font-comic);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--color-ink);
+  outline: none;
+  box-shadow: 3px 3px 0 var(--color-ink);
+}
+.comic-input:focus {
+  box-shadow: 3px 3px 0 var(--color-ink), 0 0 0 4px rgba(255, 217, 59, 0.8);
+}
+.comic-input::placeholder {
+  color: #9a9a9a;
+  font-weight: 400;
+}
+
+/* ------------------------------------------------------------------ Allgemein */
 
 .text-balance {
   text-wrap: balance;
@@ -75,6 +206,6 @@ body {
 }
 
 :focus-visible {
-  outline: 3px solid rgba(255, 255, 255, 0.85);
+  outline: 3px solid var(--color-cyan);
   outline-offset: 3px;
 }

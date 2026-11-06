@@ -29,7 +29,7 @@ export function MontagsmalerSettingsPanel({ settings, onChange, disabled }: Sett
   const customCount = usesCustom ? (lists ?? []).filter((l) => settings.customListIds.includes(l.id)).reduce((n, l) => n + l.wordCount, 0) : 0;
 
   return (
-    <div className="divide-y divide-white/[0.06]">
+    <div className="divide-y divide-home-line/70">
       <div className="pb-2">
         <SectionTitle>Spielablauf</SectionTitle>
         <SettingRow label="Runden" hint="Jede Person zeichnet einmal pro Runde">
@@ -69,20 +69,20 @@ export function MontagsmalerSettingsPanel({ settings, onChange, disabled }: Sett
             disabled={disabled}
             options={WORD_MODES.map((m) => ({ value: m, label: WORD_MODE_LABELS[m].label }))}
           />
-          <p className="mt-2 text-xs text-white/45">
-            {WORD_MODE_LABELS[settings.wordMode].hint} · verfügbar: <strong className="text-white/70">{standardCount + customCount}</strong> Wörter
+          <p className="mt-2 text-xs font-bold text-home-muted">
+            {WORD_MODE_LABELS[settings.wordMode].hint} · verfügbar: <strong className="text-home-text">{standardCount + customCount}</strong> Wörter
           </p>
         </div>
 
         {usesCustom && (
           <div className="py-3">
             <div className="mb-2 flex items-center justify-between">
-              <div className="text-[15px] font-medium">Eigene Wortlisten</div>
+              <div className="text-[15px] font-extrabold">Eigene Wortlisten</div>
               <Button size="sm" variant="ghost" icon={<Library className="size-4" />} onClick={() => setManagerOpen(true)}>
                 Verwalten
               </Button>
             </div>
-            {lists && lists.length === 0 && <p className="text-sm text-white/50">Noch keine Listen – lege über „Verwalten“ eine an.</p>}
+            {lists && lists.length === 0 && <p className="text-sm font-bold text-home-muted">Noch keine Listen – lege über „Verwalten“ eine an.</p>}
             <div className="flex flex-wrap gap-2">
               {(lists ?? []).map((l) => (
                 <Chip key={l.id} active={settings.customListIds.includes(l.id)} disabled={disabled} onClick={() => set({ customListIds: toggleIn(settings.customListIds, l.id) })}>
@@ -95,9 +95,9 @@ export function MontagsmalerSettingsPanel({ settings, onChange, disabled }: Sett
 
         <div className="py-3">
           <div className="mb-2 flex items-center justify-between">
-            <div className="text-[15px] font-medium">Kategorien</div>
+            <div className="text-[15px] font-extrabold">Kategorien</div>
             <button
-              className="text-xs font-semibold text-white/50 hover:text-white disabled:opacity-40"
+              className="text-xs font-black text-cyan-dark hover:text-cyan disabled:opacity-40"
               disabled={disabled}
               onClick={() => set({ categories: settings.categories.length === WORD_CATEGORIES.length ? [WORD_CATEGORIES[0]] : [...WORD_CATEGORIES] })}
             >
@@ -121,7 +121,7 @@ export function MontagsmalerSettingsPanel({ settings, onChange, disabled }: Sett
           </div>
         </div>
         <div className="py-3">
-          <div className="mb-2 text-[15px] font-medium">Schwierigkeit</div>
+          <div className="mb-2 text-[15px] font-extrabold">Schwierigkeit</div>
           <div className="flex flex-wrap gap-2">
             {WORD_DIFFICULTIES.map((d) => (
               <Chip

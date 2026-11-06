@@ -47,23 +47,18 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
   };
 
   return (
-    <div className="app-backdrop flex min-h-dvh flex-col px-6 safe-pt safe-pb">
-      <div className="pt-6">
+    <div className="home-bg flex min-h-dvh flex-col px-6 safe-pt safe-pb">
+      <div className="pt-4">
         <Logo size="sm" />
       </div>
-      <motion.form
-        onSubmit={submit}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-8"
-      >
+      <motion.form onSubmit={submit} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-7">
         <div>
-          <h1 className="text-4xl font-semibold tracking-tight">Mitspielen</h1>
-          <p className="mt-2 text-white/55">Gib den Code vom Bildschirm und deinen Namen ein.</p>
+          <h1 className="text-4xl font-black tracking-tight">Mitspielen</h1>
+          <p className="mt-1 font-bold text-home-muted">Code vom Fernseher und deinen Namen eingeben.</p>
         </div>
 
-        <label className="flex flex-col gap-3">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Raumcode</span>
+        <label className="flex flex-col gap-2.5">
+          <span className="text-xs font-black uppercase tracking-[0.16em] text-cyan-dark">Raumcode</span>
           <div className="relative">
             <input
               value={code}
@@ -81,8 +76,8 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
               {Array.from({ length: ROOM_CODE_LENGTH }).map((_, i) => (
                 <div
                   key={i}
-                  className={`grid aspect-square place-items-center rounded-2xl text-4xl font-bold transition-all ${
-                    code[i] ? 'bg-white text-black' : i === code.length ? 'border-2 border-white/60 bg-white/[0.06]' : 'border border-white/10 bg-white/[0.04]'
+                  className={`grid aspect-square place-items-center rounded-[26%] text-4xl font-black transition-all ${
+                    code[i] ? 'home-tile text-cyan-dark' : i === code.length ? 'border-[3px] border-cyan bg-white/70' : 'border-2 border-white/80 bg-white/40'
                   }`}
                 >
                   {code[i] ?? ''}
@@ -92,8 +87,8 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
           </div>
         </label>
 
-        <label className="flex flex-col gap-3">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Dein Name</span>
+        <label className="flex flex-col gap-2.5">
+          <span className="text-xs font-black uppercase tracking-[0.16em] text-cyan-dark">Dein Name</span>
           <input
             value={name}
             onChange={(e) => setName(e.target.value.slice(0, PLAYER_NAME_MAX))}
@@ -102,11 +97,11 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
             autoComplete="nickname"
             enterKeyHint="go"
             autoFocus={!!code}
-            className="h-16 rounded-2xl border border-white/10 bg-white/[0.07] px-5 text-xl outline-none transition placeholder:text-white/30 focus:border-white/50"
+            className="home-input !h-16 !rounded-[20px] !text-xl font-bold"
           />
         </label>
 
-        {error && <div className="rounded-2xl bg-rose-500/15 px-4 py-3 text-sm font-medium text-rose-200">{error}</div>}
+        {error && <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">{error}</div>}
 
         <Button type="submit" variant="primary" size="xl" disabled={!valid} loading={busy} className="w-full">
           Beitreten <ArrowRight className="size-6" />

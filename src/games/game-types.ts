@@ -6,7 +6,7 @@
  * Das Server-Gegenstück ist `ServerGameModule` in `src/server/game-engine/types.ts`.
  */
 import type { ComponentType } from 'react';
-import type { GameMeta } from '../shared/types/game';
+import type { GameMeta, GameResults } from '../shared/types/game';
 import type { GameStatePayload, PublicPlayer, RoomSnapshot } from '../shared/types/room';
 
 export interface CoverProps {
@@ -36,13 +36,27 @@ export interface SettingsPanelProps<S = unknown> {
   compact?: boolean;
 }
 
+/** Rangliste am Spielende – optional im eigenen Stil des Spiels */
+export interface ResultsViewProps {
+  room: RoomSnapshot;
+  results: GameResults;
+  /** 'host' = Hauptbildschirm, 'player' = Smartphone */
+  device: 'host' | 'player';
+  meId?: string;
+  canControl: boolean;
+  onRestart: () => void;
+  onBack: () => void;
+}
+
 export interface ClientGameModule<Pub = any, Priv = any, S = any> {
   meta: GameMeta;
-  /** eigenes Cover; ohne Angabe wird ein generisches Cover aus `meta.theme` erzeugt */
+  /** quadratische Kachel-Grafik; ohne Angabe wird eine generische aus `meta.theme` erzeugt */
   Cover?: ComponentType<CoverProps>;
   HostView: ComponentType<HostViewProps<Pub>>;
   PlayerView: ComponentType<PlayerViewProps<Pub, Priv>>;
   SettingsPanel?: ComponentType<SettingsPanelProps<S>>;
+  /** eigene Ergebnis-Ansicht; ohne Angabe zeigt der Launcher eine neutrale Rangliste */
+  ResultsView?: ComponentType<ResultsViewProps>;
   /** kurze Spielregeln für den Launcher */
   rules?: string[];
 }

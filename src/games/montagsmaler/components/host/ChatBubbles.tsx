@@ -1,9 +1,10 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { PartyPopper } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useGameEvent } from '../../../../app/session/hooks';
 import type { PublicPlayer } from '../../../../shared/types/room';
 import { PlayerAvatar } from '../../../../components/lobby/PlayerAvatar';
+import { Burst } from '../../../../components/comic/Burst';
+import { SpeechBubble } from '../../../../components/comic/SpeechBubble';
 import { MM_EVENTS, type ChatEvent, type CorrectEvent } from '../../types';
 
 export type BubbleSide = 'left' | 'right';
@@ -18,7 +19,7 @@ export interface Bubble {
   points?: number;
 }
 
-const MAX_PER_SIDE = 4;
+const MAX_PER_SIDE = 3;
 const CHAT_TTL = 5500;
 const CORRECT_TTL = 7000;
 
@@ -67,50 +68,43 @@ export function useChatBubbles(turn: number) {
   return bubbles;
 }
 
+const EXCLAMATIONS = ['BÄM!', 'ZACK!', 'WOW!', 'TREFFER!', 'JAWOLL!'];
+
 export function BubbleStack({ bubbles, side, players }: { bubbles: Bubble[]; side: BubbleSide; players: PublicPlayer[] }) {
   const items = bubbles.filter((b) => b.side === side);
   return (
-    <div className={`flex flex-col justify-end gap-3 ${side === 'left' ? 'items-start' : 'items-end'}`}>
+    <div className={`flex flex-col justify-end gap-7 ${side === 'left' ? 'items-start' : 'items-end'}`}>
       <AnimatePresence initial={false} mode="popLayout">
         {items.map((b) => {
           const player = players.find((p) => p.id === b.playerId);
           const name = player?.name ?? 'Jemand';
           const color = player?.avatarColor ?? '#888';
+          // leichte, stabile Schräglage je Nachricht
+          const tilt = ((b.id.charCodeAt(b.id.length - 1) % 5) - 2) * 0.9;
           return (
             <motion.div
               key={b.id}
               layout
-              initial={{ opacity: 0, y: 36, scale: 0.85 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -14, scale: 0.92, transition: { duration: 0.35 } }}
-              transition={{ type: 'spring', stiffness: 420, damping: 30 }}
-              className={`flex max-w-full items-end gap-2.5 ${side === 'right' ? 'flex-row-reverse' : ''}`}
+              initial={{ opacity: 0, y: 30, scale: 0.4, rotate: tilt * 4 }}
+              animate={{ opacity: 1, y: 0, scale: 1, rotate: tilt }}
+              exit={{ opacity: 0, scale: 0.7, y: -10, transition: { duration: 0.25 } }}
+              transition={{ type: 'spring', stiffness: 520, damping: 22 }}
+              className={`flex max-w-full items-end gap-2 ${side === 'right' ? 'flex-row-reverse' : ''}`}
             >
-              <PlayerAvatar name={name} color={color} size="sm" />
+              <PlayerAvatar name={name} color={color} size="md" variant="comic" />
               {b.kind === 'chat' ? (
-                <div
-                  className={`max-w-[22rem] rounded-[22px] bg-white px-4 py-2.5 text-black shadow-xl shadow-black/30 ${side === 'left' ? 'rounded-bl-md' : 'rounded-br-md'}`}
-                >
-                  <div className="text-xs font-semibold" style={{ color: `color-mix(in srgb, ${color} 70%, #000)` }}>
+                <SpeechBubble side={side} className="mb-6 max-w-[22rem]">
+                  <div className="text-sm font-bold" style={{ color: `color-mix(in srgb, ${color} 60%, #000)` }}>
                     {name}
                   </div>
-                  <div className="break-words text-lg font-medium leading-snug">{b.text}</div>
-                </div>
+                  <div className="break-words text-2xl font-bold leading-tight">{b.text}</div>
+                </SpeechBubble>
               ) : (
-                <motion.div
-                  initial={{ boxShadow: '0 0 0 0 rgba(52,211,153,0.7)' }}
-                  animate={{ boxShadow: ['0 0 0 0 rgba(52,211,153,0.6)', '0 0 0 16px rgba(52,211,153,0)'] }}
-                  transition={{ duration: 1.2, repeat: 1 }}
-                  className={`flex max-w-[24rem] items-center gap-3 rounded-[22px] bg-gradient-to-r from-emerald-400 to-teal-400 px-4 py-3 text-black shadow-xl ${side === 'left' ? 'rounded-bl-md' : 'rounded-br-md'}`}
-                >
-                  <PartyPopper className="size-6 shrink-0" />
-                  <div>
-                    <div className="text-lg font-bold leading-tight">{name} hat das Wort erraten!</div>
-                    <div className="text-sm font-semibold text-black/60">
-                      {b.rank === 1 ? 'Als Erste:r · ' : `Platz ${b.rank} · `}+{b.points} Punkte
-                    </div>
-                  </div>
-                </motion.div>
+                <Burst color="#7dea9f" spikes={16} className="mb-2 aspect-[1.6] w-[19rem] max-w-full">
+                  <div className="font-bangers text-3xl leading-none">{EXCLAMATIONS[(b.rank ?? 1) % EXCLAMATIONS.length]}</div>
+                  <div className="text-base font-bold leading-tight">{name} hat's erraten!</div>
+                  <div className="font-bangers text-xl">+{b.points}</div>
+                </Burst>
               )}
             </motion.div>
           );

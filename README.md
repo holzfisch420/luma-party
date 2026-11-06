@@ -109,6 +109,18 @@ Einstellungen → Wörter → **Eigene Wörter** (nur eigene) oder **Mix** wähl
 
 ---
 
+## Design
+
+- **Launcher (Home-Menü):** hell und freundlich – Kachelraster (5×3 pro Seite) mit glänzenden Rahmen,
+  cyanfarbener Auswahl mit „Start“-Leiste, Sprechblase mit dem Spielnamen, Seitenpunkte oben,
+  Raum-Kachel oben links und eine Icon-Leiste unten (Spieler, Beitreten, Wörter, Vollbild, Hilfe, Einstellungen).
+  Bedienung mit Maus, Touch oder Pfeiltasten/Enter (TV-Fernbedienung). Das Handy der auswahlberechtigten
+  Person zeigt dasselbe Raster. Inspiriert von Konsolen-Home-Menüs, aber mit eigenen Grafiken und Icons.
+- **Spiele (Comic auf Karopapier):** Jedes Spiel bringt seinen eigenen Stil mit. Montagsmaler nutzt den
+  Comic-Baukasten in `src/components/comic/` (Karopapier-Blatt mit Lochrand, Comic-Buttons, Sprechblasen,
+  „BÄM!“-Sterne, Countdown, Punktetafel) – auf TV und Handy, inklusive eigener Rangliste (`ResultsView`).
+- Schriften (Nunito, Bangers, Comic Neue) sind lokal eingebunden und funktionieren auch offline.
+
 ## Architektur
 
 ```
@@ -122,10 +134,11 @@ src/
 │   └── session/            # Socket, Session-Store, Host-/Spieler-Verbindung, Hooks
 ├── components/
 │   ├── ui/                 # Button, Modal, Toast, Toggle, Countdown, Logo, Ladezustände, Verbindungsstatus
-│   ├── launcher/           # GameCard (Parallax-Tilt), GameCarousel, GameInfo, Einstellungs-Sheet
+│   ├── launcher/           # HomeGrid, HomeTile, HomeDock, LaunchPanel, Kachel-Grafiken, Einstellungs-Sheet
+│   ├── comic/              # Comic-Baukasten für Spiele (Papier, Buttons, Sprechblasen, Sterne …)
 │   ├── lobby/              # Raumcode, Spielerliste, Avatar, QR-Beitritt
 │   ├── mobile-controller/  # Join-Screen, Lobby, Spielauswahl auf dem Handy
-│   ├── game/               # Scoreboard, Rangliste (spielunabhängig)
+│   ├── game/               # neutrale Rangliste (für Spiele ohne eigene ResultsView)
 │   └── word-manager/       # Wortlisten-Verwaltung + API-Client
 ├── games/
 │   ├── game-types.ts       # Client-Interface für Spiele
@@ -199,7 +212,7 @@ src/
 4. **Registrieren**: Server in `src/server/game-manager/server-game-registry.ts`,
    Metadaten in `src/games/game-catalog.ts`.
 5. **Oberflächen** in `index.ts` als `ClientGameModule`: `HostView` (TV), `PlayerView` (Handy),
-   optional `SettingsPanel` und `Cover`; in `src/games/game-registry.ts` registrieren.
+   optional `SettingsPanel`, `ResultsView` und `Cover` (quadratische Kachel-Grafik); in `src/games/game-registry.ts` registrieren.
 6. Fertig – der Launcher zeigt das Spiel automatisch an, inklusive Einstellungen, Start, Rangliste und Wiederverbindung.
 
 Ergebnisse meldet die Engine mit `ctx.endGame({ scores })`; die Rangliste rendert der Launcher generisch.

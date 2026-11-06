@@ -16,6 +16,9 @@
     "desktop:windows": "node scripts/build-desktop.mjs windows"
   },
   "dependencies": {
+    "@fontsource/bangers": "^5.3.0",
+    "@fontsource/comic-neue": "^5.3.0",
+    "@fontsource/nunito": "^5.3.0",
     "express": "^5.3.0",
     "framer-motion": "^14.9.1",
     "lucide-react": "^1.69.0",
