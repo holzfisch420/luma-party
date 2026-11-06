@@ -109,6 +109,30 @@ Einstellungen → Wörter → **Eigene Wörter** (nur eigene) oder **Mix** wähl
 
 ---
 
+## Spiele
+
+### Montagsmaler
+Zeichnen & Raten im Comic-Stil (siehe oben).
+
+### Kettenchaos (Panzer-Arena)
+Eigenes Panzer-Partyspiel in Draufsicht für **2–8 Spieler**, inspiriert von klassischen Panzer-Minispielen –
+mit eigenen Grafiken, eigenem Namen und eigenen Arenen.
+
+- **Steuerung:** Handy **quer** halten. Links ein schwebender Joystick (erscheint unter dem Daumen),
+  rechts vier Tasten: **A** Feuer, **B** Power-up einsetzen, **X** Turbo (Abklingzeit), **Y** Hupe.
+  Zwei Lenkarten wählbar: *Panzer* (↑↓ fahren, ←→ drehen) oder *Richtung* (fährt dorthin, wohin man zeigt).
+- **Regeln:** Kugeln prallen von Wänden ab (auch auf einen selbst zurück), max. 5 eigene Kugeln gleichzeitig.
+  Der letzte Panzer gewinnt die Runde; wer zuerst die eingestellte Zahl an Runden gewinnt, ist Champion.
+- **16 Panzerfarben** zur Auswahl (jede Farbe nur einmal pro Partie).
+- **13 Arenen** (Offenes Feld, Kreuzung, Labyrinth, Säulenhalle, Festung, X-Kreuz, Schachbrett, Spirale,
+  Zwei Lager, Gassen, Ring, Inseln, Engpass) in vier Themen (Sand, Gras, Schnee, Asphalt).
+- **Reifenspuren**, die langsam verblassen, und Brandflecken nach Explosionen.
+- **8 Power-ups** aus Kisten: Laser (prallt 3× ab), Schrot (7 Kugeln), Lenkrakete, Mine, Schild,
+  Dauerfeuer, Splitterbombe, Tarnkappe.
+- Einstellungen: Siege zum Gewinnen, Power-up-Häufigkeit, Arenen-Auswahl, Zufall oder der Reihe nach.
+- Technik: Server-Simulation mit 60 Hz, Positionsdaten mit 20 Hz an den Fernseher (dort auf 60 fps interpoliert),
+  Handys senden nur Joystick und Tasten.
+
 ## Konten & Avatare
 
 - **Konto (optional):** Benutzername + Passwort. Gäste können weiterhin ohne Konto mitspielen.

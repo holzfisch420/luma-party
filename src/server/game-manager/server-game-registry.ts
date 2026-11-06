@@ -4,6 +4,7 @@
  */
 import type { ServerGameModule } from '../game-engine/types';
 import { montagsmalerServerModule } from '../../games/montagsmaler/game-engine';
+import { panzerServerModule } from '../../games/panzer/game-engine';
 
 const modules = new Map<string, ServerGameModule<any>>();
 
@@ -21,3 +22,4 @@ export function listServerGames(): ServerGameModule<unknown>[] {
 }
 
 registerServerGame(montagsmalerServerModule);
+registerServerGame(panzerServerModule);

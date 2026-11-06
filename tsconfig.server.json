@@ -11,5 +11,5 @@
     "isolatedModules": true,
     "types": ["node"]
   },
-  "include": ["src/server", "src/desktop", "src/shared", "src/games/**/game-config.ts", "src/games/**/game-engine.ts", "src/games/**/words/*.ts", "src/games/**/types.ts", "src/games/**/logic/*.ts", "src/games/game-catalog.ts"]
+  "include": ["src/server", "src/desktop", "src/shared", "src/games/**/game-config.ts", "src/games/**/game-engine.ts", "src/games/**/words/*.ts", "src/games/**/types.ts", "src/games/**/maps.ts", "src/games/**/logic/*.ts", "src/games/game-catalog.ts"]
 }

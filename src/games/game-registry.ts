@@ -6,6 +6,7 @@ import type { GameMeta } from '../shared/types/game';
 import { GAME_CATALOG } from './game-catalog';
 import type { ClientGameModule } from './game-types';
 import { montagsmalerModule } from './montagsmaler';
+import { panzerModule } from './panzer';
 
 const modules = new Map<string, ClientGameModule>();
 
@@ -14,6 +15,7 @@ export function registerClientGame(module: ClientGameModule) {
 }
 
 registerClientGame(montagsmalerModule);
+registerClientGame(panzerModule);
 
 export function getClientGame(id: string | null | undefined): ClientGameModule | undefined {
   return id ? modules.get(id) : undefined;

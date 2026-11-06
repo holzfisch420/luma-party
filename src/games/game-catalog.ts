@@ -4,9 +4,10 @@
  */
 import type { GameMeta } from '../shared/types/game';
 import { montagsmalerMeta } from './montagsmaler/game-config';
+import { panzerMeta } from './panzer/game-config';
 import { FUTURE_GAMES } from './future-games/catalog';
 
-export const GAME_CATALOG: GameMeta[] = [montagsmalerMeta, ...FUTURE_GAMES];
+export const GAME_CATALOG: GameMeta[] = [montagsmalerMeta, panzerMeta, ...FUTURE_GAMES];
 
 export const DEFAULT_GAME_ID = montagsmalerMeta.id;
 
