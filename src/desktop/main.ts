@@ -83,7 +83,7 @@ async function main() {
   let lastError: unknown;
   for (let port = FIRST_PORT; port < FIRST_PORT + 20; port++) {
     try {
-      await startServer({ port, dataFile: path.join(dir, 'word-lists.json'), assets: ASSETS as EmbeddedAssets });
+      await startServer({ port, dataDir: dir, databaseUrl: null, assets: ASSETS as EmbeddedAssets });
       banner(port);
       openHostScreen(`http://localhost:${port}/host`);
       return;

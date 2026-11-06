@@ -1,12 +1,8 @@
 /**
- * Persistente Speicherung eigener Wortlisten in einer JSON-Datei.
- * Bewusst einfach gehalten: für eine lokale Party-App reicht das völlig aus und
- * erfordert keine externe Datenbank. Die Schnittstelle ist klein genug, um später
- * gegen Prisma/PostgreSQL ausgetauscht zu werden.
+ * Eigene Wortlisten – gespeichert über den Dokumentenspeicher (Datei oder PostgreSQL).
  */
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import type { DocumentStore } from './document-store';
 import {
   WORD_CATEGORIES,
   WORD_DIFFICULTIES,
@@ -56,42 +52,30 @@ export interface RestoreInput {
   createdAt?: number;
 }
 
+const COLLECTION = 'word-lists';
+
 export class WordListStore {
   private lists = new Map<string, WordList>();
   private loaded = false;
-  private writeChain: Promise<void> = Promise.resolve();
 
-  constructor(private readonly filePath: string | null) {}
+  constructor(private readonly store: DocumentStore) {}
 
   async load(): Promise<void> {
     if (this.loaded) return;
-    if (!this.filePath) {
-      this.loaded = true;
-      return;
-    }
-    try {
-      const raw = await fs.readFile(this.filePath, 'utf8');
-      const data = JSON.parse(raw) as { lists?: WordList[] };
-      for (const l of data.lists ?? []) this.lists.set(l.id, l);
-    } catch (err) {
-      if ((err as NodeJS.ErrnoException).code !== 'ENOENT') console.error('[words] Laden fehlgeschlagen:', err);
-    }
+    for (const l of await this.store.loadAll<WordList>(COLLECTION)) this.lists.set(l.id, l);
     this.loaded = true;
   }
 
-  private persist(): Promise<void> {
-    if (!this.filePath) return Promise.resolve();
-    const filePath = this.filePath;
-    const snapshot = JSON.stringify({ lists: [...this.lists.values()] }, null, 2);
-    this.writeChain = this.writeChain
-      .then(async () => {
-        await fs.mkdir(path.dirname(filePath), { recursive: true });
-        const tmp = `${filePath}.tmp`;
-        await fs.writeFile(tmp, snapshot, 'utf8');
-        await fs.rename(tmp, filePath);
-      })
-      .catch((err) => console.error('[words] Speichern fehlgeschlagen:', err));
-    return this.writeChain;
+  /** Änderung einer Liste dauerhaft speichern (oder Löschung, falls nicht mehr vorhanden) */
+  private async persist(id: string): Promise<void> {
+    const list = this.lists.get(id);
+    try {
+      if (list) await this.store.put(COLLECTION, list);
+      else await this.store.remove(COLLECTION, id);
+    } catch (err) {
+      console.error('[words] Speichern fehlgeschlagen:', err);
+      throw new WordListError('Speichern fehlgeschlagen – bitte erneut versuchen.');
+    }
   }
 
   private visible(list: WordList, owner: Owner): boolean {
@@ -121,6 +105,7 @@ export class WordListStore {
    */
   async restore(owner: Owner, lists: RestoreInput[]): Promise<number> {
     let restored = 0;
+    const restoredIds: string[] = [];
     for (const input of lists) {
       if (this.lists.has(input.id)) continue;
       if (owner !== null && this.countOwned(owner) >= WORD_LISTS_PER_OWNER) break;
@@ -135,9 +120,10 @@ export class WordListStore {
       };
       this.addWordsTo(list, input.words.slice(0, WORD_LIST_MAX_WORDS));
       this.lists.set(list.id, list);
+      restoredIds.push(list.id);
       restored++;
     }
-    if (restored) await this.persist();
+    for (const id of restoredIds) await this.persist(id);
     return restored;
   }
 
@@ -162,7 +148,7 @@ export class WordListStore {
     const list: WordList = { id: randomUUID(), name: cleanName, words: [], createdAt: now, updatedAt: now, ...(owner ? { owner } : {}) };
     this.addWordsTo(list, words);
     this.lists.set(list.id, list);
-    await this.persist();
+    await this.persist(list.id);
     return list;
   }
 
@@ -172,14 +158,14 @@ export class WordListStore {
     if (!clean) throw new WordListError('Name darf nicht leer sein.');
     list.name = clean;
     list.updatedAt = Date.now();
-    await this.persist();
+    await this.persist(list.id);
     return list;
   }
 
   async remove(id: string, owner: Owner = null): Promise<void> {
     this.require(id, owner);
     this.lists.delete(id);
-    await this.persist();
+    await this.persist(id);
   }
 
   /** fügt Wörter hinzu; Duplikate (Groß-/Kleinschreibung ignoriert) werden übersprungen */
@@ -187,7 +173,7 @@ export class WordListStore {
     const list = this.require(id, owner);
     const { added, skipped } = this.addWordsTo(list, words);
     list.updatedAt = Date.now();
-    await this.persist();
+    await this.persist(list.id);
     return { list, added, skipped };
   }
 
@@ -205,7 +191,7 @@ export class WordListStore {
     if (input.category !== undefined) entry.category = normalizeCategory(input.category);
     if (input.difficulty !== undefined) entry.difficulty = normalizeDifficulty(input.difficulty);
     list.updatedAt = Date.now();
-    await this.persist();
+    await this.persist(list.id);
     return list;
   }
 
@@ -213,7 +199,7 @@ export class WordListStore {
     const list = this.require(listId, owner);
     list.words = list.words.filter((w) => w.id !== wordId);
     list.updatedAt = Date.now();
-    await this.persist();
+    await this.persist(list.id);
     return list;
   }
 

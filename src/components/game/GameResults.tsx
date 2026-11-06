@@ -31,7 +31,7 @@ export function GameResults({ results, gameName, canControl, onRestart, onBack, 
         {results.entries.map((e, i) => (
           <motion.div key={e.playerId} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.05 }} className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 ${e.playerId === meId ? 'bg-cyan/10' : ''}`}>
             <span className="w-7 text-center font-black tabular-nums text-home-muted">{e.rank}.</span>
-            <PlayerAvatar name={e.name} color={e.avatarColor} size="sm" />
+            <PlayerAvatar name={e.name} color={e.avatarColor} avatar={e.avatar} size="sm" />
             <span className="flex-1 truncate font-extrabold">{e.name}</span>
             {results.winnerIds.includes(e.playerId) && <Crown className="size-4 text-amber-500" />}
             <span className="text-lg font-black tabular-nums">{e.score}</span>

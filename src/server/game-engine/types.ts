@@ -9,6 +9,9 @@
 import type { GameMeta } from '../../shared/types/game';
 import type { NoticeKind, PlayerId } from '../../shared/types/room';
 import type { WordListStore } from '../storage/word-list-store';
+import type { AccountStore } from '../accounts/account-store';
+import type { TokenService } from '../accounts/tokens';
+import type { AvatarConfig } from '../../shared/avatar';
 
 export interface GamePlayer {
   id: PlayerId;
@@ -16,6 +19,7 @@ export interface GamePlayer {
   avatarColor: string;
   isConnected: boolean;
   joinedAt: number;
+  avatar: AvatarConfig | null;
 }
 
 /** Empfänger einzelner Events: alle, nur Hauptbildschirm, ein Spieler oder alle außer einem Spieler. */
@@ -33,6 +37,8 @@ export interface TimerHandle {
 /** Gemeinsame Dienste, die Spiele nutzen können (erweiterbar). */
 export interface GameServices {
   wordLists: WordListStore;
+  accounts: AccountStore;
+  tokens: TokenService;
 }
 
 export interface FinalScores {

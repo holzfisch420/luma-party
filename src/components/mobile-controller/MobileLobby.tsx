@@ -1,4 +1,6 @@
-import { BookOpen, Gamepad2, LogOut, MonitorOff, Tv } from 'lucide-react';
+import { BookOpen, Gamepad2, LogOut, MonitorOff, Tv, UserRound } from 'lucide-react';
+import { getAuthToken } from '../../app/account/account-store';
+import { AccountPanel } from '../avatar/AccountPanel';
 import { useEffect, useState } from 'react';
 import type { ConnectionStatus } from '../../app/session/session-store';
 import { emitWithAck, getSocket } from '../../app/session/socket';
@@ -23,6 +25,7 @@ const GAMES = listLauncherGames();
 export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot; me: PublicPlayer; status: ConnectionStatus; onLeave: () => void }) {
   const toast = useToast();
   const [wordsOpen, setWordsOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [launchOpen, setLaunchOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -59,10 +62,18 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
       </header>
 
       <div className="mt-3 flex items-center gap-4">
-        <PlayerAvatar name={me.name} color={me.avatarColor} size="lg" />
+        <button onClick={() => setAccountOpen(true)} aria-label="Avatar bearbeiten" className="relative">
+          <PlayerAvatar name={me.name} color={me.avatarColor} avatar={me.avatar} size="xl" />
+          <span className="absolute -bottom-1 -right-1 grid size-8 place-items-center rounded-full border-2 border-white bg-cyan text-white shadow">
+            <UserRound className="size-4" />
+          </span>
+        </button>
         <div className="min-w-0">
           <div className="text-sm font-extrabold text-home-muted">Du bist dabei!</div>
           <div className="truncate text-3xl font-black tracking-tight">{me.name}</div>
+          <button onClick={() => setAccountOpen(true)} className="mt-1 text-sm font-extrabold text-cyan-dark">
+            {me.hasAccount ? 'Avatar bearbeiten' : 'Konto & eigenen Avatar erstellen'}
+          </button>
         </div>
       </div>
 
@@ -113,6 +124,18 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
       <Button variant="secondary" className="mt-8 w-full" icon={<BookOpen className="size-4" />} onClick={() => setWordsOpen(true)}>
         Eigene Wörter verwalten
       </Button>
+      <Modal open={accountOpen} onClose={() => setAccountOpen(false)} title="Mein Konto & Avatar" subtitle="Dein Avatar erscheint in der Lobby, im Spiel und auf dem Fernseher.">
+        <AccountPanel
+          onChanged={(kind) => {
+            const token = getAuthToken();
+            if (kind !== 'signed-out' && token) {
+              getSocket().emit('player:refreshProfile', { authToken: token });
+              // nach dem Registrieren bleibt der Editor offen, damit der Avatar gebaut werden kann
+              if (kind !== 'registered') setAccountOpen(false);
+            }
+          }}
+        />
+      </Modal>
       <Modal open={wordsOpen} onClose={() => setWordsOpen(false)} title="Eigene Wörter" subtitle="Für den Modus „Eigene Wörter“ oder „Mix“.">
         <WordManager />
       </Modal>

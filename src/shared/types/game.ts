@@ -1,3 +1,5 @@
+import type { AvatarConfig } from '../avatar';
+
 /**
  * Spiel-Metadaten, die Launcher, Server und Client gleichermaßen kennen.
  * Der Launcher arbeitet ausschließlich mit diesen Daten – er kennt keine Spielinterna.
@@ -32,6 +34,7 @@ export interface GameResultEntry {
   playerId: string;
   name: string;
   avatarColor: string;
+  avatar?: AvatarConfig | null;
   score: number;
   rank: number;
 }

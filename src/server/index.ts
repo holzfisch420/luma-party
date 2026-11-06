@@ -14,20 +14,26 @@ import { RoomManager } from './rooms/room-manager';
 import { registerSocketHandlers } from './sockets/register-handlers';
 import { WordListStore } from './storage/word-list-store';
 import { createWordListRouter } from './routes/word-lists';
+import { createDocumentStore } from './storage/document-store';
+import { AccountStore } from './accounts/account-store';
+import { TokenService } from './accounts/tokens';
+import { createAuthRouter } from './routes/auth';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '../..');
 const isProd = process.env.NODE_ENV === 'production';
 const PORT = Number(process.env.PORT ?? (isProd ? 3000 : (process.env.SERVER_PORT ?? 3001)));
-const DATA_FILE = process.env.WORD_LISTS_FILE ?? path.join(ROOT, 'data', 'word-lists.json');
+const DATA_DIR = process.env.LUMA_DATA_DIR ?? path.join(ROOT, 'data');
 
 /** Eingebettete Frontend-Dateien (für das Desktop-Programm): Pfad → Inhalt */
 export type EmbeddedAssets = Record<string, { type: string; data: string /* base64 */ }>;
 
 export interface ServerOptions {
   port?: number;
-  /** Speicherort der Wortlisten; `null` = nur im Arbeitsspeicher */
-  dataFile?: string | null;
+  /** Ordner für dauerhafte Daten (Konten, Wortlisten); `null` = nur im Arbeitsspeicher */
+  dataDir?: string | null;
+  /** PostgreSQL-Verbindung; hat Vorrang vor dataDir (Standard: DATABASE_URL) */
+  databaseUrl?: string | null;
   assets?: EmbeddedAssets;
   /**
    * Öffentlicher Online-Modus (z. B. auf einem Hosting-Anbieter):
@@ -63,8 +69,18 @@ export async function startServer(portOrOptions: number | ServerOptions = PORT) 
   const opts: ServerOptions = typeof portOrOptions === 'number' ? { port: portOrOptions } : portOrOptions;
   const port = opts.port ?? PORT;
   const publicMode = opts.publicMode ?? PUBLIC_MODE;
-  const wordLists = new WordListStore(opts.dataFile === undefined ? DATA_FILE : opts.dataFile);
+  const store = await createDocumentStore({
+    databaseUrl: opts.databaseUrl === undefined ? process.env.DATABASE_URL : opts.databaseUrl,
+    dataDir: opts.dataDir === undefined ? DATA_DIR : opts.dataDir,
+  });
+  if (publicMode && store.kind !== 'postgres') {
+    console.warn('  ⚠  Online-Modus ohne Datenbank: Konten gehen bei einem Neustart verloren. DATABASE_URL setzen!');
+  }
+  const wordLists = new WordListStore(store);
   await wordLists.load();
+  const accounts = new AccountStore(store);
+  await accounts.load();
+  const tokens = await TokenService.create(store, accounts);
 
   const app = express();
   app.disable('x-powered-by');
@@ -79,16 +95,17 @@ export async function startServer(portOrOptions: number | ServerOptions = PORT) 
     pingInterval: 10_000,
     pingTimeout: 8_000,
   });
-  const rooms = new RoomManager(io, { wordLists });
+  const rooms = new RoomManager(io, { wordLists, accounts, tokens });
   registerSocketHandlers(io, rooms, { publicMode });
 
   app.get('/api/health', (_req, res) => {
     res.json({ ok: true, rooms: rooms.size });
   });
   app.get('/api/info', (_req, res) => {
-    res.json({ lanAddresses: publicMode ? [] : lanAddresses(), publicMode });
+    res.json({ lanAddresses: publicMode ? [] : lanAddresses(), publicMode, storage: store.kind });
   });
-  app.use('/api/word-lists', createWordListRouter(wordLists, { publicMode }));
+  app.use('/api/auth', createAuthRouter(accounts, tokens));
+  app.use('/api/word-lists', createWordListRouter(wordLists, { publicMode, tokens }));
 
   // Desktop-Programm: Frontend aus dem Speicher ausliefern
   const assets = opts.assets;
@@ -122,10 +139,13 @@ export async function startServer(portOrOptions: number | ServerOptions = PORT) 
     port: actualPort,
     io,
     rooms,
+    accounts,
+    storage: store.kind,
     close: async () => {
       rooms.dispose();
       io.close();
       await new Promise((r) => httpServer.close(() => r(undefined)));
+      await store.close();
     },
   };
 }

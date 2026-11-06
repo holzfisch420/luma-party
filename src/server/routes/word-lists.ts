@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { WORD_LIST_MAX_WORDS, WORD_LISTS_PER_OWNER, type WordList } from '../../shared/types/words';
 import { RateLimiter } from '../security/rate-limit';
 import { WordListError, type Owner, type WordListStore } from '../storage/word-list-store';
+import type { TokenService } from '../accounts/tokens';
+import { bearerToken } from './auth';
 
 const wordInput = z.object({
   word: z.string().max(200),
@@ -40,7 +42,7 @@ const clean = (list: WordList) => {
 
 const param = (req: Request, name: string) => String(req.params[name] ?? '');
 
-export function createWordListRouter(store: WordListStore, opts: { publicMode: boolean }): Router {
+export function createWordListRouter(store: WordListStore, opts: { publicMode: boolean; tokens: TokenService }): Router {
   const r = Router();
   const limiter = new RateLimiter(240, 60_000);
 
@@ -56,12 +58,15 @@ export function createWordListRouter(store: WordListStore, opts: { publicMode: b
   const wrap = (fn: Handler) => async (req: Request, res: Response) => {
     let owner: Owner = null;
     if (opts.publicMode) {
+      // angemeldet: Listen gehören dem Konto (auf allen Geräten), sonst dem Gerät
+      const accountId = opts.tokens.verify(bearerToken(req));
       const header = String(req.headers[OWNER_HEADER] ?? '');
-      if (!OWNER_PATTERN.test(header)) {
+      if (accountId) owner = `acc:${accountId}`;
+      else if (OWNER_PATTERN.test(header)) owner = header;
+      else {
         res.status(400).json({ error: 'Gerätekennung fehlt.' });
         return;
       }
-      owner = header;
     }
     try {
       const result = await fn(req, res, owner);

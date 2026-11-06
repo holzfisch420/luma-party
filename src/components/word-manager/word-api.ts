@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { WordList, WordListSummary } from '../../shared/types/words';
 import { getServerInfo } from '../../app/session/server-info';
+import { getAuthToken } from '../../app/account/account-store';
 
 const DEVICE_KEY = 'luma.device-id';
 const BACKUP_KEY = 'luma.wordlists.backup';
@@ -26,7 +27,12 @@ export function getDeviceId(): string {
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...init,
-    headers: { 'Content-Type': 'application/json', 'X-Luma-Owner': getDeviceId(), ...(init?.headers ?? {}) },
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Luma-Owner': getDeviceId(),
+      ...(getAuthToken() ? { Authorization: `Bearer ${getAuthToken()}` } : {}),
+      ...(init?.headers ?? {}),
+    },
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error((data as { error?: string }).error ?? `Fehler ${res.status}`);

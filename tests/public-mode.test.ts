@@ -6,7 +6,7 @@ let base = '';
 
 beforeAll(async () => {
   const mod = await import('../src/server/index');
-  server = await mod.startServer({ port: 0, dataFile: null, publicMode: true });
+  server = await mod.startServer({ port: 0, dataDir: null, databaseUrl: null, publicMode: true });
   base = `http://localhost:${server.port}`;
 });
 afterAll(async () => {

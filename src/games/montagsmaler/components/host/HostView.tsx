@@ -58,7 +58,7 @@ export function MontagsmalerHostView({ room, state }: HostViewProps<Montagsmaler
             </div>
             {drawer && (
               <div className="flex items-center gap-3">
-                <PlayerAvatar name={drawer.name} color={drawer.avatarColor} size="lg" variant="comic" />
+                <PlayerAvatar name={drawer.name} color={drawer.avatarColor} avatar={drawer.avatar} size="lg" variant="comic" />
                 <div>
                   <div className="text-base font-bold">Es zeichnet:</div>
                   <div className="font-bangers text-4xl leading-none">{drawer.name}</div>
@@ -98,7 +98,7 @@ export function MontagsmalerHostView({ room, state }: HostViewProps<Montagsmaler
               {pub.phase === 'choosing' && drawer && (
                 <motion.div key="choosing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 grid place-items-center rounded-[18px] bg-paper/70 backdrop-blur-[2px]">
                   <motion.div initial={{ scale: 0.3, rotate: -15 }} animate={{ scale: 1, rotate: -3 }} transition={{ type: 'spring', stiffness: 300, damping: 14 }} className="flex flex-col items-center gap-4">
-                    <PlayerAvatar name={drawer.name} color={drawer.avatarColor} size="xl" variant="comic" />
+                    <PlayerAvatar name={drawer.name} color={drawer.avatarColor} avatar={drawer.avatar} size="xl" variant="comic" />
                     <Burst className="aspect-[1.7] w-[26rem]" spikes={18}>
                       <div className="font-bangers text-5xl leading-none">{drawer.name} ist dran!</div>
                       <div className="mt-1 text-lg font-bold">wählt ein Wort auf dem Handy …</div>
@@ -149,7 +149,7 @@ export function MontagsmalerHostView({ room, state }: HostViewProps<Montagsmaler
                 <div className="flex flex-wrap gap-2">
                   {upcoming.slice(0, 6).map((p) => (
                     <div key={p.id} className="flex items-center gap-1.5 rounded-full border-2 border-ink bg-white py-0.5 pl-0.5 pr-2.5">
-                      <PlayerAvatar name={p.name} color={p.avatarColor} size="xs" variant="comic" />
+                      <PlayerAvatar name={p.name} color={p.avatarColor} avatar={p.avatar} size="xs" variant="comic" />
                       <span className="text-sm font-bold">{p.name}</span>
                     </div>
                   ))}

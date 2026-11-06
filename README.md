@@ -109,6 +109,31 @@ Einstellungen → Wörter → **Eigene Wörter** (nur eigene) oder **Mix** wähl
 
 ---
 
+## Konten & Avatare
+
+- **Konto (optional):** Benutzername + Passwort. Gäste können weiterhin ohne Konto mitspielen.
+  Mit Konto kommen Name und Avatar automatisch mit – auf jedem Gerät.
+- **Avatar-Editor** auf dem Handy (`/konto` oder in der Lobby über den eigenen Avatar):
+  Gesichtsform, Hautton, Frisur & Haarfarbe, Augen & Augenfarbe, Brauen, Nase, Mund, Bart, Brille,
+  Bäckchen und Lieblingsfarbe – mit Live-Vorschau, Mini-Vorschau je Option und „Würfeln“.
+  Eigene SVG-Figur im Mii-ähnlichen Stil (keine fremden Grafiken), im Spiel automatisch mit Comic-Kontur.
+- Ein Gast kann sich in der Lobby anmelden – sein Platz im Raum wird dann mit dem Konto verknüpft.
+- Gleiches Konto auf einem zweiten Gerät übernimmt den bestehenden Platz im Raum.
+- **Sicherheit:** Passwörter mit scrypt gehasht, signierte Anmelde-Tokens (HMAC), Passwortänderung
+  meldet andere Geräte ab, Konto löschen jederzeit möglich, Rate-Limit für Anmeldeversuche.
+- **Online:** Eigene Wortlisten gehören dem Konto (statt dem Gerät), sobald man angemeldet ist.
+
+### Speicherung
+
+| Umgebung | Speicher |
+| --- | --- |
+| Desktop-Programm / `npm run dev` | JSON-Dateien (`data/` bzw. `%APPDATA%\LumaParty`) |
+| Online mit `DATABASE_URL` | PostgreSQL (Tabelle `luma_documents`, wird automatisch angelegt) |
+
+Für Render (oder jeden anderen Anbieter) eine kostenlose PostgreSQL-Datenbank anlegen, z. B. bei
+<https://neon.tech>, die Verbindungsadresse kopieren und bei Render unter **Environment** als
+`DATABASE_URL` eintragen. Ohne Datenbank laufen Konten online nur bis zum nächsten Neustart.
+
 ## Design
 
 - **Launcher (Home-Menü):** hell und freundlich – Kachelraster (5×3 pro Seite) mit glänzenden Rahmen,

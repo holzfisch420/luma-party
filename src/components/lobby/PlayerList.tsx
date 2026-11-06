@@ -26,7 +26,7 @@ export function PlayerList({ players, controllerId, hostHasControl, meId, onKick
             transition={{ type: 'spring', stiffness: 420, damping: 28 }}
             className={`group relative flex items-center gap-2 rounded-full border py-1 pl-1 pr-3.5 shadow-sm ${p.id === meId ? 'border-cyan bg-cyan/10' : 'border-home-line bg-white'} ${!p.isConnected ? 'opacity-60' : ''}`}
           >
-            <PlayerAvatar name={p.name} color={p.avatarColor} size="sm" dimmed={!p.isConnected} />
+            <PlayerAvatar name={p.name} color={p.avatarColor} avatar={p.avatar} size="sm" dimmed={!p.isConnected} />
             <span className="max-w-[10rem] truncate text-[15px] font-extrabold">{p.name}</span>
             {p.id === controllerId && (
               <span

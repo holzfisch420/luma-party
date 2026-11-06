@@ -10,7 +10,7 @@ export class RoomManager {
 
   constructor(
     private readonly io: TypedServer,
-    private readonly services: GameServices,
+    readonly services: GameServices,
   ) {
     this.sweeper = setInterval(() => this.sweep(), 10_000);
     this.sweeper.unref();

@@ -3,7 +3,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { connect, emitAck, sleep, type TestClient } from './helpers';
 
-process.env.WORD_LISTS_FILE = path.join(os.tmpdir(), `luma-test-${process.pid}.json`);
+process.env.LUMA_DATA_DIR = path.join(os.tmpdir(), `luma-test-${process.pid}`);
+delete process.env.DATABASE_URL;
 let server: Awaited<ReturnType<typeof import('../src/server/index').startServer>>;
 
 beforeAll(async () => {

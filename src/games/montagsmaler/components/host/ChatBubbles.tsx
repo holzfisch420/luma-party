@@ -91,7 +91,7 @@ export function BubbleStack({ bubbles, side, players }: { bubbles: Bubble[]; sid
               transition={{ type: 'spring', stiffness: 520, damping: 22 }}
               className={`flex max-w-full items-end gap-2 ${side === 'right' ? 'flex-row-reverse' : ''}`}
             >
-              <PlayerAvatar name={name} color={color} size="md" variant="comic" />
+              <PlayerAvatar name={name} color={color} avatar={player?.avatar} size="md" variant="comic" />
               {b.kind === 'chat' ? (
                 <SpeechBubble side={side} className="mb-6 max-w-[22rem]">
                   <div className="text-sm font-bold" style={{ color: `color-mix(in srgb, ${color} 60%, #000)` }}>

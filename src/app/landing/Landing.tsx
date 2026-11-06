@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { BookOpen, Smartphone, Tv } from 'lucide-react';
+import { BookOpen, Smartphone, Tv, UserRound } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Logo } from '../../components/ui/Logo';
 
@@ -40,9 +40,14 @@ export function Landing() {
             </motion.div>
           ))}
         </div>
-        <Link to="/words" className="home-tile flex items-center gap-2 self-start rounded-full px-5 py-2.5 text-sm font-extrabold text-home-muted hover:text-home-text">
-          <BookOpen className="size-4 text-[#ff9a1f]" /> Eigene Wortlisten verwalten
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link to="/konto" className="home-tile flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-extrabold text-home-muted hover:text-home-text">
+            <UserRound className="size-4 text-cyan" /> Mein Konto &amp; Avatar
+          </Link>
+          <Link to="/words" className="home-tile flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-extrabold text-home-muted hover:text-home-text">
+            <BookOpen className="size-4 text-[#ff9a1f]" /> Eigene Wortlisten verwalten
+          </Link>
+        </div>
       </main>
     </div>
   );

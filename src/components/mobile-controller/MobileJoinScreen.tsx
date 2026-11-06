@@ -1,5 +1,8 @@
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, UserRound } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { accountActions, getAuthToken, useAccount } from '../../app/account/account-store';
+import { PlayerAvatar } from '../lobby/PlayerAvatar';
 import { useState, type FormEvent } from 'react';
 import { PLAYER_NAME_MAX, ROOM_CODE_ALPHABET, ROOM_CODE_LENGTH, STORAGE_KEYS } from '../../shared/constants';
 import { Button } from '../ui/Button';
@@ -7,7 +10,7 @@ import { Logo } from '../ui/Logo';
 
 interface Props {
   initialCode?: string;
-  onJoin: (code: string, name: string) => Promise<void>;
+  onJoin: (code: string, name: string, authToken?: string | null) => Promise<void>;
   notice?: string | null;
 }
 
@@ -30,7 +33,8 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
   });
   const [error, setError] = useState<string | null>(notice ?? null);
   const [busy, setBusy] = useState(false);
-  const valid = code.length === ROOM_CODE_LENGTH && name.trim().length > 0;
+  const { account } = useAccount();
+  const valid = code.length === ROOM_CODE_LENGTH && (!!account || name.trim().length > 0);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -38,7 +42,7 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
     setBusy(true);
     setError(null);
     try {
-      await onJoin(code, name.trim());
+      await onJoin(code, account ? account.username : name.trim(), account ? getAuthToken() : null);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -87,19 +91,40 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
           </div>
         </label>
 
-        <label className="flex flex-col gap-2.5">
-          <span className="text-xs font-black uppercase tracking-[0.16em] text-cyan-dark">Dein Name</span>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value.slice(0, PLAYER_NAME_MAX))}
-            maxLength={PLAYER_NAME_MAX}
-            placeholder="z. B. Max"
-            autoComplete="nickname"
-            enterKeyHint="go"
-            autoFocus={!!code}
-            className="home-input !h-16 !rounded-[20px] !text-xl font-bold"
-          />
-        </label>
+        {account ? (
+          <div className="home-tile flex items-center gap-4 rounded-[24px] p-3">
+            <PlayerAvatar name={account.username} color="#1fb3d4" avatar={account.avatar} size="lg" />
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-black uppercase tracking-[0.16em] text-cyan-dark">Du spielst als</div>
+              <div className="truncate text-2xl font-black">{account.username}</div>
+            </div>
+            <button type="button" onClick={() => accountActions.signOut()} className="text-xs font-extrabold text-home-muted underline">
+              Als Gast
+            </button>
+          </div>
+        ) : (
+          <>
+            <label className="flex flex-col gap-2.5">
+              <span className="text-xs font-black uppercase tracking-[0.16em] text-cyan-dark">Dein Name</span>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value.slice(0, PLAYER_NAME_MAX))}
+                maxLength={PLAYER_NAME_MAX}
+                placeholder="z. B. Max"
+                autoComplete="nickname"
+                enterKeyHint="go"
+                autoFocus={!!code}
+                className="home-input !h-16 !rounded-[20px] !text-xl font-bold"
+              />
+            </label>
+            <Link
+              to={`/konto?back=${encodeURIComponent(`/play${code ? `?code=${code}` : ''}`)}`}
+              className="-mt-3 flex items-center gap-2 self-start text-sm font-extrabold text-cyan-dark"
+            >
+              <UserRound className="size-4" /> Mit Konto &amp; eigenem Avatar spielen
+            </Link>
+          </>
+        )}
 
         {error && <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-600">{error}</div>}
 

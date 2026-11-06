@@ -29,7 +29,7 @@ export function ComicScoreboard({ rows, title = 'Punkte' }: { rows: ScoreRow[]; 
               }`}
             >
               <span className="font-bangers w-5 text-right text-xl text-ink/50">{i + 1}</span>
-              <PlayerAvatar name={r.player.name} color={r.player.avatarColor} size="sm" variant="comic" dimmed={!r.player.isConnected} />
+              <PlayerAvatar name={r.player.name} color={r.player.avatarColor} avatar={r.player.avatar} size="sm" variant="comic" dimmed={!r.player.isConnected} />
               <span className="min-w-0 flex-1 truncate text-lg font-bold">{r.player.name}</span>
               {r.badge}
               <AnimatePresence>

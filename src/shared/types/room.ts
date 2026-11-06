@@ -1,4 +1,5 @@
 import type { GameResults } from './game';
+import type { AvatarConfig } from '../avatar';
 
 export type PlayerId = string;
 
@@ -8,6 +9,9 @@ export interface PublicPlayer {
   avatarColor: string;
   isConnected: boolean;
   joinedAt: number;
+  /** eigener Avatar (nur mit Konto), sonst null → Initialen */
+  avatar: AvatarConfig | null;
+  hasAccount: boolean;
 }
 
 export type RoomPhase = 'lobby' | 'playing' | 'results';

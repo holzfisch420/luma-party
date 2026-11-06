@@ -17,6 +17,7 @@ import type {
   RoomSnapshot,
 } from '../../shared/types/room';
 import { sanitizeText } from '../../shared/utils/text';
+import type { AvatarConfig } from '../../shared/avatar';
 import { DEFAULT_GAME_ID, getGameMeta } from '../../games/game-catalog';
 import type { EmitTarget, FinalScores, GamePlayer, GameServices } from '../game-engine/types';
 import { GameSession, type SessionHost } from '../game-manager/game-session';
@@ -35,6 +36,8 @@ export interface SocketData {
 interface PlayerRecord {
   id: PlayerId;
   name: string;
+  accountId: string | null;
+  avatar: AvatarConfig | null;
   token: string;
   avatarColor: string;
   joinedAt: number;
@@ -103,7 +106,15 @@ export class Room implements SessionHost {
   private publicPlayers(): PublicPlayer[] {
     return [...this.players.values()]
       .sort((a, b) => a.joinedAt - b.joinedAt)
-      .map((p) => ({ id: p.id, name: p.name, avatarColor: p.avatarColor, isConnected: p.socketId !== null, joinedAt: p.joinedAt }));
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        avatarColor: p.avatarColor,
+        isConnected: p.socketId !== null,
+        joinedAt: p.joinedAt,
+        avatar: p.avatar,
+        hasAccount: p.accountId !== null,
+      }));
   }
 
   /** Auswahlberechtigt ist genau ein Spieler: der am frühesten beigetretene, verbundene Spieler. */
@@ -150,23 +161,37 @@ export class Room implements SessionHost {
 
   // ------------------------------------------------------------------ Spieler
 
-  addPlayer(rawName: unknown, socket: TypedSocket): PlayerRecord {
-    const name = sanitizeText(rawName, PLAYER_NAME_MAX);
+  /**
+   * Spieler hinzufügen. Mit `account` kommen Name und Avatar aus dem Konto;
+   * ist das Konto schon im Raum (z. B. anderes Gerät), wird dieser Platz übernommen.
+   */
+  addPlayer(rawName: unknown, socket: TypedSocket, account?: { id: string; username: string; avatar: AvatarConfig } | null): PlayerRecord {
+    if (account) {
+      const mine = [...this.players.values()].find((p) => p.accountId === account.id);
+      if (mine) {
+        mine.avatar = account.avatar;
+        this.attachPlayer(mine, socket);
+        return mine;
+      }
+    }
+    const name = account ? account.username.slice(0, PLAYER_NAME_MAX) : sanitizeText(rawName, PLAYER_NAME_MAX);
     if (!name) throw new RoomError('Bitte gib einen Namen ein.');
     const existing = [...this.players.values()].find((p) => p.name.toLowerCase() === name.toLowerCase());
     if (existing) {
-      // getrennter Spieler mit gleichem Namen darf seinen Platz zurückholen
-      if (existing.socketId === null) {
+      // getrennter Gast mit gleichem Namen darf seinen Platz zurückholen (nicht bei Konten)
+      if (existing.socketId === null && !account && existing.accountId === null) {
         this.attachPlayer(existing, socket);
         return existing;
       }
-      throw new RoomError('Dieser Name ist bereits vergeben.');
+      throw new RoomError(account ? `Im Raum spielt schon jemand als „${name}“.` : 'Dieser Name ist bereits vergeben.');
     }
     if (this.players.size >= MAX_PLAYERS_PER_ROOM) throw new RoomError(`Der Raum ist voll (max. ${MAX_PLAYERS_PER_ROOM}).`);
 
     const record: PlayerRecord = {
       id: randomUUID(),
       name,
+      accountId: account?.id ?? null,
+      avatar: account?.avatar ?? null,
       token: token(),
       avatarColor: this.nextColor(),
       joinedAt: Date.now(),
@@ -176,6 +201,25 @@ export class Room implements SessionHost {
     this.players.set(record.id, record);
     this.attachPlayer(record, socket, true);
     return record;
+  }
+
+  /**
+   * Avatar eines Kontos im Raum aktualisieren (nach dem Speichern im Editor).
+   * Ein Gast, der sich in der Lobby anmeldet, wird dabei mit seinem Konto verknüpft.
+   */
+  refreshProfile(playerId: PlayerId, account: { id: string; username: string; avatar: AvatarConfig }): void {
+    const record = this.players.get(playerId);
+    if (!record) return;
+    if (record.accountId === null) {
+      if ([...this.players.values()].some((p) => p.accountId === account.id)) return;
+      record.accountId = account.id;
+      const name = account.username.slice(0, PLAYER_NAME_MAX);
+      const taken = [...this.players.values()].some((p) => p !== record && p.name.toLowerCase() === name.toLowerCase());
+      if (!taken) record.name = name;
+    }
+    if (record.accountId !== account.id) return;
+    record.avatar = account.avatar;
+    this.broadcast();
   }
 
   resumePlayer(tokenValue: string, socket: TypedSocket): PlayerRecord {
@@ -391,7 +435,7 @@ export class Room implements SessionHost {
   }
 
   private toGamePlayer(p: PlayerRecord): GamePlayer {
-    return { id: p.id, name: p.name, avatarColor: p.avatarColor, isConnected: p.socketId !== null, joinedAt: p.joinedAt };
+    return { id: p.id, name: p.name, avatarColor: p.avatarColor, isConnected: p.socketId !== null, joinedAt: p.joinedAt, avatar: p.avatar };
   }
 
   private nextColor(): string {
@@ -410,7 +454,7 @@ export class Room implements SessionHost {
 /** Rangliste mit geteilten Plätzen bei Gleichstand */
 export function buildResults(gameId: string, players: GamePlayer[], result: FinalScores): GameResults {
   const entries = players
-    .map((p) => ({ playerId: p.id, name: p.name, avatarColor: p.avatarColor, score: result.scores[p.id] ?? 0, rank: 0 }))
+    .map((p) => ({ playerId: p.id, name: p.name, avatarColor: p.avatarColor, avatar: p.avatar, score: result.scores[p.id] ?? 0, rank: 0 }))
     .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
   entries.forEach((e, i) => {
     e.rank = i > 0 && entries[i - 1]!.score === e.score ? entries[i - 1]!.rank : i + 1;

@@ -124,7 +124,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
           <div className="hidden -space-x-2 sm:flex">
             {room.players.slice(0, 8).map((p) => (
               <div key={p.id} title={p.name}>
-                <PlayerAvatar name={p.name} color={p.avatarColor} size="md" dimmed={!p.isConnected} />
+                <PlayerAvatar name={p.name} color={p.avatarColor} avatar={p.avatar} size="md" dimmed={!p.isConnected} />
               </div>
             ))}
           </div>

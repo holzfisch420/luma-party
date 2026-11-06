@@ -100,8 +100,16 @@ export function registerSocketHandlers(io: TypedServer, rooms: RoomManager, opts
         if (!joinAttempts.take(ip)) throw new RoomError('Zu viele Versuche – bitte kurz warten.');
         const room = rooms.get(data?.code);
         if (!room) throw new RoomError('Raum nicht gefunden. Prüfe den Code.');
+        // angemeldetes Konto? Dann kommen Name und Avatar vom Konto
+        let account = null;
+        if (data?.authToken) {
+          const accountId = rooms.services.tokens.verify(data.authToken);
+          const doc = accountId ? rooms.services.accounts.get(accountId) : undefined;
+          if (!doc) throw new RoomError('Deine Anmeldung ist abgelaufen – bitte erneut anmelden.');
+          account = { id: doc.id, username: doc.username, avatar: doc.avatar };
+        }
         leaveCurrent();
-        const player = room.addPlayer(data?.name, socket);
+        const player = room.addPlayer(data?.name, socket, account);
         return { code: room.code, playerId: player.id, token: player.token };
       }),
     );
@@ -116,6 +124,14 @@ export function registerSocketHandlers(io: TypedServer, rooms: RoomManager, opts
         return { code: room.code, playerId: player.id, token: player.token };
       }),
     );
+
+    socket.on('player:refreshProfile', (data) => {
+      const room = currentRoom();
+      if (!room || socket.data.role !== 'player' || !socket.data.playerId) return;
+      const accountId = rooms.services.tokens.verify(data?.authToken);
+      const doc = accountId ? rooms.services.accounts.get(accountId) : undefined;
+      if (doc) room.refreshProfile(socket.data.playerId, { id: doc.id, username: doc.username, avatar: doc.avatar });
+    });
 
     socket.on('player:leave', () => {
       const room = currentRoom();

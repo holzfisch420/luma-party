@@ -44,7 +44,7 @@ export function MontagsmalerResultsView({ results, device, meId, canControl, onR
                   className="flex w-44 flex-col items-center gap-2"
                 >
                   {results.winnerIds.includes(e.playerId) && <Crown className="size-10 fill-pop-yellow stroke-ink stroke-[2.5]" />}
-                  <PlayerAvatar name={e.name} color={e.avatarColor} size="lg" variant="comic" />
+                  <PlayerAvatar name={e.name} color={e.avatarColor} avatar={e.avatar} size="lg" variant="comic" />
                   <div className="font-bangers max-w-full truncate text-3xl">{e.name}</div>
                   <div className={`comic-box flex w-full flex-col items-center justify-start pt-3 ${h}`} style={{ background: color, transform: `rotate(${rot}deg)` }}>
                     <span className="font-bangers text-5xl leading-none">{e.rank}.</span>
@@ -75,7 +75,7 @@ export function MontagsmalerResultsView({ results, device, meId, canControl, onR
               className={`flex items-center gap-3 rounded-lg border-2 px-2 py-1.5 ${e.playerId === meId ? 'border-ink bg-pop-yellow/60' : 'border-transparent'}`}
             >
               <span className="font-bangers w-8 text-center text-2xl">{e.rank}.</span>
-              <PlayerAvatar name={e.name} color={e.avatarColor} size="sm" variant="comic" />
+              <PlayerAvatar name={e.name} color={e.avatarColor} avatar={e.avatar} size="sm" variant="comic" />
               <span className="flex-1 truncate text-lg font-bold">{e.name}</span>
               {results.winnerIds.includes(e.playerId) && <Crown className="size-5 fill-pop-yellow stroke-ink" />}
               <span className="font-bangers text-2xl">{e.score}</span>

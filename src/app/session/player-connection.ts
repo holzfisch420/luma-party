@@ -57,8 +57,8 @@ export function usePlayerConnection() {
     };
   }, []);
 
-  const join = useCallback(async (code: string, name: string) => {
-    const data = await emitWithAck<PlayerSessionData>('player:join', { code, name });
+  const join = useCallback(async (code: string, name: string, authToken?: string | null) => {
+    const data = await emitWithAck<PlayerSessionData>('player:join', { code, name, authToken: authToken ?? null });
     writeSession(data);
     try {
       localStorage.setItem(STORAGE_KEYS.playerName, name);

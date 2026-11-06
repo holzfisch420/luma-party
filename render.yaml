@@ -15,3 +15,7 @@ services:
         value: "22"
       - key: LUMA_PUBLIC
         value: "1"
+      # PostgreSQL-Verbindung für dauerhafte Konten & Wortlisten (z. B. kostenlos bei neon.tech).
+      # Wird beim Einrichten abgefragt; ohne sie gehen Konten bei einem Neustart verloren.
+      - key: DATABASE_URL
+        sync: false
