@@ -61,7 +61,7 @@ export interface PanzerFrame {
   t: number;
   /** [slot, x, y, winkel, flags] */
   k: number[][];
-  /** [id, x, y, kind, winkel] */
+  /** [id, x, y, kind, winkel, slot des Schützen] */
   b: number[][];
   /** [x, y, scharf (0/1), slot] */
   m: number[][];

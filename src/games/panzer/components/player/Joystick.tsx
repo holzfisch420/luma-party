@@ -55,15 +55,15 @@ export function Joystick({ onChange, color }: { onChange: (x: number, y: number)
     >
       {view && rect ? (
         <div className="pointer-events-none absolute" style={{ left: view.cx - rect.left, top: view.cy - rect.top }}>
-          <div className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-ink bg-white/20" style={{ width: RADIUS * 2 + 40, height: RADIUS * 2 + 40 }} />
+          <div className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/15" style={{ width: RADIUS * 2 + 44, height: RADIUS * 2 + 44 }} />
           <div
-            className="absolute size-20 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-ink shadow-[3px_3px_0_#161616]"
+            className="absolute size-20 rounded-full shadow-[0_5px_0_rgba(0,0,0,0.25),0_8px_14px_rgba(0,0,0,0.25)]"
             style={{ transform: `translate(calc(-50% + ${view.kx}px), calc(-50% + ${view.ky}px))`, background: color }}
           />
         </div>
       ) : (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
-          <div className="grid size-40 place-items-center rounded-full border-4 border-dashed border-white/30 text-center text-sm font-bold text-white/60">
+          <div className="grid size-40 place-items-center rounded-full bg-black/10 text-center text-sm font-bold text-white/75">
             Daumen
             <br />
             hier

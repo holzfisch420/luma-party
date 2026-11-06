@@ -130,6 +130,8 @@ mit eigenen Grafiken, eigenem Namen und eigenen Arenen.
 - **8 Power-ups** aus Kisten: Laser (prallt 3× ab), Schrot (7 Kugeln), Lenkrakete, Mine, Schild,
   Dauerfeuer, Splitterbombe, Tarnkappe.
 - Einstellungen: Siege zum Gewinnen, Power-up-Häufigkeit, Arenen-Auswahl, Zufall oder der Reihe nach.
+- **Look:** flacher Stil im Geiste der Google-Minispiele (Schachbrett-Boden, flache Blöcke, keine Konturen),
+  Kugeln mit Leuchtspur in der Farbe des Schützen, Abprall-Funken, Mündungsblitze, Partikel-Explosionen.
 - Technik: Server-Simulation mit 60 Hz, Positionsdaten mit 20 Hz an den Fernseher (dort auf 60 fps interpoliert),
   Handys senden nur Joystick und Tasten.
 

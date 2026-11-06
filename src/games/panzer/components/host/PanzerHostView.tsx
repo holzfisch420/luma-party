@@ -1,9 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Check, Trophy, Volume2, VolumeX } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useCountdown, useGameEvent } from '../../../../app/session/hooks';
-import { Burst } from '../../../../components/comic/Burst';
-import { ComicCountdown } from '../../../../components/comic/ComicCountdown';
 import { PlayerAvatar } from '../../../../components/lobby/PlayerAvatar';
 import type { HostViewProps } from '../../../game-types';
 import { POWER_IDS, POWERUPS, TANK_COLORS } from '../../game-config';
@@ -14,13 +12,15 @@ import { TankIcon } from '../TankIcon';
 import { ArenaRenderer } from './renderer';
 import { panzerSounds } from './sounds';
 
+const HEADER = '#4a752c';
+const FIELD = '#578a34';
+
 export function PanzerHostView({ room, state }: HostViewProps<PanzerPublicState>) {
   const pub = state.public;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<ArenaRenderer | null>(null);
   const [muted, setMuted] = useState(panzerSounds.isMuted());
-  const nameOf = (id: string | null) => room.players.find((p) => p.id === id)?.name ?? '';
-  const playerOf = (id: string) => room.players.find((p) => p.id === id);
+  const playerOf = (id: string | null) => room.players.find((p) => p.id === id);
 
   useEffect(() => {
     const r = new ArenaRenderer(canvasRef.current!);
@@ -45,7 +45,6 @@ export function PanzerHostView({ room, state }: HostViewProps<PanzerPublicState>
   });
   useGameEvent<PanzerFrame>(PZ_EVENTS.frame, (f) => rendererRef.current?.pushFrame(f));
 
-  // Countdown-Pieps
   const remaining = useCountdown(pub.phase === 'countdown' ? pub.phaseEndsAt : null, 100);
   const secs = Math.ceil(remaining / 1000);
   useEffect(() => {
@@ -57,47 +56,42 @@ export function PanzerHostView({ room, state }: HostViewProps<PanzerPublicState>
 
   const map = getMap(pub.mapId);
   const sorted = [...pub.players].sort((a, b) => a.slot - b.slot);
+  const winner = pub.players.find((p) => p.playerId === pub.roundWinnerId);
 
   return (
-    <div className="comic relative flex h-dvh flex-col overflow-hidden bg-[#2d2a26] [background-image:radial-gradient(rgba(255,255,255,0.05)_1.5px,transparent_1.6px)] [background-size:22px_22px]">
-      {/* Anzeigetafel */}
-      <div className="flex shrink-0 items-center gap-4 px-6 pt-4">
-        <div className="comic-box-sm -rotate-2 bg-pop-yellow px-3 py-1 text-center">
-          <div className="font-bangers text-sm leading-none">Runde</div>
-          <div className="font-bangers text-3xl leading-none">{Math.max(1, pub.round)}</div>
+    <div className="flat relative flex h-dvh flex-col overflow-hidden" style={{ background: FIELD }}>
+      {/* Kopfleiste im Stil der Google-Minispiele */}
+      <header className="flex h-16 shrink-0 items-center gap-6 px-6 shadow-[0_2px_6px_rgba(0,0,0,0.25)]" style={{ background: HEADER }}>
+        <div className="flex items-center gap-2 text-xl font-black">
+          <span className="text-white/70">Runde</span> {Math.max(1, pub.round)}
         </div>
-        <div className="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-2.5">
+        <div className="flex min-w-0 flex-1 items-center justify-center gap-5">
           {sorted.map((p) => {
-            const player = playerOf(p.playerId);
             const out = pub.phase !== 'colors' && pub.round > 0 && (!p.inRound || !p.alive);
             return (
-              <div key={p.playerId} className={`comic-box-sm flex items-center gap-2 px-2 py-1 transition ${out ? 'opacity-55' : ''}`} style={{ background: out ? '#ddd' : '#fff' }}>
+              <div key={p.playerId} className={`flex items-center gap-1.5 transition-opacity ${out ? 'opacity-40' : ''}`} title={playerOf(p.playerId)?.name}>
                 <TankIcon color={p.color} className="size-9" dead={out} />
-                <div className="min-w-0">
-                  <div className="max-w-[8rem] truncate text-sm font-bold leading-tight">{player?.name ?? '?'}</div>
-                  <div className="flex gap-0.5">
-                    {Array.from({ length: pub.winScore }).map((_, i) => (
-                      <span key={i} className={`size-2.5 rounded-full border-[1.5px] border-ink ${i < p.score ? '' : 'bg-white'}`} style={i < p.score ? { background: TANK_COLORS[p.color]!.hex } : undefined} />
-                    ))}
-                  </div>
-                </div>
+                <span className="text-2xl font-black tabular-nums">{p.score}</span>
               </div>
             );
           })}
+        </div>
+        <div className="flex items-center gap-1.5 text-xl font-black" title="Siege zum Gewinnen">
+          <Trophy className="size-6 text-[#ffd54f]" fill="#ffd54f" /> {pub.winScore}
         </div>
         <button
           onClick={() => {
             panzerSounds.setMuted(!muted);
             setMuted(!muted);
           }}
-          className="comic-box-sm grid size-11 place-items-center"
+          className="grid size-10 place-items-center rounded-full text-white/90 transition hover:bg-white/10"
           aria-label={muted ? 'Ton an' : 'Ton aus'}
         >
-          {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
+          {muted ? <VolumeX className="size-6" /> : <Volume2 className="size-6" />}
         </button>
-      </div>
+      </header>
 
-      {/* Arena */}
+      {/* Spielfeld */}
       <div className="relative min-h-0 flex-1">
         <canvas ref={canvasRef} className="absolute inset-0 size-full" />
 
@@ -105,44 +99,52 @@ export function PanzerHostView({ room, state }: HostViewProps<PanzerPublicState>
           {pub.phase === 'colors' && <ColorLobby key="colors" pub={pub} room={room} />}
 
           {pub.phase === 'countdown' && (
-            <motion.div key={`cd-${pub.round}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-0 grid place-items-center">
-              <div className="flex flex-col items-center gap-4">
-                <div className="comic-box -rotate-1 bg-white px-6 py-2 text-center">
-                  <div className="text-lg font-bold">Runde {pub.round} · Arena</div>
-                  <div className="font-bangers text-5xl leading-none">{map.name}</div>
+            <motion.div key={`cd-${pub.round}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-0 grid place-items-center bg-black/25">
+              <div className="flex flex-col items-center gap-5">
+                <div className="flat-card px-7 py-3 text-center">
+                  <div className="text-sm font-bold uppercase tracking-[0.18em] text-[#5f6368]">Runde {pub.round}</div>
+                  <div className="text-4xl font-black">{map.name}</div>
                 </div>
-                <motion.div key={secs} initial={{ scale: 2.4, rotate: -15, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 14 }}>
-                  <Burst className="aspect-square w-48" spikes={16}>
-                    <span className="font-bangers text-8xl leading-none">{secs || 'LOS!'}</span>
-                  </Burst>
+                <motion.div
+                  key={secs}
+                  initial={{ scale: 1.6, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+                  className="grid size-40 place-items-center rounded-full bg-white text-8xl font-black text-[#4a752c] shadow-[0_4px_14px_rgba(0,0,0,0.25)]"
+                >
+                  {secs || 'Los!'}
                 </motion.div>
               </div>
             </motion.div>
           )}
 
           {pub.phase === 'roundEnd' && (
-            <motion.div key={`end-${pub.round}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-0 grid place-items-center bg-black/25">
-              <motion.div initial={{ scale: 0.2, rotate: 20 }} animate={{ scale: 1, rotate: -2 }} transition={{ type: 'spring', stiffness: 260, damping: 13 }} className="flex flex-col items-center gap-3">
-                {pub.roundWinnerId && (() => {
-                  const w = pub.players.find((p) => p.playerId === pub.roundWinnerId)!;
-                  const player = playerOf(w.playerId);
-                  return (
+            <motion.div key={`end-${pub.round}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pointer-events-none absolute inset-0 grid place-items-center bg-black/35">
+              <motion.div initial={{ y: 30, scale: 0.9 }} animate={{ y: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 300, damping: 22 }} className="flat-card flex min-w-[26rem] flex-col items-center gap-3 px-10 py-7">
+                {winner ? (
+                  <>
                     <div className="flex items-center gap-3">
-                      <TankIcon color={w.color} className="size-24 drop-shadow-lg" angle={-60} />
-                      {player && <PlayerAvatar name={player.name} color={player.avatarColor} avatar={player.avatar} size="lg" variant="comic" />}
+                      <TankIcon color={winner.color} className="size-20" angle={-60} />
+                      {playerOf(winner.playerId) && (
+                        <PlayerAvatar name={playerOf(winner.playerId)!.name} color={playerOf(winner.playerId)!.avatarColor} avatar={playerOf(winner.playerId)!.avatar} size="lg" />
+                      )}
                     </div>
-                  );
-                })()}
-                <Burst className="aspect-[2] w-[32rem]" spikes={20}>
-                  {pub.roundWinnerId ? (
-                    <>
-                      <div className="font-bangers text-6xl leading-none">{nameOf(pub.roundWinnerId)}</div>
-                      <div className="text-xl font-bold">gewinnt die Runde!</div>
-                    </>
-                  ) : (
-                    <div className="font-bangers text-6xl leading-none">Unentschieden!</div>
-                  )}
-                </Burst>
+                    <div className="text-5xl font-black" style={{ color: TANK_COLORS[winner.color]!.hex === '#f2f2f2' ? '#3c4043' : TANK_COLORS[winner.color]!.hex }}>
+                      {playerOf(winner.playerId)?.name}
+                    </div>
+                    <div className="text-xl font-bold text-[#5f6368]">gewinnt die Runde</div>
+                    <div className="flex gap-1.5">
+                      {Array.from({ length: pub.winScore }).map((_, i) => (
+                        <Trophy key={i} className="size-7" color={i < winner.score ? '#f9ab00' : '#dadce0'} fill={i < winner.score ? '#fbbc04' : '#f1f3f4'} />
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-5xl font-black">Unentschieden</div>
+                    <div className="text-xl font-bold text-[#5f6368]">Niemand hat überlebt</div>
+                  </>
+                )}
               </motion.div>
             </motion.div>
           )}
@@ -150,51 +152,57 @@ export function PanzerHostView({ room, state }: HostViewProps<PanzerPublicState>
       </div>
 
       {/* Fußzeile */}
-      <div className="flex shrink-0 items-center justify-between gap-4 px-6 pb-3 pt-2 text-sm font-bold text-white/80">
-        <div className="rounded-lg border-2 border-ink bg-white px-2.5 py-0.5 text-ink shadow-[2px_2px_0_#161616]">
-          Mitspielen? Code <span className="font-bangers text-base tracking-widest">{room.code}</span>
+      <footer className="flex h-11 shrink-0 items-center justify-between gap-4 px-6 text-sm font-bold" style={{ background: HEADER }}>
+        <div>
+          Mitspielen: Code <span className="ml-1 rounded bg-white/15 px-2 py-0.5 tracking-[0.2em]">{room.code}</span>
         </div>
         {pub.powerupsEnabled && (
-          <div className="flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+          <div className="flex flex-wrap items-center justify-end gap-x-4 text-white/85">
             {POWER_IDS.map((id) => (
               <span key={id} className="flex items-center gap-1">
-                <span>{POWERUPS[id].icon}</span>
+                <span className="grid size-5 place-items-center rounded text-[11px]" style={{ background: POWERUPS[id].color }}>
+                  {POWERUPS[id].icon}
+                </span>
                 {POWERUPS[id].name}
               </span>
             ))}
           </div>
         )}
-      </div>
+      </footer>
     </div>
   );
 }
 
 function ColorLobby({ pub, room }: { pub: PanzerPublicState; room: HostViewProps['room'] }) {
   const sorted = [...pub.players].sort((a, b) => a.slot - b.slot);
+  const remaining = useCountdown(pub.phaseEndsAt, 250);
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-[#2d2a26]/95 p-8">
-      <motion.div initial={{ scale: 0.4, rotate: -10 }} animate={{ scale: 1, rotate: -2 }} transition={{ type: 'spring', stiffness: 260, damping: 14 }}>
-        <Burst className="aspect-[2.6] w-[36rem]" spikes={22}>
-          <div className="font-bangers text-7xl leading-none">Kettenchaos</div>
-          <div className="text-lg font-bold">Wählt eure Panzerfarbe auf dem Handy!</div>
-        </Burst>
-      </motion.div>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center gap-7 p-8" style={{ background: FIELD }}>
+      <div className="text-center">
+        <div className="text-7xl font-black tracking-tight">Kettenchaos</div>
+        <div className="mt-2 text-xl font-bold text-white/85">Wählt eure Panzerfarbe auf dem Handy</div>
+      </div>
       <div className="grid grid-cols-4 gap-4">
         {sorted.map((p) => {
           const player = room.players.find((x) => x.id === p.playerId);
           return (
-            <motion.div key={p.playerId} layout className={`comic-box flex w-44 flex-col items-center gap-1 p-3 ${p.ready ? 'bg-[#c9f7d6]' : 'bg-white'}`}>
+            <motion.div key={p.playerId} layout className="flat-card relative flex w-44 flex-col items-center gap-1 px-3 pb-3 pt-4">
+              {p.ready && (
+                <span className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-[#34a853] text-white">
+                  <Check className="size-4" strokeWidth={3.5} />
+                </span>
+              )}
               <TankIcon color={p.color} className="size-20" angle={-60} />
-              <div className="max-w-full truncate text-lg font-bold">{player?.name}</div>
-              <div className="font-bangers text-lg">{p.ready ? '✔ Bereit' : TANK_COLORS[p.color]!.name}</div>
+              <div className="max-w-full truncate text-lg font-black">{player?.name}</div>
+              <div className="text-sm font-bold text-[#5f6368]">{p.ready ? 'Bereit' : TANK_COLORS[p.color]!.name}</div>
             </motion.div>
           );
         })}
       </div>
-      <div className="flex items-center gap-6">
-        <ComicCountdown endsAt={pub.phaseEndsAt} durationMs={pub.phaseDurationMs} size={84} />
-        <div className="comic-box max-w-xl px-5 py-3 text-base font-bold">
-          📱 Handy <b>quer</b> halten: links Joystick zum Fahren · <b>A</b> Feuer · <b>B</b> Power-up · <b>X</b> Turbo · <b>Y</b> Hupe. Kugeln prallen ab – Vorsicht vor den eigenen!
+      <div className="flex items-center gap-5">
+        <div className="grid size-16 place-items-center rounded-full bg-white text-2xl font-black text-[#4a752c] shadow">{Math.ceil(remaining / 1000)}</div>
+        <div className="flat-card max-w-2xl px-5 py-3 text-base font-bold">
+          📱 Handy quer halten · links Joystick · <b>A</b> Feuer · <b>B</b> Power-up · <b>X</b> Turbo · <b>Y</b> Hupe · Kugeln prallen ab – auch auf dich!
         </div>
       </div>
     </motion.div>

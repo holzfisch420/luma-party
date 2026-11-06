@@ -5,6 +5,9 @@
 @import '@fontsource/bangers/latin-400.css';
 @import '@fontsource/comic-neue/latin-400.css';
 @import '@fontsource/comic-neue/latin-700.css';
+@import '@fontsource/roboto/latin-500.css';
+@import '@fontsource/roboto/latin-700.css';
+@import '@fontsource/roboto/latin-900.css';
 @import 'tailwindcss';
 
 @theme {
@@ -13,6 +16,8 @@
   /* Spiele: Comic-Schriften */
   --font-comic: 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', cursive;
   --font-bangers: 'Bangers', 'Impact', 'Arial Black', sans-serif;
+  /* flacher Google-Spiele-Stil (Kettenchaos) */
+  --font-flat: 'Roboto', 'Arial', sans-serif;
 
   /* Launcher-Farben (hell, Home-Menü-Stil) */
   --color-home-bg: #eef1f4;
@@ -208,4 +213,17 @@ body {
 :focus-visible {
   outline: 3px solid var(--color-cyan);
   outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ Flacher Stil (Kettenchaos) */
+
+.flat {
+  font-family: var(--font-flat);
+  color: #fff;
+}
+.flat-card {
+  background: #fff;
+  color: #3c4043;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }

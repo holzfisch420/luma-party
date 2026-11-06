@@ -762,7 +762,7 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
           Math.round(t.a * 1000) / 1000,
           (now < t.shieldUntil ? TANK_FLAG.shield : 0) | (now < t.cloakUntil ? TANK_FLAG.cloak : 0) | (now < t.turboUntil ? TANK_FLAG.turbo : 0),
         ]),
-      b: this.bullets.map((b) => [b.id, r2(b.x), r2(b.y), b.kind, Math.round(Math.atan2(b.vy, b.vx) * 100) / 100]),
+      b: this.bullets.map((b) => [b.id, r2(b.x), r2(b.y), b.kind, Math.round(Math.atan2(b.vy, b.vx) * 100) / 100, b.owner]),
       m: this.mines.map((m) => [r2(m.x), r2(m.y), now >= m.armAt ? 1 : 0, m.owner]),
       c: this.crates.map((c) => [c.x, c.y, POWER_IDS.indexOf(c.power)]),
       fx: this.fx,

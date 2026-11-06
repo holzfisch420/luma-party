@@ -49,8 +49,8 @@ export function PanzerController({ room, me, state, sendAction }: PlayerViewProp
       <Shell>
         <div className="grid h-full place-items-center p-6 text-center text-white">
           <div>
-            <div className="font-bangers text-4xl">Arena voll!</div>
-            <p className="mt-2 font-bold text-white/70">Es können höchstens 8 Panzer mitfahren – schau am Fernseher zu.</p>
+            <div className="text-4xl font-black">Arena voll!</div>
+            <p className="mt-2 font-bold text-white/80">Es können höchstens 8 Panzer mitfahren – schau am Fernseher zu.</p>
           </div>
         </div>
       </Shell>
@@ -62,7 +62,7 @@ export function PanzerController({ room, me, state, sendAction }: PlayerViewProp
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return <div className="comic touch-none-all fixed inset-0 overflow-hidden bg-[#2d2a26] [background-image:radial-gradient(rgba(255,255,255,0.06)_1.5px,transparent_1.6px)] [background-size:20px_20px]">{children}</div>;
+  return <div className="flat touch-none-all fixed inset-0 overflow-hidden bg-[#578a34]">{children}</div>;
 }
 
 function RotateHint() {
@@ -73,10 +73,10 @@ function RotateHint() {
           <Smartphone className="size-20" strokeWidth={1.8} />
         </motion.div>
         <div>
-          <div className="font-bangers text-4xl">Handy quer halten!</div>
-          <p className="mt-2 font-bold text-white/70">Links fährst du mit dem Joystick, rechts sind die Tasten.</p>
+          <div className="text-4xl font-black">Handy quer halten!</div>
+          <p className="mt-2 font-bold text-white/80">Links fährst du mit dem Joystick, rechts sind die Tasten.</p>
         </div>
-        <button onClick={() => void goFullscreenLandscape()} className="comic-box-sm flex items-center gap-2 bg-pop-yellow px-4 py-2 font-bangers text-xl text-ink">
+        <button onClick={() => void goFullscreenLandscape()} className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-lg font-black text-[#4a752c] shadow-[0_4px_0_rgba(0,0,0,0.2)]">
           <Maximize className="size-5" /> Vollbild &amp; quer
         </button>
       </div>
@@ -106,17 +106,17 @@ function ColorPicker({
   const remaining = useCountdown(pub.phaseEndsAt, 250);
   const ready = !!mine?.ready;
   return (
-    <div className="comic fixed inset-0 overflow-y-auto bg-[#2d2a26] p-4 safe-pt safe-pb [background-image:radial-gradient(rgba(255,255,255,0.06)_1.5px,transparent_1.6px)] [background-size:20px_20px]">
+    <div className="flat fixed inset-0 overflow-y-auto bg-[#578a34] p-4 safe-pt safe-pb">
       <div className={`mx-auto flex max-w-3xl gap-5 ${landscape ? 'flex-row items-start' : 'flex-col'}`}>
         <div className={`flex flex-col items-center gap-3 ${landscape ? 'w-56 shrink-0' : ''}`}>
-          <div className="font-bangers text-3xl text-white">Dein Panzer</div>
+          <div className="text-3xl font-black">Dein Panzer</div>
           <motion.div key={priv.color} initial={{ scale: 0.6, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 400, damping: 14 }}>
             <TankIcon color={priv.color} className="size-32 drop-shadow-xl" angle={-60} />
           </motion.div>
-          <div className="font-bangers text-2xl text-pop-yellow">{TANK_COLORS[priv.color]!.name}</div>
+          <div className="rounded-full bg-[#4a752c] px-4 py-1 text-xl font-black">{TANK_COLORS[priv.color]!.name}</div>
           <button
             onClick={() => sendAction('ready', { ready: !ready })}
-            className={`comic-box font-bangers flex w-full items-center justify-center gap-2 px-5 py-3 text-3xl ${ready ? 'bg-pop-green' : 'bg-pop-yellow'}`}
+            className={`flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-2xl font-black transition ${ready ? 'bg-[#1a73e8] text-white shadow-[0_5px_0_#1557b0]' : 'bg-white text-[#4a752c] shadow-[0_5px_0_rgba(0,0,0,0.2)]'}`}
           >
             {ready ? (
               <>
@@ -126,7 +126,7 @@ function ColorPicker({
               'Bereit?'
             )}
           </button>
-          <div className="text-center text-xs font-bold text-white/60">Start, wenn alle bereit sind – spätestens in {Math.ceil(remaining / 1000)} s</div>
+          <div className="text-center text-xs font-bold text-white/80">Start, wenn alle bereit sind – spätestens in {Math.ceil(remaining / 1000)} s</div>
         </div>
 
         <div className="min-w-0 flex-1">
@@ -139,18 +139,18 @@ function ColorPicker({
                   key={c.name}
                   disabled={!!owner || ready}
                   onClick={() => sendAction('color', { index: i })}
-                  className={`relative flex aspect-square flex-col items-center justify-center rounded-xl border-[3px] border-ink transition ${active ? 'bg-pop-yellow shadow-[3px_3px_0_#161616]' : 'bg-white'} ${owner ? 'opacity-40' : ''}`}
+                  className={`relative flex aspect-square flex-col items-center justify-center rounded-xl bg-white shadow-[0_3px_0_rgba(0,0,0,0.18)] transition ${active ? 'ring-4 ring-[#ffd54f]' : ''} ${owner ? 'opacity-45' : ''}`}
                   aria-label={`${c.name}${owner ? ` (vergeben an ${owner})` : ''}`}
                 >
                   <TankIcon color={i} className="size-4/5" angle={-90} />
-                  {owner && <span className="absolute inset-x-0 bottom-0.5 truncate px-0.5 text-[9px] font-bold">{owner}</span>}
+                  {owner && <span className="absolute inset-x-0 bottom-0.5 truncate px-0.5 text-[9px] font-bold text-[#3c4043]">{owner}</span>}
                 </button>
               );
             })}
           </div>
           <SteeringSwitch value={priv.steering} onChange={(mode) => sendAction('steering', { mode })} />
           {!landscape && (
-            <button onClick={() => void goFullscreenLandscape()} className="comic-box-sm mt-4 flex w-full items-center justify-center gap-2 bg-white px-4 py-2 font-bangers text-xl">
+            <button onClick={() => void goFullscreenLandscape()} className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-lg font-black text-[#4a752c] shadow-[0_4px_0_rgba(0,0,0,0.2)]">
               <Maximize className="size-5" /> Vollbild &amp; quer drehen
             </button>
           )}
@@ -162,8 +162,8 @@ function ColorPicker({
 
 function SteeringSwitch({ value, onChange }: { value: Steering; onChange: (v: Steering) => void }) {
   return (
-    <div className="mt-4 rounded-xl border-[3px] border-ink bg-white p-2">
-      <div className="mb-1.5 px-1 text-sm font-bold">Steuerung</div>
+    <div className="mt-4 rounded-xl bg-[#4a752c] p-2">
+      <div className="mb-1.5 px-1 text-sm font-bold text-white/85">Steuerung</div>
       <div className="grid grid-cols-2 gap-2">
         {(
           [
@@ -171,9 +171,9 @@ function SteeringSwitch({ value, onChange }: { value: Steering; onChange: (v: St
             ['direction', 'Richtung', 'Panzer fährt dorthin, wohin du zeigst'],
           ] as const
         ).map(([v, label, hint]) => (
-          <button key={v} onClick={() => onChange(v)} className={`rounded-lg border-2 border-ink px-2 py-1.5 text-left ${value === v ? 'bg-pop-yellow' : 'bg-white'}`}>
-            <div className="font-bangers text-xl leading-none">{label}</div>
-            <div className="text-[11px] font-bold leading-tight">{hint}</div>
+          <button key={v} onClick={() => onChange(v)} className={`rounded-lg px-2.5 py-2 text-left transition ${value === v ? 'bg-white text-[#3c4043]' : 'bg-white/10 text-white'}`}>
+            <div className="text-lg font-black leading-none">{label}</div>
+            <div className="mt-0.5 text-[11px] font-bold leading-tight opacity-80">{hint}</div>
           </button>
         ))}
       </div>
@@ -259,16 +259,17 @@ function Gamepad({
   return (
     <Shell>
       {/* Farbstreifen + Kopfzeile */}
-      <div className="absolute inset-x-0 top-0 flex items-center gap-3 border-b-[3px] border-ink px-4 py-1.5" style={{ background: color }}>
+      <div className="absolute inset-x-0 top-0 flex h-12 items-center gap-3 bg-[#4a752c] px-4 shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
         <TankIcon color={priv.color} className="size-8" angle={-90} dead={!priv.alive} />
-        <div className="min-w-0 flex-1 truncate font-bangers text-xl text-ink [text-shadow:0_1px_0_rgba(255,255,255,0.5)]">
+        <div className="min-w-0 flex-1 truncate text-lg font-black">
           {room.players.find((p) => p.id === meId)?.name}
-          <span className="ml-3 text-base">
-            {'★'.repeat(mine?.score ?? 0)}
-            <span className="opacity-40">{'☆'.repeat(Math.max(0, pub.winScore - (mine?.score ?? 0)))}</span>
+          <span className="ml-3 text-base text-[#ffd54f]">
+            {'🏆'.repeat(mine?.score ?? 0)}
+            <span className="opacity-40 grayscale">{'🏆'.repeat(Math.max(0, pub.winScore - (mine?.score ?? 0)))}</span>
           </span>
         </div>
-        <button onClick={() => setMenu((m) => !m)} className="grid size-9 place-items-center rounded-lg border-2 border-ink bg-white" aria-label="Optionen">
+        <span className="h-6 w-6 rounded-full" style={{ background: color }} />
+        <button onClick={() => setMenu((m) => !m)} className="grid size-9 place-items-center rounded-full text-white hover:bg-white/10" aria-label="Optionen">
           <Settings2 className="size-5" />
         </button>
       </div>
@@ -289,23 +290,24 @@ function Gamepad({
         <div className="relative h-full flex-1">
           <div className="absolute left-1/2 top-1/2 size-[min(78vh,300px)] -translate-x-1/2 -translate-y-1/2">
             <div className="absolute left-1/2 top-0 -translate-x-1/2">
-              <PadButton label="Y" sub="Hupe" color="#ffd93b" size={76} onPress={press(BTN.honk)} />
+              <PadButton label="Y" ariaLabel="Y" sub="Hupe" color="#f9ab00" size={76} onPress={press(BTN.honk)} />
             </div>
             <div className="absolute left-0 top-1/2 -translate-y-1/2">
-              <PadButton label="X" sub={turboLeft > 0 ? `${Math.ceil(turboLeft / 1000)} s` : 'Turbo'} color="#3aa8ff" size={84} cooldown={turboLeft / 4000} onPress={press(BTN.turbo)} />
+              <PadButton label="X" ariaLabel="X" sub={turboLeft > 0 ? `${Math.ceil(turboLeft / 1000)} s` : 'Turbo'} color="#4285f4" size={84} cooldown={turboLeft / 4000} onPress={press(BTN.turbo)} />
             </div>
             <div className="absolute right-0 top-1/2 -translate-y-1/2">
               <PadButton
                 label={power ? power.icon : 'B'}
+                ariaLabel="B"
                 sub={power ? power.name : 'Spezial'}
-                color={power ? power.color : '#d7d7d7'}
+                color={power ? power.color : '#9aa0a6'}
                 size={92}
                 disabled={!power}
                 onPress={press(BTN.special)}
               />
             </div>
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
-              <PadButton label="A" sub="Feuer" color="#3fd07a" size={104} onPress={press(BTN.fire)} />
+              <PadButton label="A" ariaLabel="A" sub="Feuer" color="#ea4335" size={104} onPress={press(BTN.fire)} />
             </div>
           </div>
         </div>
@@ -313,23 +315,23 @@ function Gamepad({
 
       {status && (
         <div className="pointer-events-none absolute inset-x-0 top-14 flex justify-center">
-          <div className="comic-box-sm bg-white px-4 py-1 font-bangers text-xl">{status}</div>
+          <div className="flat-card px-4 py-1.5 text-lg font-black">{status}</div>
         </div>
       )}
       {priv.alive && priv.shieldUntil > serverNow && (
-        <div className="pointer-events-none absolute bottom-3 left-3 rounded-lg border-2 border-ink bg-[#4fc3f7] px-2 py-0.5 text-sm font-bold">🛡️ Schild aktiv</div>
+        <div className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-[#4285f4] px-3 py-1 text-sm font-bold">🛡️ Schild aktiv</div>
       )}
 
       {menu && (
         <div className="absolute inset-0 z-20 grid place-items-center bg-black/50 p-4" onClick={() => setMenu(false)}>
-          <div className="comic-box w-full max-w-md p-4" onClick={(e) => e.stopPropagation()}>
-            <div className="font-bangers text-3xl">Optionen</div>
+          <div className="w-full max-w-md rounded-2xl bg-[#578a34] p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="text-2xl font-black">Optionen</div>
             <SteeringSwitch value={priv.steering} onChange={(mode) => sendAction('steering', { mode })} />
             <div className="mt-3 flex gap-2">
-              <button onClick={() => void goFullscreenLandscape()} className="comic-box-sm flex flex-1 items-center justify-center gap-2 bg-pop-yellow px-3 py-2 font-bangers text-xl">
+              <button onClick={() => void goFullscreenLandscape()} className="flex flex-1 items-center justify-center gap-2 rounded-full bg-white px-3 py-2.5 text-lg font-black text-[#4a752c]">
                 <Maximize className="size-5" /> Vollbild
               </button>
-              <button onClick={() => setMenu(false)} className="comic-box-sm flex flex-1 items-center justify-center gap-2 px-3 py-2 font-bangers text-xl">
+              <button onClick={() => setMenu(false)} className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#1a73e8] px-3 py-2.5 text-lg font-black text-white">
                 <RotateCcw className="size-5" /> Weiter
               </button>
             </div>
