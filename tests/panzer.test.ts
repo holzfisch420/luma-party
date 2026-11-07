@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PanzerEngine } from '../src/games/panzer/game-engine';
 import { DEFAULT_PANZER_SETTINGS } from '../src/games/panzer/game-config';
 import { MAPS, validateMap } from '../src/games/panzer/maps';
-import { moveBouncing, traceLaser } from '../src/games/panzer/logic/geometry';
+import { traceLaser } from '../src/games/panzer/logic/geometry';
 import type { GameContext, GamePlayer } from '../src/server/game-engine/types';
 
 function setup(n = 2) {
@@ -60,17 +60,10 @@ describe('Kettenchaos – Karten & Geometrie', () => {
       expect(new Set(m.spawns.map((s) => `${s.x},${s.y}`)).size, m.id).toBe(8);
     }
   });
-  it('Kugeln prallen an Wänden ab', () => {
-    const wall = [{ x: 5, y: 0, w: 1, h: 10 }];
-    const r = moveBouncing(4.5, 5, 5, 0, 0.1, 0.3, wall);
-    expect(r.vx).toBeLessThan(0);
-    expect(r.bounces).toBe(1);
-    expect(r.x).toBeLessThan(4.9);
-  });
-  it('Laser prallt ab', () => {
-    const pts = traceLaser(1, 1, 0, [{ x: 5, y: 0, w: 1, h: 10 }], 10, 3);
+  it('Laser geht geradeaus bis zur Wand', () => {
+    const pts = traceLaser(1, 1, 0, [{ x: 5, y: 0, w: 1, h: 10 }], 10, 0);
+    expect(pts).toHaveLength(4);
     expect(pts[2]).toBeCloseTo(5);
-    expect(pts[pts.length - 2]).toBeLessThan(5);
   });
 });
 
@@ -90,15 +83,45 @@ describe('Kettenchaos – Engine', () => {
     expect(s.events.some((e) => e.name === 'round')).toBe(true);
   });
 
-  it('Treffer zerstört, Überlebender punktet, Spielende bei Siegpunktzahl', () => {
+  it('Tippen wechselt die Drehrichtung, Halten fährt vorwärts', () => {
+    const s = setup(2);
+    ready(s);
+    const a = s.eng.tanks.get('p0');
+    Object.assign(a, { x: 6.5, y: 9.5, a: 0 });
+    Object.assign(s.eng.tanks.get('p1'), { x: 20.5, y: 12.5 });
+    expect(a.rotDir).toBe(1);
+    s.advance(500);
+    expect(a.a).toBeGreaterThan(0.5); // dreht sich von selbst (im Uhrzeigersinn)
+    expect(a.x).toBeCloseTo(6.5);
+    // kurzes Tippen
+    s.engine.handleAction('p0', 'input', { b: 1 });
+    s.advance(80);
+    s.engine.handleAction('p0', 'input', { b: 0 });
+    expect(a.rotDir).toBe(-1);
+    expect(s.engine.getPrivateState('p0')!.rotDir).toBe(-1);
+    const before = a.a;
+    s.advance(300);
+    expect(a.a).toBeLessThan(before);
+    // halten → fährt geradeaus, dreht nicht
+    Object.assign(a, { x: 6.5, y: 9.5, a: 0 });
+    s.engine.handleAction('p0', 'input', { b: 1 });
+    s.advance(1000);
+    expect(a.x).toBeGreaterThan(8);
+    expect(a.a).toBeCloseTo(0);
+    s.engine.handleAction('p0', 'input', { b: 0 });
+    expect(a.rotDir).toBe(-1); // langes Halten wechselt die Richtung nicht
+  });
+
+  it('Automatisches Feuer zerstört, Überlebender punktet, Spielende bei Siegpunktzahl', () => {
     const s = setup(2);
     ready(s);
     const [a, b] = [s.eng.tanks.get('p0'), s.eng.tanks.get('p1')];
-    // a schaut auf b
-    Object.assign(a, { x: 2.5, y: 4.5, a: 0 });
-    Object.assign(b, { x: 6.5, y: 4.5, a: Math.PI });
-    s.engine.handleAction('p0', 'input', { x: 0, y: 0, b: 1 });
-    s.engine.handleAction('p0', 'input', { x: 0, y: 0, b: 0 });
+    // beide halten „Fahren“ gedrückt gegen die Wand → kein Drehen; a schaut auf b
+    const aim = () => {
+      Object.assign(a, { x: 2.5, y: 4.5, a: 0, fireReadyAt: 0 });
+      Object.assign(b, { x: 6.5, y: 4.5, a: Math.PI / 2, fireReadyAt: Infinity });
+    };
+    aim();
     s.advance(1500);
     expect(b.alive).toBe(false);
     expect(a.kills).toBe(1);
@@ -112,36 +135,52 @@ describe('Kettenchaos – Engine', () => {
     s.advance(3600 + 3100); // nächste Runde + Countdown
     expect(s.engine.getPublicState().round).toBe(2);
     expect(b.alive).toBe(true);
-    // zweiter Sieg → Spielende
-    Object.assign(a, { x: 2.5, y: 4.5, a: 0 });
-    Object.assign(b, { x: 6.5, y: 4.5, a: Math.PI });
-    s.engine.handleAction('p0', 'input', { x: 0, y: 0, b: 1 });
+    aim();
     s.advance(1500 + 2600 + 3600);
     expect(s.ended()?.scores.p0).toBe(2);
   });
 
-  it('Schild hält einen Treffer ab, Laser und Mine zerstören', () => {
+  it('Kugeln prallen nicht ab – kein Eigentreffer an der Wand', () => {
+    const s = setup(2);
+    ready(s);
+    const [a, b] = [s.eng.tanks.get('p0'), s.eng.tanks.get('p1')];
+    Object.assign(a, { x: 1.5, y: 7.5, a: Math.PI, fireReadyAt: 0 }); // direkt vor der linken Wand
+    Object.assign(b, { x: 20.5, y: 12.5, fireReadyAt: Infinity });
+    s.advance(17);
+    expect(s.eng.bullets.length).toBeGreaterThan(0);
+    a.fireReadyAt = Infinity;
+    s.advance(800);
+    expect(s.eng.bullets).toHaveLength(0);
+    expect(a.alive).toBe(true);
+  });
+
+  it('Schild wirkt sofort beim Einsammeln, Laser ersetzt den nächsten Schuss, Mine zerstört', () => {
     const s = setup(3);
     ready(s);
     const [a, b, c] = ['p0', 'p1', 'p2'].map((id) => s.eng.tanks.get(id));
+    for (const t of [a, b, c]) t.fireReadyAt = Infinity;
     Object.assign(a, { x: 2.5, y: 4.5, a: 0 });
-    Object.assign(b, { x: 6.5, y: 4.5, a: 0, power: 'shield' });
+    Object.assign(b, { x: 6.5, y: 4.5, a: 0 });
     Object.assign(c, { x: 20.5, y: 12.5, a: 0 });
-    s.engine.handleAction('p1', 'input', { x: 0, y: 0, b: 2 }); // Schild aktivieren
-    s.advance(50);
+    // Kiste mit Schild unter b
+    s.eng.crates.push({ x: 6.5, y: 4.5, power: 'shield' });
+    s.advance(17);
     expect(b.shieldUntil).toBeGreaterThan(0);
-    s.engine.handleAction('p0', 'input', { x: 0, y: 0, b: 1 });
+    expect(b.power).toBeNull();
+    // a schießt → Schild fängt ab
+    Object.assign(a, { a: 0, fireReadyAt: 0, rotDir: 1 });
+    s.advance(17);
+    a.fireReadyAt = Infinity;
     s.advance(1200);
     expect(b.alive).toBe(true);
     expect(b.shieldUntil).toBe(0);
-    // Laser
-    a.power = 'laser';
-    s.engine.handleAction('p0', 'input', { x: 0, y: 0, b: 2 });
-    s.advance(50);
+    // Laser als nächster automatischer Schuss
+    Object.assign(a, { a: 0, power: 'laser', fireReadyAt: 0 });
+    s.advance(17);
+    expect(a.power).toBeNull();
     expect(b.alive).toBe(false);
-    // Mine
-    Object.assign(c, { x: 20.5, y: 12.5, power: 'mine' });
-    s.engine.handleAction('p2', 'input', { x: 0, y: 0, b: 2 });
+    // Mine sofort beim Einsammeln
+    s.eng.crates.push({ x: 20.5, y: 12.5, power: 'mine' });
     s.advance(1300);
     expect(s.eng.mines).toHaveLength(1);
     Object.assign(a, { x: s.eng.mines[0].x + 0.2, y: s.eng.mines[0].y });
@@ -154,7 +193,7 @@ describe('Kettenchaos – Engine', () => {
     ready(s);
     const a = s.eng.tanks.get('p0');
     Object.assign(a, { x: 1.5, y: 1.5, a: Math.PI }); // Blick zur linken Wand
-    s.engine.handleAction('p0', 'input', { x: 0, y: -1, b: 0 });
+    s.engine.handleAction('p0', 'input', { b: 1 });
     s.advance(2000);
     expect(a.x).toBeGreaterThanOrEqual(0.3);
   });

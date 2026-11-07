@@ -1,17 +1,15 @@
 import { motion } from 'framer-motion';
 import { haptics } from '../../../../app/haptics';
-import { Check, Maximize, RotateCcw, Settings2, Smartphone } from 'lucide-react';
+import { Check, Maximize, Play, RotateCcw, RotateCw, Settings2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCountdown } from '../../../../app/session/hooks';
 import { useSession } from '../../../../app/session/session-store';
 import type { PlayerViewProps } from '../../../game-types';
-import { BTN, POWERUPS, TANK_COLORS } from '../../game-config';
+import { BTN, POWERUPS, TAP_MS, TANK_COLORS } from '../../game-config';
 import { getMap } from '../../maps';
-import type { PanzerPrivateState, PanzerPublicState, Steering } from '../../types';
+import type { PanzerPrivateState, PanzerPublicState } from '../../types';
 import { panzerColorCache } from '../colors-cache';
 import { TankIcon } from '../TankIcon';
-import { Joystick } from './Joystick';
-import { PadButton } from './PadButton';
 
 function useLandscape() {
   const get = () => typeof window !== 'undefined' && window.innerWidth > window.innerHeight;
@@ -28,10 +26,9 @@ function useLandscape() {
   return landscape;
 }
 
-async function goFullscreenLandscape() {
+async function goFullscreen() {
   try {
     await document.documentElement.requestFullscreen?.();
-    await (screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> }).lock?.('landscape');
   } catch {
     /* nicht überall erlaubt (z. B. iPhone) */
   }
@@ -58,31 +55,11 @@ export function PanzerController({ room, me, state, sendAction }: PlayerViewProp
     );
   }
   if (pub.phase === 'colors') return <ColorPicker pub={pub} priv={priv} meId={me.id} room={room} sendAction={sendAction} landscape={landscape} />;
-  if (!landscape) return <RotateHint />;
   return <Gamepad pub={pub} priv={priv} meId={me.id} room={room} sendAction={sendAction} />;
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
   return <div className="flat touch-none-all fixed inset-0 overflow-hidden bg-[#578a34]">{children}</div>;
-}
-
-function RotateHint() {
-  return (
-    <Shell>
-      <div className="flex h-full flex-col items-center justify-center gap-6 p-8 text-center text-white">
-        <motion.div animate={{ rotate: [0, -90, -90, 0] }} transition={{ duration: 2.4, repeat: Infinity, times: [0, 0.35, 0.75, 1] }}>
-          <Smartphone className="size-20" strokeWidth={1.8} />
-        </motion.div>
-        <div>
-          <div className="text-4xl font-black">Handy quer halten!</div>
-          <p className="mt-2 font-bold text-white/80">Links fährst du mit dem Joystick, rechts sind die Tasten.</p>
-        </div>
-        <button onClick={() => void goFullscreenLandscape()} className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-lg font-black text-[#4a752c] shadow-[0_4px_0_rgba(0,0,0,0.2)]">
-          <Maximize className="size-5" /> Vollbild &amp; quer
-        </button>
-      </div>
-    </Shell>
-  );
 }
 
 // ------------------------------------------------------------------ Farbwahl
@@ -149,35 +126,8 @@ function ColorPicker({
               );
             })}
           </div>
-          <SteeringSwitch value={priv.steering} onChange={(mode) => sendAction('steering', { mode })} />
           <HapticsSwitch />
-          {!landscape && (
-            <button onClick={() => void goFullscreenLandscape()} className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-lg font-black text-[#4a752c] shadow-[0_4px_0_rgba(0,0,0,0.2)]">
-              <Maximize className="size-5" /> Vollbild &amp; quer drehen
-            </button>
-          )}
         </div>
-      </div>
-    </div>
-  );
-}
-
-function SteeringSwitch({ value, onChange }: { value: Steering; onChange: (v: Steering) => void }) {
-  return (
-    <div className="mt-4 rounded-xl bg-[#4a752c] p-2">
-      <div className="mb-1.5 px-1 text-sm font-bold text-white/85">Steuerung</div>
-      <div className="grid grid-cols-2 gap-2">
-        {(
-          [
-            ['tank', 'Panzer', '↑↓ fahren · ←→ drehen'],
-            ['direction', 'Richtung', 'Panzer fährt dorthin, wohin du zeigst'],
-          ] as const
-        ).map(([v, label, hint]) => (
-          <button key={v} onClick={() => onChange(v)} className={`rounded-lg px-2.5 py-2 text-left transition ${value === v ? 'bg-white text-[#3c4043]' : 'bg-white/10 text-white'}`}>
-            <div className="text-lg font-black leading-none">{label}</div>
-            <div className="mt-0.5 text-[11px] font-bold leading-tight opacity-80">{hint}</div>
-          </button>
-        ))}
       </div>
     </div>
   );
@@ -185,6 +135,7 @@ function SteeringSwitch({ value, onChange }: { value: Steering; onChange: (v: St
 
 // ------------------------------------------------------------------ Gamepad
 
+/** Ein einziger großer Knopf: tippen = Drehrichtung wechseln, halten = vorwärts fahren. */
 function Gamepad({
   pub,
   priv,
@@ -198,41 +149,59 @@ function Gamepad({
   room: PlayerViewProps['room'];
   sendAction: PlayerViewProps['sendAction'];
 }) {
-  const input = useRef({ x: 0, y: 0, b: 0 });
-  const sent = useRef({ x: 0, y: 0, b: 0, at: 0 });
   const [menu, setMenu] = useState(false);
+  const [down, setDown] = useState(false);
+  const [driving, setDriving] = useState(false);
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pointerId = useRef<number | null>(null);
   const offset = useSession((s) => s.clockOffset);
   const [now, setNow] = useState(Date.now());
   const mine = pub.players.find((p) => p.playerId === meId);
   const color = TANK_COLORS[priv.color]!.hex;
 
-  const flush = useCallback(
-    (force = false) => {
-      const i = input.current;
-      const s = sent.current;
-      const t = performance.now();
-      const moved = Math.abs(i.x - s.x) > 0.04 || Math.abs(i.y - s.y) > 0.04 || ((i.x === 0) !== (s.x === 0)) || ((i.y === 0) !== (s.y === 0));
-      if (!force && i.b === s.b && (!moved || t - s.at < 40)) return;
-      sendAction('input', { x: Math.round(i.x * 100) / 100, y: Math.round(i.y * 100) / 100, b: i.b });
-      sent.current = { ...i, at: t };
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(id);
+  }, []);
+
+  const release = useCallback(
+    (send = true) => {
+      if (holdTimer.current) clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+      pointerId.current = null;
+      setDown(false);
+      setDriving(false);
+      if (send) sendAction('input', { b: 0 });
     },
     [sendAction],
   );
 
-  // Joystick regelmäßig senden (gedrosselt) + Anzeige der Abklingzeit
+  // bei Rundenwechsel/Tod Knopf loslassen
   useEffect(() => {
-    const id = setInterval(() => {
-      flush();
-      setNow(Date.now());
-    }, 40);
-    return () => clearInterval(id);
-  }, [flush]);
+    release();
+  }, [pub.round, priv.alive, release]);
+  useEffect(() => () => release(false), [release]);
 
-  // bei Rundenwechsel/Tod Eingaben zurücksetzen
-  useEffect(() => {
-    input.current = { x: 0, y: 0, b: 0 };
-    flush(true);
-  }, [pub.round, priv.alive, flush]);
+  const onDown = (e: React.PointerEvent) => {
+    if (pointerId.current !== null) return;
+    pointerId.current = e.pointerId;
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {
+      /* egal */
+    }
+    setDown(true);
+    sendAction('input', { b: BTN.main });
+    holdTimer.current = setTimeout(() => {
+      setDriving(true);
+      haptics.play('medium');
+    }, TAP_MS);
+  };
+  const onUp = (e: React.PointerEvent) => {
+    if (pointerId.current !== e.pointerId) return;
+    if (!driving) haptics.play('light');
+    release();
+  };
 
   // Haptik bei Spielereignissen
   const wasAlive = useRef(priv.alive);
@@ -263,16 +232,12 @@ function Gamepad({
     if (pub.phase === 'battle') haptics.play('medium');
   }, [cdSecs, pub.phase]);
 
-  const press = (bit: number) => (down: boolean) => {
-    input.current.b = down ? input.current.b | bit : input.current.b & ~bit;
-    flush(true);
-  };
-
   const serverNow = now + offset;
-  const turboLeft = Math.max(0, priv.turboReadyAt - serverNow);
   const power = priv.power ? POWERUPS[priv.power] : null;
   const remaining = useCountdown(pub.phase === 'countdown' ? pub.phaseEndsAt : null, 200);
   const winnerName = room.players.find((p) => p.id === pub.roundWinnerId)?.name;
+  const active = priv.alive && priv.inRound;
+  const RotIcon = priv.rotDir === 1 ? RotateCw : RotateCcw;
 
   let status: React.ReactNode = null;
   if (pub.phase === 'countdown') status = `Runde ${pub.round} · ${getMap(pub.mapId).name} · ${Math.ceil(remaining / 1000)}`;
@@ -282,8 +247,8 @@ function Gamepad({
 
   return (
     <Shell>
-      {/* Farbstreifen + Kopfzeile */}
-      <div className="absolute inset-x-0 top-0 flex h-12 items-center gap-3 bg-[#4a752c] px-4 shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
+      {/* Kopfzeile */}
+      <div className="absolute inset-x-0 top-0 z-10 flex h-12 items-center gap-3 bg-[#4a752c] px-4 shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
         <TankIcon color={priv.color} className="size-8" angle={-90} dead={!priv.alive} />
         <div className="min-w-0 flex-1 truncate text-lg font-black">
           {room.players.find((p) => p.id === meId)?.name}
@@ -298,49 +263,42 @@ function Gamepad({
         </button>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 top-12 flex">
-        {/* Joystick-Bereich */}
-        <div className="h-full w-[48%]">
-          <Joystick
-            color={color}
-            onChange={(x, y) => {
-              input.current.x = x;
-              input.current.y = y;
-            }}
-          />
-        </div>
-
-        {/* Tasten */}
-        <div className="relative h-full flex-1">
-          <div className="absolute left-1/2 top-1/2 size-[min(78vh,300px)] -translate-x-1/2 -translate-y-1/2">
-            <div className="absolute left-1/2 top-0 -translate-x-1/2">
-              <PadButton label="Y" ariaLabel="Y" sub="Hupe" color="#f9ab00" size={76} haptic="light" onPress={press(BTN.honk)} />
-            </div>
-            <div className="absolute left-0 top-1/2 -translate-y-1/2">
-              <PadButton label="X" ariaLabel="X" sub={turboLeft > 0 ? `${Math.ceil(turboLeft / 1000)} s` : 'Turbo'} color="#4285f4" size={84} cooldown={turboLeft / 4000} haptic={turboLeft > 0 ? 'tick' : 'medium'} onPress={press(BTN.turbo)} />
-            </div>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2">
-              <PadButton
-                label={power ? power.icon : 'B'}
-                ariaLabel="B"
-                sub={power ? power.name : 'Spezial'}
-                color={power ? power.color : '#9aa0a6'}
-                size={92}
-                disabled={!power}
-                haptic="heavy"
-                onPress={press(BTN.special)}
-              />
-            </div>
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
-              <PadButton label="A" ariaLabel="A" sub="Feuer" color="#ea4335" size={104} haptic="medium" onPress={press(BTN.fire)} />
-            </div>
+      {/* der eine Knopf */}
+      <div className="absolute inset-x-0 bottom-0 top-12 flex flex-col items-center justify-center gap-4 p-4 safe-pb">
+        <button
+          onPointerDown={onDown}
+          onPointerUp={onUp}
+          onPointerCancel={onUp}
+          onContextMenu={(e) => e.preventDefault()}
+          disabled={!active}
+          aria-label="Knopf: tippen = Drehrichtung wechseln, halten = fahren"
+          className={`relative grid aspect-square w-[min(78vw,62vh,420px)] select-none place-items-center rounded-full text-white transition-[transform,box-shadow] duration-75 disabled:opacity-40 ${down ? 'translate-y-2 shadow-[0_2px_0_rgba(0,0,0,0.3)]' : 'shadow-[0_12px_0_rgba(0,0,0,0.3)]'}`}
+          style={{ background: color }}
+        >
+          <span className="pointer-events-none flex flex-col items-center gap-1">
+            {driving ? (
+              <motion.span key="drive" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="text-[min(12vw,9vh)] font-black leading-none drop-shadow">
+                ▲
+              </motion.span>
+            ) : (
+              <motion.span key={`rot${priv.rotDir}`} initial={{ rotate: priv.rotDir * -90, scale: 0.7 }} animate={{ rotate: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }}>
+                <RotIcon className="size-[min(22vw,16vh)] drop-shadow" strokeWidth={3} />
+              </motion.span>
+            )}
+            <span className="text-[min(6vw,4.5vh)] font-black drop-shadow">{driving ? 'Fahren!' : priv.rotDir === 1 ? 'Rechts herum' : 'Links herum'}</span>
+          </span>
+        </button>
+        <div className="text-center text-sm font-bold text-white/85">Tippen = Drehrichtung wechseln · Halten = vorwärts · Schießen geht automatisch</div>
+        {power && (
+          <div className="flex items-center gap-2 rounded-full px-4 py-1.5 text-base font-black" style={{ background: power.color }}>
+            <span className="text-xl">{power.icon}</span> Nächster Schuss: {power.name}
           </div>
-        </div>
+        )}
       </div>
 
       {status && (
-        <div className="pointer-events-none absolute inset-x-0 top-14 flex justify-center">
-          <div className="flat-card px-4 py-1.5 text-lg font-black">{status}</div>
+        <div className="pointer-events-none absolute inset-x-0 top-14 z-10 flex justify-center px-3">
+          <div className="flat-card px-4 py-1.5 text-center text-lg font-black">{status}</div>
         </div>
       )}
       {priv.alive && priv.shieldUntil > serverNow && (
@@ -351,14 +309,13 @@ function Gamepad({
         <div className="absolute inset-0 z-20 grid place-items-center bg-black/50 p-4" onClick={() => setMenu(false)}>
           <div className="w-full max-w-md rounded-2xl bg-[#578a34] p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="text-2xl font-black">Optionen</div>
-            <SteeringSwitch value={priv.steering} onChange={(mode) => sendAction('steering', { mode })} />
             <HapticsSwitch />
             <div className="mt-3 flex gap-2">
-              <button onClick={() => void goFullscreenLandscape()} className="flex flex-1 items-center justify-center gap-2 rounded-full bg-white px-3 py-2.5 text-lg font-black text-[#4a752c]">
+              <button onClick={() => void goFullscreen()} className="flex flex-1 items-center justify-center gap-2 rounded-full bg-white px-3 py-2.5 text-lg font-black text-[#4a752c]">
                 <Maximize className="size-5" /> Vollbild
               </button>
               <button onClick={() => setMenu(false)} className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#1a73e8] px-3 py-2.5 text-lg font-black text-white">
-                <RotateCcw className="size-5" /> Weiter
+                <Play className="size-5" /> Weiter
               </button>
             </div>
           </div>

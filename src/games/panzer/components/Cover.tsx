@@ -1,6 +1,6 @@
 import type { CoverProps } from '../../game-types';
 
-/** Kachel-Grafik im flachen Stil: Schachbrett-Wiese, Panzer, Reifenspur, abprallende Kugel. */
+/** Kachel-Grafik im flachen Stil: Schachbrett-Wiese, Panzer, Reifenspur, fliegende Kugel. */
 export function PanzerCover({ focused }: CoverProps) {
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#aad751]">
@@ -20,7 +20,7 @@ export function PanzerCover({ focused }: CoverProps) {
         {/* Block */}
         <rect x="150" y="24" width="30" height="78" rx="4" fill="#4a752c" />
         <rect x="150" y="24" width="30" height="72" rx="4" fill="#5c8f37" />
-        {/* Kugel mit Leuchtspur und Abpraller */}
+        {/* Kugel mit Leuchtspur */}
         <path d="M120 104 L148 66" stroke="rgba(234,67,53,0.35)" strokeWidth="5" strokeLinecap="round" />
         <path d="M148 66 L124 36" stroke="rgba(234,67,53,0.7)" strokeWidth="7" strokeLinecap="round" />
         <circle cx="148" cy="66" r="4" fill="#fff" />

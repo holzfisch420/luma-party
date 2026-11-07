@@ -2,13 +2,14 @@
  * Kettenchaos – serverseitige Engine (maßgebliche Simulation).
  *
  * - 60 Hz feste Physik-Schritte, 20 Hz Positions-Frames an den Hauptbildschirm
- * - Handys schicken nur Eingaben (Joystick + Tasten), alles andere entscheidet der Server
+ * - Handys schicken nur Eingaben (ein Knopf), alles andere entscheidet der Server
  * - Rundenablauf: Farbwahl → Countdown → Kampf → Rundenende → … → Sieg
  */
 import type { GameContext, GameEngine, GamePlayer, ServerGameModule, TimerHandle } from '../../server/game-engine/types';
 import type { PlayerId } from '../../shared/types/room';
 import {
   BTN,
+  TAP_MS,
   DEFAULT_PANZER_SETTINGS,
   PHASE_SECONDS,
   PHYS,
@@ -33,7 +34,6 @@ import {
   type PanzerPrivateState,
   type PanzerPublicState,
   type RoundStartEvent,
-  type Steering,
 } from './types';
 
 const MAX_SLOTS = 8;
@@ -51,15 +51,13 @@ interface Tank {
   x: number;
   y: number;
   a: number;
-  input: { x: number; y: number; mask: number };
-  pending: { fire: boolean; special: boolean; turbo: boolean; honk: boolean };
-  steering: Steering;
+  /** Knopf gedrückt seit (ms) – null = losgelassen */
+  holdStart: number | null;
+  /** Drehrichtung: 1 = im Uhrzeigersinn, -1 = dagegen */
+  rotDir: 1 | -1;
   fireReadyAt: number;
-  turboUntil: number;
-  turboReadyAt: number;
   shieldUntil: number;
   cloakUntil: number;
-  honkReadyAt: number;
   power: PowerId | null;
   mgLeft: number;
   mgNextAt: number;
@@ -172,15 +170,11 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
       x: 0,
       y: 0,
       a: 0,
-      input: { x: 0, y: 0, mask: 0 },
-      pending: { fire: false, special: false, turbo: false, honk: false },
-      steering: 'tank',
+      holdStart: null,
+      rotDir: 1,
       fireReadyAt: 0,
-      turboUntil: 0,
-      turboReadyAt: 0,
       shieldUntil: 0,
       cloakUntil: 0,
-      honkReadyAt: 0,
       power: null,
       mgLeft: 0,
       mgNextAt: 0,
@@ -216,9 +210,8 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
       alive: t.alive,
       inRound: t.inRound,
       power: t.power,
-      turboReadyAt: t.turboReadyAt,
       shieldUntil: t.shieldUntil,
-      steering: t.steering,
+      rotDir: t.rotDir,
     };
   }
 
@@ -231,15 +224,17 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
     const data = (payload && typeof payload === 'object' ? payload : {}) as Record<string, unknown>;
     switch (type) {
       case 'input': {
-        const x = typeof data.x === 'number' && Number.isFinite(data.x) ? clamp(data.x, -1, 1) : 0;
-        const y = typeof data.y === 'number' && Number.isFinite(data.y) ? clamp(data.y, -1, 1) : 0;
-        const mask = typeof data.b === 'number' && Number.isInteger(data.b) ? data.b & 15 : 0;
-        const pressed = mask & ~t.input.mask;
-        if (pressed & BTN.fire) t.pending.fire = true;
-        if (pressed & BTN.special) t.pending.special = true;
-        if (pressed & BTN.turbo) t.pending.turbo = true;
-        if (pressed & BTN.honk) t.pending.honk = true;
-        t.input = { x, y, mask };
+        // Ein Knopf: Tippen wechselt die Drehrichtung, Halten fährt vorwärts
+        const down = typeof data.b === 'number' && (data.b & BTN.main) !== 0;
+        const now = this.ctx.now();
+        if (down && t.holdStart === null) t.holdStart = now;
+        else if (!down && t.holdStart !== null) {
+          if (now - t.holdStart < TAP_MS) {
+            t.rotDir = t.rotDir === 1 ? -1 : 1;
+            this.ctx.publishState();
+          }
+          t.holdStart = null;
+        }
         return;
       }
       case 'color': {
@@ -257,13 +252,6 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
         this.ctx.publishState();
         const active = [...this.tanks.values()].filter((o) => o.slot >= 0 && this.ctx.getPlayer(o.playerId)?.isConnected);
         if (active.length >= 2 && active.every((o) => o.ready)) this.startRound();
-        return;
-      }
-      case 'steering': {
-        if (data.mode === 'tank' || data.mode === 'direction') {
-          t.steering = data.mode;
-          this.ctx.publishState();
-        }
         return;
       }
       default:
@@ -289,7 +277,7 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
 
   onPlayerDisconnected(p: GamePlayer): void {
     const t = this.tanks.get(p.id);
-    if (t) t.input = { x: 0, y: 0, mask: 0 };
+    if (t) t.holdStart = null;
     if (this.phase === 'colors') {
       const active = [...this.tanks.values()].filter((o) => o.slot >= 0 && this.ctx.getPlayer(o.playerId)?.isConnected);
       if (active.length >= 2 && active.every((o) => o.ready)) this.startRound();
@@ -341,9 +329,8 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
       t.mgLeft = 0;
       t.shieldUntil = 0;
       t.cloakUntil = 0;
-      t.turboUntil = 0;
-      t.turboReadyAt = 0;
-      t.pending = { fire: false, special: false, turbo: false, honk: false };
+      t.holdStart = null;
+      t.fireReadyAt = 0;
     }
     participants.forEach((t, i) => {
       const sp = spawns[i % spawns.length]!;
@@ -365,6 +352,8 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
   private startBattle(): void {
     const interval = POWERUP_INTERVAL[this.settings.powerups];
     this.nextCrateAt = Number.isFinite(interval) ? this.ctx.now() + interval * 500 : Infinity;
+    // erster automatischer Schuss kurz nach dem Start
+    for (const t of this.tanks.values()) t.fireReadyAt = this.ctx.now() + 600;
     this.phase = 'battle';
     this.phaseEndsAt = 0;
     this.phaseDurationMs = 0;
@@ -437,44 +426,27 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
     let privateDirty = false;
 
     for (const t of this.tanks.values()) {
-      if (!t.alive) {
-        t.pending = { fire: false, special: false, turbo: false, honk: false };
-        continue;
-      }
-      // Hupe
-      if (t.pending.honk && now >= t.honkReadyAt) {
-        t.honkReadyAt = now + 800;
-        this.fx.push({ t: 'honk', s: t.slot });
-      }
-      // Turbo
-      if (t.pending.turbo && now >= t.turboReadyAt) {
-        t.turboUntil = now + PHYS.turboSeconds * 1000;
-        t.turboReadyAt = now + PHYS.turboCooldown * 1000;
-        privateDirty = true;
-      }
-      // Bewegung
+      if (!t.alive) continue;
       this.drive(t, now);
-      // Feuer
-      if (t.pending.fire && now >= t.fireReadyAt) {
-        const own = this.bullets.filter((b) => b.owner === t.slot && b.kind === BULLET_KIND.shell).length;
-        if (own < PHYS.maxShells) {
+      // automatisches Feuer (Waffen-Power-ups ersetzen den nächsten Schuss)
+      if (now >= t.fireReadyAt && t.mgLeft === 0) {
+        if (t.power) {
+          this.usePower(t, now);
+          t.fireReadyAt = now + PHYS.autoFire * 1000;
+          privateDirty = true;
+        } else if (this.bullets.filter((b) => b.owner === t.slot && b.kind === BULLET_KIND.shell).length < PHYS.maxShells) {
           this.spawnBullet(t, BULLET_KIND.shell, t.a, now);
-          t.fireReadyAt = now + PHYS.fireCooldown * 1000;
+          t.fireReadyAt = now + PHYS.autoFire * 1000;
           this.fx.push({ t: 'shot', x: r2(t.x), y: r2(t.y) });
         }
-      }
-      // Spezial
-      if (t.pending.special && t.power) {
-        this.usePower(t, now);
-        privateDirty = true;
       }
       // Dauerfeuer
       if (t.mgLeft > 0 && now >= t.mgNextAt) {
         this.spawnBullet(t, BULLET_KIND.mg, t.a + (Math.random() - 0.5) * 0.16, now);
         t.mgLeft--;
         t.mgNextAt = now + 90;
+        if (t.mgLeft === 0) t.fireReadyAt = now + PHYS.autoFire * 1000;
       }
-      t.pending = { fire: false, special: false, turbo: false, honk: false };
     }
 
     this.separateTanks();
@@ -485,27 +457,15 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
   }
 
   private drive(t: Tank, now: number) {
-    const speed = PHYS.tankSpeed * (now < t.turboUntil ? PHYS.turboFactor : 1);
-    let throttle = 0;
-    if (t.steering === 'direction') {
-      const mag = Math.min(1, Math.hypot(t.input.x, t.input.y));
-      if (mag > 0.2) {
-        const target = Math.atan2(t.input.y, t.input.x);
-        const d = angleDiff(t.a, target);
-        t.a += clamp(d, -PHYS.tankTurn * STEP, PHYS.tankTurn * STEP);
-        throttle = mag * Math.max(0, Math.cos(d));
-      }
-    } else {
-      throttle = -t.input.y;
-      const turn = t.input.x;
-      if (Math.abs(turn) > 0.15) t.a += turn * PHYS.tankTurn * STEP * (throttle < -0.2 ? -1 : 1);
-      if (Math.abs(throttle) < 0.15) throttle = 0;
-    }
-    t.a = ((t.a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
-    if (throttle) {
-      const v = throttle * speed * (throttle < 0 ? 0.7 : 1) * STEP;
+    const driving = t.holdStart !== null && now - t.holdStart >= TAP_MS;
+    if (driving) {
+      const v = PHYS.tankSpeed * STEP;
       t.x += Math.cos(t.a) * v;
       t.y += Math.sin(t.a) * v;
+    } else if (t.holdStart === null) {
+      // nicht gedrückt: auf der Stelle drehen
+      t.a += t.rotDir * PHYS.tankTurn * STEP;
+      t.a = ((t.a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
     }
     for (let i = 0; i < 2; i++) {
       for (const w of this.map.walls) [t.x, t.y] = pushOutOfRect(t.x, t.y, PHYS.tankRadius, w);
@@ -561,12 +521,12 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
       case 'laser': {
         const sx = t.x + Math.cos(t.a) * PHYS.tankRadius * 0.9;
         const sy = t.y + Math.sin(t.a) * PHYS.tankRadius * 0.9;
-        const pts = traceLaser(sx, sy, t.a, this.map.walls, 32, 3);
+        const pts = traceLaser(sx, sy, t.a, this.map.walls, 32, 0);
         this.fx.push({ t: 'laser', p: pts.map(r2), c: t.color });
         for (const o of this.tanks.values()) {
           if (!o.alive) continue;
           for (let i = 0; i + 3 < pts.length; i += 2) {
-            if (o === t && i === 0) continue; // eigener Panzer erst nach dem ersten Abpraller
+            if (o === t) continue;
             if (distToSegment(o.x, o.y, pts[i]!, pts[i + 1]!, pts[i + 2]!, pts[i + 3]!) < PHYS.tankRadius) {
               this.damage(o, t.slot, now);
               break;
@@ -657,8 +617,14 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
       const m = moveBouncing(b.x, b.y, b.vx, b.vy, b.r, STEP, this.map.walls);
       b.x = m.x;
       b.y = m.y;
-      b.vx = m.vx;
-      b.vy = m.vy;
+      if (m.bounces > 0) {
+        // kein Abprallen: Geschoss endet an der Wand
+        if (b.kind === BULLET_KIND.frag) {
+          b.dieAt = now; // zerplatzt im nächsten Schritt in Splitter
+          keep.push(b);
+        } else if (b.kind === BULLET_KIND.missile) this.fx.push({ t: 'boom', x: r2(b.x), y: r2(b.y), s: 0.5 });
+        continue;
+      }
       // Treffer?
       let hit = false;
       for (const t of this.tanks.values()) {
@@ -705,7 +671,10 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
       if (idx < 0) continue;
       const c = this.crates[idx]!;
       this.crates.splice(idx, 1);
-      t.power = c.power;
+      if (c.power === 'shield' || c.power === 'cloak' || c.power === 'mine') {
+        t.power = c.power;
+        this.usePower(t, now); // sofort wirksam
+      } else t.power = c.power; // Waffe: ersetzt den nächsten automatischen Schuss
       this.fx.push({ t: 'pickup', x: r2(c.x), y: r2(c.y), i: POWER_IDS.indexOf(c.power), s: t.slot });
       this.ctx.publishState();
     }
@@ -760,7 +729,7 @@ export class PanzerEngine implements GameEngine<PanzerPublicState, PanzerPrivate
           r2(t.x),
           r2(t.y),
           Math.round(t.a * 1000) / 1000,
-          (now < t.shieldUntil ? TANK_FLAG.shield : 0) | (now < t.cloakUntil ? TANK_FLAG.cloak : 0) | (now < t.turboUntil ? TANK_FLAG.turbo : 0),
+          (now < t.shieldUntil ? TANK_FLAG.shield : 0) | (now < t.cloakUntil ? TANK_FLAG.cloak : 0) | (t.holdStart !== null && now - t.holdStart >= TAP_MS ? TANK_FLAG.turbo : 0),
         ]),
       b: this.bullets.map((b) => [b.id, r2(b.x), r2(b.y), b.kind, Math.round(Math.atan2(b.vy, b.vx) * 100) / 100, b.owner]),
       m: this.mines.map((m) => [r2(m.x), r2(m.y), now >= m.armAt ? 1 : 0, m.owner]),

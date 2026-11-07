@@ -18,8 +18,8 @@ export const panzerModule: ClientGameModule<PanzerPublicState, PanzerPrivateStat
   SettingsPanel: PanzerSettingsPanel,
   ResultsView: PanzerResultsView,
   rules: [
-    'Handy quer halten: links Joystick zum Fahren, rechts A = Feuer, B = Power-up, X = Turbo, Y = Hupe.',
-    'Kugeln prallen von Wänden ab – auch auf dich selbst zurück!',
+    'Nur ein Knopf: Der Panzer dreht sich von selbst. Tippen wechselt die Drehrichtung, Halten fährt vorwärts.',
+    'Geschossen wird automatisch – Kugeln prallen nicht ab, sie verschwinden an der Wand.',
     'Fahr über Kisten, um Power-ups einzusammeln. Der letzte Panzer gewinnt die Runde.',
   ],
 };

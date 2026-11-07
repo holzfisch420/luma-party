@@ -2,7 +2,6 @@ import type { PlayerId } from '../../shared/types/room';
 import type { PowerId } from './game-config';
 
 export type PanzerPhase = 'colors' | 'countdown' | 'battle' | 'roundEnd';
-export type Steering = 'tank' | 'direction';
 
 export interface PanzerPlayerInfo {
   playerId: PlayerId;
@@ -34,10 +33,11 @@ export interface PanzerPrivateState {
   color: number;
   alive: boolean;
   inRound: boolean;
+  /** Waffen-Power-up für den nächsten automatischen Schuss */
   power: PowerId | null;
-  turboReadyAt: number;
   shieldUntil: number;
-  steering: Steering;
+  /** aktuelle Drehrichtung (1 = Uhrzeigersinn) */
+  rotDir: 1 | -1;
 }
 
 /** Projektiltypen in Frames */
@@ -45,6 +45,7 @@ export const BULLET_KIND = { shell: 0, pellet: 1, missile: 2, mg: 3, frag: 4, sh
 export type BulletKind = (typeof BULLET_KIND)[keyof typeof BULLET_KIND];
 
 /** Flags je Panzer */
+/** turbo = fährt gerade (für Abgasflammen) */
 export const TANK_FLAG = { shield: 1, cloak: 2, turbo: 4 } as const;
 
 export type Fx =

@@ -10,9 +10,9 @@ export const PANZER_ID = 'kettenchaos';
 export const panzerMeta: GameMeta = {
   id: PANZER_ID,
   name: 'Kettenchaos',
-  tagline: 'Zielen. Abprallen. Überleben.',
+  tagline: 'Ein Knopf. Volles Chaos.',
   description:
-    'Wilde Panzer-Arena für bis zu 8 Spieler: Kugeln prallen von den Wänden ab, Power-ups verändern alles – der letzte Panzer gewinnt die Runde. Das Handy wird quer gehalten und zum Gamepad.',
+    'Wilde Panzer-Arena für bis zu 8 Spieler: gesteuert mit nur einem Knopf, geschossen wird automatisch. Power-ups verändern alles – der letzte Panzer gewinnt die Runde.',
   minPlayers: 2,
   maxPlayers: 8,
   durationMinutes: [5, 15],
@@ -44,19 +44,22 @@ export const TANK_COLORS = [
 export type PowerId = 'laser' | 'shotgun' | 'missile' | 'mine' | 'shield' | 'machinegun' | 'frag' | 'cloak';
 
 export const POWERUPS: Record<PowerId, { name: string; icon: string; color: string; hint: string }> = {
-  laser: { name: 'Laser', icon: '⚡', color: '#e53935', hint: 'Sofort-Strahl, prallt 3× ab' },
+  laser: { name: 'Laser', icon: '⚡', color: '#e53935', hint: 'Sofort-Strahl quer durchs Feld' },
   shotgun: { name: 'Schrot', icon: '💥', color: '#fb8c00', hint: '7 Kugeln im Fächer' },
   missile: { name: 'Lenkrakete', icon: '🚀', color: '#7e57c2', hint: 'Verfolgt den nächsten Gegner' },
-  mine: { name: 'Mine', icon: '💣', color: '#3a3a3a', hint: 'Wird abgelegt, scharf nach 1 s' },
-  shield: { name: 'Schild', icon: '🛡️', color: '#1e88e5', hint: 'Hält einen Treffer ab (8 s)' },
+  mine: { name: 'Mine', icon: '💣', color: '#3a3a3a', hint: 'Wird sofort abgelegt, scharf nach 1 s' },
+  shield: { name: 'Schild', icon: '🛡️', color: '#1e88e5', hint: 'Sofort aktiv, hält einen Treffer ab (8 s)' },
   machinegun: { name: 'Dauerfeuer', icon: '🔥', color: '#f4511e', hint: '14 schnelle Schüsse' },
   frag: { name: 'Splitterbombe', icon: '✴️', color: '#43a047', hint: 'Zerplatzt in 16 Splitter' },
-  cloak: { name: 'Tarnkappe', icon: '👻', color: '#90a4ae', hint: '7 s fast unsichtbar' },
+  cloak: { name: 'Tarnkappe', icon: '👻', color: '#90a4ae', hint: 'Sofort 7 s fast unsichtbar' },
 };
 export const POWER_IDS = Object.keys(POWERUPS) as PowerId[];
 
 /** Tasten (Bitmaske) */
-export const BTN = { fire: 1, special: 2, turbo: 4, honk: 8 } as const;
+/** Ein-Knopf-Steuerung: Bit 1 = Knopf gedrückt */
+export const BTN = { main: 1 } as const;
+/** kürzer gedrückt = Tippen (Drehrichtung wechseln), länger = Fahren */
+export const TAP_MS = 180;
 
 /** Spielkonstanten (Einheiten: Kacheln, Sekunden) */
 export const PHYS = {
@@ -64,12 +67,11 @@ export const PHYS = {
   frameHz: 20,
   tankRadius: 0.32,
   tankSpeed: 3.0,
-  tankTurn: 3.4,
-  turboFactor: 1.9,
-  turboSeconds: 0.7,
-  turboCooldown: 4,
-  fireCooldown: 0.28,
-  maxShells: 5,
+  /** Drehgeschwindigkeit (rad/s), solange nicht gefahren wird */
+  tankTurn: 2.7,
+  /** automatischer Schuss alle … Sekunden */
+  autoFire: 1.0,
+  maxShells: 3,
   shellSpeed: 5.6,
   shellRadius: 0.08,
   shellLife: 7,

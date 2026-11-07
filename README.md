@@ -118,22 +118,23 @@ Zeichnen & Raten im Comic-Stil (siehe oben).
 Eigenes Panzer-Partyspiel in Draufsicht für **2–8 Spieler**, inspiriert von klassischen Panzer-Minispielen –
 mit eigenen Grafiken, eigenem Namen und eigenen Arenen.
 
-- **Steuerung:** Handy **quer** halten. Links ein schwebender Joystick (erscheint unter dem Daumen),
-  rechts vier Tasten: **A** Feuer, **B** Power-up einsetzen, **X** Turbo (Abklingzeit), **Y** Hupe.
-  Zwei Lenkarten wählbar: *Panzer* (↑↓ fahren, ←→ drehen) oder *Richtung* (fährt dorthin, wohin man zeigt).
-- **Regeln:** Kugeln prallen von Wänden ab (auch auf einen selbst zurück), max. 5 eigene Kugeln gleichzeitig.
+- **Steuerung:** nur **ein Knopf**. Losgelassen dreht sich der Panzer auf der Stelle;
+  **tippen** wechselt die Drehrichtung, **halten** fährt vorwärts. Geschossen wird automatisch (etwa jede Sekunde).
+- **Regeln:** Kugeln prallen nicht ab – sie verschwinden an der Wand. Max. 3 eigene Kugeln gleichzeitig.
+  Waffen-Power-ups (Laser, Schrot, Rakete, Dauerfeuer, Splitter) ersetzen den nächsten Schuss,
+  Schild, Mine und Tarnkappe wirken sofort beim Einsammeln.
   Der letzte Panzer gewinnt die Runde; wer zuerst die eingestellte Zahl an Runden gewinnt, ist Champion.
 - **16 Panzerfarben** zur Auswahl (jede Farbe nur einmal pro Partie).
 - **13 Arenen** (Offenes Feld, Kreuzung, Labyrinth, Säulenhalle, Festung, X-Kreuz, Schachbrett, Spirale,
   Zwei Lager, Gassen, Ring, Inseln, Engpass) in vier Themen (Sand, Gras, Schnee, Asphalt).
 - **Reifenspuren**, die langsam verblassen, und Brandflecken nach Explosionen.
-- **8 Power-ups** aus Kisten: Laser (prallt 3× ab), Schrot (7 Kugeln), Lenkrakete, Mine, Schild,
+- **8 Power-ups** aus Kisten: Laser (Strahl quer durchs Feld), Schrot (7 Kugeln), Lenkrakete, Mine, Schild,
   Dauerfeuer, Splitterbombe, Tarnkappe.
 - Einstellungen: Siege zum Gewinnen, Power-up-Häufigkeit, Arenen-Auswahl, Zufall oder der Reihe nach.
 - **Look:** flacher Stil im Geiste der Google-Minispiele (Schachbrett-Boden, flache Blöcke, keine Konturen),
-  Kugeln mit Leuchtspur in der Farbe des Schützen, Abprall-Funken, Mündungsblitze, Partikel-Explosionen.
+  Kugeln mit Leuchtspur in der Farbe des Schützen, Einschlag-Funken, Mündungsblitze, Partikel-Explosionen.
 - Technik: Server-Simulation mit 60 Hz, Positionsdaten mit 20 Hz an den Fernseher (dort auf 60 fps interpoliert),
-  Handys senden nur Joystick und Tasten.
+  Handys senden nur den Knopfzustand.
 
 ### Textprobe (Theater-Text lernen)
 Karaoke-artiges Lernprogramm für Theaterskripte – Rolle und Text erscheinen groß auf dem Fernseher,
@@ -153,7 +154,7 @@ gesteuert wird Zeile für Zeile per Handy.
 
 ## Handy als Controller: Haptik & Home-Bildschirm
 
-- **Haptik** (`src/app/haptics.ts`, für alle Spiele nutzbar): Tasten, Joystick-Anschlag und Spielereignisse
+- **Haptik** (`src/app/haptics.ts`, für alle Spiele nutzbar): Tasten und Spielereignisse
   (Power-up, Treffer, zerstört, Countdown) geben spürbare Rückmeldung. Im Gamepad-Menü abschaltbar.
   - **Android:** echte Vibrationsmuster über die Vibration API.
   - **iPhone (ab iOS 18):** Safari kennt keine Vibration API. Genutzt wird, dass Safari beim Umschalten
