@@ -120,6 +120,18 @@ Zeichnen & Raten im Comic-Stil (siehe oben).
   Begriffe (abstrakt, z. B. „Fernweh“, „Datenschutz“), Deutschrap, Englischer Rap, Geeker-Vocab
   (standardmässig aus, im Startbildschirm zuschaltbar) und Sonstiges.
 
+### Imposter
+Bluff-Spiel für **3–12 Spieler** im mysteriösen Look (dunkel, violetter Nebel).
+
+- Alle bekommen dasselbe geheime Wort aufs Handy – nur der **Imposter** nicht. Die Karte wird nur angezeigt,
+  solange man sie **gedrückt hält** (damit niemand mitliest).
+- **Hinweisrunden:** Reihum sagt jede Person laut ein passendes Wort und tippt „Fertig“. Der Imposter beginnt nie.
+- **Diskussion** (Zeit einstellbar), dann **Abstimmung** auf dem Handy. Wird der Imposter enttarnt, darf er noch
+  das Wort raten.
+- **Punkte:** Imposter entkommt +3 · erwischt, aber Wort erraten +2 · Crew bei Enttarnung +1, wer richtig gestimmt hat +1 extra.
+- Wörter und **Kategorien wie beim Montagsmaler** – direkt im Startbildschirm auswählbar.
+- Einstellungen: Runden, Hinweisrunden (1–3), Diskussionszeit, Kategorie für alle sichtbar.
+
 ### Kettenchaos (Panzer-Arena)
 Eigenes Panzer-Partyspiel in Draufsicht für **2–8 Spieler**, inspiriert von klassischen Panzer-Minispielen –
 mit eigenen Grafiken, eigenem Namen und eigenen Arenen.

@@ -8,6 +8,7 @@ import type { ClientGameModule } from './game-types';
 import { montagsmalerModule } from './montagsmaler';
 import { panzerModule } from './panzer';
 import { theaterModule } from './theater';
+import { imposterModule } from './imposter';
 
 const modules = new Map<string, ClientGameModule>();
 
@@ -18,6 +19,7 @@ export function registerClientGame(module: ClientGameModule) {
 registerClientGame(montagsmalerModule);
 registerClientGame(panzerModule);
 registerClientGame(theaterModule);
+registerClientGame(imposterModule);
 
 export function getClientGame(id: string | null | undefined): ClientGameModule | undefined {
   return id ? modules.get(id) : undefined;

@@ -15,6 +15,8 @@
 @import '@fontsource/source-sans-3/latin-400-italic.css';
 @import '@fontsource/source-sans-3/latin-600.css';
 @import '@fontsource/source-sans-3/latin-700.css';
+@import '@fontsource/cinzel/600.css';
+@import '@fontsource/cinzel/800.css';
 @import 'tailwindcss';
 
 @theme {
@@ -28,6 +30,8 @@
   /* Theater (Textprobe) */
   --font-stage: 'Playfair Display', Georgia, serif;
   --font-script: 'Source Sans 3', 'Segoe UI', sans-serif;
+  /* Imposter */
+  --font-mystery: 'Cinzel', Georgia, serif;
 
   /* Launcher-Farben (hell, Home-Menü-Stil) */
   --color-home-bg: #eef1f4;
@@ -256,4 +260,64 @@ body {
   background:
     repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.32) 0 6px, rgba(255, 255, 255, 0.05) 14px, rgba(0, 0, 0, 0.32) 24px),
     linear-gradient(180deg, #7a1022, #4a0812);
+}
+
+/* ---------------------------------------------------------------- Imposter: violetter Nebel */
+.mystery {
+  font-family: var(--font-sans);
+  color: #efe7ff;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 115%, #3b0f6e 0%, transparent 65%),
+    radial-gradient(ellipse 70% 50% at 50% -15%, #1f0b3d 0%, transparent 60%),
+    #09050f;
+}
+.font-mystery {
+  font-family: var(--font-mystery);
+}
+.fog-layer {
+  position: absolute;
+  inset: -25%;
+  pointer-events: none;
+  filter: blur(46px);
+  will-change: transform;
+}
+.fog-a {
+  background:
+    radial-gradient(ellipse 35% 25% at 25% 70%, rgba(147, 51, 234, 0.62), transparent 70%),
+    radial-gradient(ellipse 30% 22% at 75% 30%, rgba(124, 58, 237, 0.5), transparent 70%);
+  animation: fog-drift-a 26s ease-in-out infinite alternate;
+}
+.fog-b {
+  background:
+    radial-gradient(ellipse 40% 20% at 60% 80%, rgba(192, 132, 252, 0.4), transparent 70%),
+    radial-gradient(ellipse 25% 30% at 15% 25%, rgba(91, 33, 182, 0.55), transparent 70%);
+  animation: fog-drift-b 34s ease-in-out infinite alternate;
+}
+.fog-c {
+  background: radial-gradient(ellipse 50% 18% at 50% 95%, rgba(216, 180, 254, 0.32), transparent 70%);
+  animation: fog-drift-c 19s ease-in-out infinite alternate;
+}
+.fog-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.65) 100%);
+}
+@keyframes fog-drift-a {
+  from { transform: translate3d(-8%, 3%, 0) scale(1); }
+  to { transform: translate3d(7%, -4%, 0) scale(1.18); }
+}
+@keyframes fog-drift-b {
+  from { transform: translate3d(6%, -2%, 0) scale(1.12) rotate(0deg); }
+  to { transform: translate3d(-7%, 4%, 0) scale(1) rotate(6deg); }
+}
+@keyframes fog-drift-c {
+  from { transform: translate3d(-4%, 0, 0); opacity: 0.6; }
+  to { transform: translate3d(5%, -6%, 0); opacity: 1; }
+}
+.glow-violet {
+  text-shadow: 0 0 18px rgba(192, 132, 252, 0.75), 0 0 48px rgba(147, 51, 234, 0.55);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fog-layer { animation: none; }
 }
