@@ -24,6 +24,12 @@ export function getDeviceId(): string {
   return id;
 }
 
+/** Kopfzeilen für private Daten (Gerätekennung + ggf. Anmeldung) */
+export function ownerHeaders(): Record<string, string> {
+  const token = getAuthToken();
+  return { 'X-Luma-Owner': getDeviceId(), ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+}
+
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...init,

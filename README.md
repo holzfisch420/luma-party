@@ -135,6 +135,22 @@ mit eigenen Grafiken, eigenem Namen und eigenen Arenen.
 - Technik: Server-Simulation mit 60 Hz, Positionsdaten mit 20 Hz an den Fernseher (dort auf 60 fps interpoliert),
   Handys senden nur Joystick und Tasten.
 
+### Textprobe (Theater-Text lernen)
+Karaoke-artiges Lernprogramm für Theaterskripte – Rolle und Text erscheinen groß auf dem Fernseher,
+gesteuert wird Zeile für Zeile per Handy.
+
+- **Skript hochladen:** In den Einstellungen eine Word-Datei (`.docx`) wählen. Der Browser erkennt
+  „Szene 1: Titel“, „Figuren: …“, Regieanweisungen in Klammern und Zeilen wie „Name: Text“
+  (eingebettete Anweisungen werden kleiner und kursiv dargestellt). Seitenzahlen entsprechen den
+  Seiten im Word-Dokument. Tippfehler in Rollennamen („Aplh“ → „Alph“) werden anhand der
+  Figurenlisten zusammengeführt; kurze Namen (Zip/Zap/Zop) bleiben getrennt. Vorschau vor dem Speichern.
+- **Privat:** Skripte liegen nur auf dem eigenen Server (online pro Gerät bzw. Konto), nicht im Code.
+- **Handy:** Szene und Seite wählen, große Tasten **Nach oben** / **Nach unten**, eine Taste zum
+  Ausblenden (alles sichtbar → Zeile davor → Zeile danach → beide), dazu Optionen:
+  Regieanweisungen überspringen, eigene Rolle(n) hervorheben, Probe beenden.
+- **Fernseher:** Bühne mit Vorhang, aktuelle Zeile im Scheinwerferlicht, zwei Zeilen davor und
+  drei danach; ausgeblendete Zeilen zeigen nur die Rolle und Platzhalter.
+
 ## Handy als Controller: Haptik & Home-Bildschirm
 
 - **Haptik** (`src/app/haptics.ts`, für alle Spiele nutzbar): Tasten, Joystick-Anschlag und Spielereignisse

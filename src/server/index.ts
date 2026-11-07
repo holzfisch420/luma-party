@@ -18,6 +18,8 @@ import { createDocumentStore } from './storage/document-store';
 import { AccountStore } from './accounts/account-store';
 import { TokenService } from './accounts/tokens';
 import { createAuthRouter } from './routes/auth';
+import { ScriptStore } from './storage/script-store';
+import { createScriptRouter } from './routes/scripts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '../..');
@@ -81,11 +83,15 @@ export async function startServer(portOrOptions: number | ServerOptions = PORT) 
   const accounts = new AccountStore(store);
   await accounts.load();
   const tokens = await TokenService.create(store, accounts);
+  const scripts = new ScriptStore(store);
+  await scripts.load();
 
   const app = express();
   app.disable('x-powered-by');
   // hinter dem Proxy des Hosting-Anbieters die echte Client-IP verwenden
   if (publicMode) app.set('trust proxy', 1);
+  // Skript-Uploads brauchen ein höheres Limit und haben einen eigenen Parser
+  app.use('/api/scripts', createScriptRouter(scripts, { publicMode, tokens }));
   app.use(express.json({ limit: '256kb' }));
 
   const httpServer = createServer(app);
@@ -95,7 +101,7 @@ export async function startServer(portOrOptions: number | ServerOptions = PORT) 
     pingInterval: 10_000,
     pingTimeout: 8_000,
   });
-  const rooms = new RoomManager(io, { wordLists, accounts, tokens });
+  const rooms = new RoomManager(io, { wordLists, accounts, tokens, scripts });
   registerSocketHandlers(io, rooms, { publicMode });
 
   app.get('/api/health', (_req, res) => {

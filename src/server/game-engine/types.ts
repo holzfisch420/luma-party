@@ -11,6 +11,7 @@ import type { NoticeKind, PlayerId } from '../../shared/types/room';
 import type { WordListStore } from '../storage/word-list-store';
 import type { AccountStore } from '../accounts/account-store';
 import type { TokenService } from '../accounts/tokens';
+import type { ScriptStore } from '../storage/script-store';
 import type { AvatarConfig } from '../../shared/avatar';
 
 export interface GamePlayer {
@@ -39,6 +40,7 @@ export interface GameServices {
   wordLists: WordListStore;
   accounts: AccountStore;
   tokens: TokenService;
+  scripts: ScriptStore;
 }
 
 export interface FinalScores {
