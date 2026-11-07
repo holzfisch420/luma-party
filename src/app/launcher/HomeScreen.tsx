@@ -1,4 +1,4 @@
-import { BookOpen, HelpCircle, Maximize, QrCode as QrIcon, Settings, Users } from 'lucide-react';
+import { BookOpen, HelpCircle, Maximize, QrCode as QrIcon, Settings, Users, ZoomIn } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppTileArt } from '../../components/launcher/AppTileArt';
 import { GameSettingsSheet } from '../../components/launcher/GameSettingsSheet';
@@ -6,7 +6,7 @@ import { HomeDock, type DockItem } from '../../components/launcher/HomeDock';
 import { HomeGrid, type GridItem } from '../../components/launcher/HomeGrid';
 import { LaunchPanel } from '../../components/launcher/LaunchPanel';
 import { TileArt } from '../../components/launcher/TileArt';
-import { JoinInstructions, QrCode, useJoinUrl } from '../../components/lobby/JoinInstructions';
+import { JoinInstructions, QrCode, QrZoom, useJoinUrl } from '../../components/lobby/JoinInstructions';
 import { PlayerAvatar } from '../../components/lobby/PlayerAvatar';
 import { PlayerList } from '../../components/lobby/PlayerList';
 import { SettingRow, Toggle } from '../../components/ui/Controls';
@@ -32,6 +32,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
   const [launchId, setLaunchId] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sheet, setSheet] = useState<Sheet>(null);
+  const [qrZoom, setQrZoom] = useState(false);
   const [starting, setStarting] = useState(false);
   const joinUrl = useJoinUrl(room.code);
   const connected = room.players.filter((p) => p.isConnected).length;
@@ -101,7 +102,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
   ];
 
   const launchMeta = GAMES.find((g) => g.id === launchId) ?? null;
-  const keyboard = !launchMeta && !settingsOpen && !sheet && !menuOpen;
+  const keyboard = !launchMeta && !settingsOpen && !sheet && !menuOpen && !qrZoom;
 
   return (
     <div className="home-bg relative flex h-dvh flex-col overflow-hidden">
@@ -128,13 +129,17 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
               </div>
             ))}
           </div>
-          <button onClick={() => setSheet('join')} className="home-tile flex items-center gap-3 rounded-[22px] py-2 pl-2 pr-4 text-left">
+          <button onClick={() => setQrZoom(true)} className="home-tile group flex cursor-zoom-in items-center gap-3 rounded-[22px] py-2 pl-2 pr-4 text-left" title="Zum Vergrößern klicken">
             <QrCode text={joinUrl} className="size-[clamp(4rem,6vw,6rem)] rounded-[14px] p-1.5" />
             <div className="hidden md:block">
               <div className="text-sm font-black text-home-text">Handy-Kamera drauf!</div>
               <div className="text-xs font-bold text-home-muted">oder Code {room.code} eingeben</div>
+              <div className="mt-0.5 flex items-center gap-1 text-xs font-black text-cyan-dark">
+                <ZoomIn className="size-3.5" /> Klicken zum Vergrößern
+              </div>
             </div>
           </button>
+          <QrZoom open={qrZoom} onClose={() => setQrZoom(false)} text={joinUrl} code={room.code} />
         </div>
       </header>
 
