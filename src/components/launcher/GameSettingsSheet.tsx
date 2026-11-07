@@ -10,8 +10,8 @@ import { useToast } from '../ui/Toast';
  * Generisches Einstellungs-Sheet: rendert das SettingsPanel des Spiels
  * und synchronisiert Änderungen (optimistisch) mit dem Server.
  */
-export function GameSettingsSheet({ room, gameId, open, onClose, disabled }: { room: RoomSnapshot; gameId: string; open: boolean; onClose: () => void; disabled?: boolean }) {
-  const module = getClientGame(gameId);
+/** Einstellungen eines Spiels lesen und (optimistisch) ändern */
+export function useGameSettings(room: RoomSnapshot, gameId: string) {
   const toast = useToast();
   const serverSettings = room.gameSettings[gameId];
   const [draft, setDraft] = useState(serverSettings);
@@ -21,9 +21,6 @@ export function GameSettingsSheet({ room, gameId, open, onClose, disabled }: { r
   useEffect(() => {
     if (pending.current === 0) setDraft(serverSettings);
   }, [serverSettings]);
-
-  if (!module?.SettingsPanel) return null;
-  const Panel = module.SettingsPanel;
 
   const change = (next: unknown) => {
     setDraft(next);
@@ -35,6 +32,14 @@ export function GameSettingsSheet({ room, gameId, open, onClose, disabled }: { r
       })
       .finally(() => pending.current--);
   };
+  return { settings: draft, change };
+}
+
+export function GameSettingsSheet({ room, gameId, open, onClose, disabled }: { room: RoomSnapshot; gameId: string; open: boolean; onClose: () => void; disabled?: boolean }) {
+  const module = getClientGame(gameId);
+  const { settings: draft, change } = useGameSettings(room, gameId);
+  if (!module?.SettingsPanel) return null;
+  const Panel = module.SettingsPanel;
 
   return (
     <Modal

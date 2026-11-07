@@ -4,12 +4,17 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { getClientGame } from '../../games/game-registry';
 import type { GameMeta } from '../../shared/types/game';
+import type { RoomSnapshot } from '../../shared/types/room';
 import { Button } from '../ui/Button';
+import { useGameSettings } from './GameSettingsSheet';
 import { GameMetaChips } from './GameInfo';
 import { TileArt } from './TileArt';
 
 interface LaunchPanelProps {
   meta: GameMeta | null;
+  room: RoomSnapshot;
+  /** darf die Person Einstellungen ändern? */
+  canEdit?: boolean;
   connectedPlayers: number;
   canStart: boolean;
   starting?: boolean;
@@ -21,7 +26,7 @@ interface LaunchPanelProps {
 }
 
 /** Startbildschirm eines Spiels – erscheint nach Auswahl einer Kachel. */
-export function LaunchPanel({ meta, connectedPlayers, canStart, starting, onStart, onSettings, onClose, keyboard = true }: LaunchPanelProps) {
+export function LaunchPanel({ meta, room, canEdit = true, connectedPlayers, canStart, starting, onStart, onSettings, onClose, keyboard = true }: LaunchPanelProps) {
   const module = meta ? getClientGame(meta.id) : undefined;
   const available = !!meta && meta.status !== 'coming-soon' && !!module;
   const enough = !!meta && connectedPlayers >= meta.minPlayers;
@@ -71,6 +76,7 @@ export function LaunchPanel({ meta, connectedPlayers, canStart, starting, onStar
               </div>
               <p className="text-base font-semibold text-home-muted sm:text-lg">{meta.description}</p>
               <GameMetaChips meta={meta} />
+              {module?.QuickSettings && <QuickSettingsBox room={room} gameId={meta.id} disabled={!canEdit} />}
               <div className="mt-2 flex flex-wrap gap-3">
                 <Button variant="primary" size="xl" icon={<Play className="size-6 fill-current" />} disabled={!available || !enough || !canStart} loading={starting} onClick={onStart}>
                   {available ? 'Start' : 'Bald verfügbar'}
@@ -99,5 +105,17 @@ export function LaunchPanel({ meta, connectedPlayers, canStart, starting, onStar
       )}
     </AnimatePresence>,
     document.body,
+  );
+}
+
+function QuickSettingsBox({ room, gameId, disabled }: { room: RoomSnapshot; gameId: string; disabled: boolean }) {
+  const module = getClientGame(gameId);
+  const { settings, change } = useGameSettings(room, gameId);
+  if (!module?.QuickSettings || settings === undefined) return null;
+  const Quick = module.QuickSettings;
+  return (
+    <div className="rounded-3xl border border-home-line/70 bg-white/70 p-4">
+      <Quick settings={settings} onChange={change} disabled={disabled} />
+    </div>
   );
 }

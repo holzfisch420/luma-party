@@ -142,6 +142,8 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
 
       <LaunchPanel
         meta={launchOpen ? selected : null}
+        room={room}
+        canEdit={canSelect}
         connectedPlayers={connected}
         canStart={canSelect}
         starting={starting}

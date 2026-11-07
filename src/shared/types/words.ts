@@ -7,6 +7,8 @@ export const WORD_CATEGORIES = [
   'Fahrzeuge',
   'Aktivitäten',
   'Orte',
+  'Redewendungen',
+  'Begriffe',
   'Sonstiges',
 ] as const;
 export type WordCategory = (typeof WORD_CATEGORIES)[number];

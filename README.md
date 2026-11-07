@@ -3,7 +3,7 @@
 Ein Multi-Game-Party-Launcher im Apple-TV-Stil. Ein Fernseher, Beamer oder Laptop ist der **Hauptbildschirm**,
 alle Mitspielenden nutzen ihr **Smartphone als Controller** – ohne App und ohne Anmeldung.
 
-Erstes vollständig spielbares Spiel: **Montagsmaler** (Zeichnen & Raten) mit 586 integrierten deutschen Wörtern.
+Erstes vollständig spielbares Spiel: **Montagsmaler** (Zeichnen & Raten) mit rund 960 integrierten deutschen Wörtern in 11 Kategorien.
 
 ---
 
@@ -114,15 +114,19 @@ Einstellungen → Wörter → **Eigene Wörter** (nur eigene) oder **Mix** wähl
 ### Montagsmaler
 Zeichnen & Raten im Comic-Stil (siehe oben).
 
+- **Kategorien & Schwierigkeit** lassen sich direkt im Startbildschirm des Spiels auswählen (TV oder Handy),
+  z. B. nur „Tiere“ + „Redewendungen“. Standard ist „Mittel“ + „Schwer“; „Leicht“ lässt sich zuschalten.
+- Kategorien: Tiere, Essen, Gegenstände, Berufe, Natur, Fahrzeuge, Aktivitäten, Orte, Redewendungen,
+  Begriffe (abstrakt, z. B. „Fernweh“, „Datenschutz“) und Sonstiges.
+
 ### Kettenchaos (Panzer-Arena)
 Eigenes Panzer-Partyspiel in Draufsicht für **2–8 Spieler**, inspiriert von klassischen Panzer-Minispielen –
 mit eigenen Grafiken, eigenem Namen und eigenen Arenen.
 
-- **Steuerung:** nur **ein Knopf**. Losgelassen dreht sich der Panzer auf der Stelle;
-  **tippen** wechselt die Drehrichtung, **halten** fährt vorwärts. Geschossen wird automatisch (etwa jede Sekunde).
+- **Steuerung:** drei Knöpfe. **Fahrknopf** gedrückt = sofort vorwärts, losgelassen = auf der Stelle drehen,
+  kurz tippen = Drehrichtung wechseln. **Feuer** schießt, **Item** setzt das eingesammelte Power-up ein.
+  Funktioniert hochkant und quer.
 - **Regeln:** Kugeln prallen nicht ab – sie verschwinden an der Wand. Max. 3 eigene Kugeln gleichzeitig.
-  Waffen-Power-ups (Laser, Schrot, Rakete, Dauerfeuer, Splitter) ersetzen den nächsten Schuss,
-  Schild, Mine und Tarnkappe wirken sofort beim Einsammeln.
   Der letzte Panzer gewinnt die Runde; wer zuerst die eingestellte Zahl an Runden gewinnt, ist Champion.
 - **16 Panzerfarben** zur Auswahl (jede Farbe nur einmal pro Partie).
 - **13 Arenen** (Offenes Feld, Kreuzung, Labyrinth, Säulenhalle, Festung, X-Kreuz, Schachbrett, Spirale,

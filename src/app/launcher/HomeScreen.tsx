@@ -163,6 +163,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
 
       <LaunchPanel
         meta={launchMeta}
+        room={room}
         connectedPlayers={connected}
         canStart
         starting={starting}

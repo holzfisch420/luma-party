@@ -83,7 +83,7 @@ describe('Kettenchaos – Engine', () => {
     expect(s.events.some((e) => e.name === 'round')).toBe(true);
   });
 
-  it('Tippen wechselt die Drehrichtung, Halten fährt vorwärts', () => {
+  it('Fahrknopf: sofort losfahren, loslassen = drehen, Tippen wechselt die Drehrichtung', () => {
     const s = setup(2);
     ready(s);
     const a = s.eng.tanks.get('p0');
@@ -91,8 +91,18 @@ describe('Kettenchaos – Engine', () => {
     Object.assign(s.eng.tanks.get('p1'), { x: 20.5, y: 12.5 });
     expect(a.rotDir).toBe(1);
     s.advance(500);
-    expect(a.a).toBeGreaterThan(0.5); // dreht sich von selbst (im Uhrzeigersinn)
+    expect(a.a).toBeGreaterThan(0.5); // losgelassen: dreht sich von selbst
     expect(a.x).toBeCloseTo(6.5);
+    // gedrückt → fährt ohne Verzögerung
+    Object.assign(a, { x: 6.5, y: 9.5, a: 0 });
+    s.engine.handleAction('p0', 'input', { b: 1 });
+    s.advance(50);
+    expect(a.x).toBeGreaterThan(6.55);
+    expect(a.a).toBeCloseTo(0);
+    s.advance(1000);
+    expect(a.x).toBeGreaterThan(8.5);
+    s.engine.handleAction('p0', 'input', { b: 0 });
+    expect(a.rotDir).toBe(1); // langes Halten wechselt die Richtung nicht
     // kurzes Tippen
     s.engine.handleAction('p0', 'input', { b: 1 });
     s.advance(80);
@@ -102,26 +112,21 @@ describe('Kettenchaos – Engine', () => {
     const before = a.a;
     s.advance(300);
     expect(a.a).toBeLessThan(before);
-    // halten → fährt geradeaus, dreht nicht
-    Object.assign(a, { x: 6.5, y: 9.5, a: 0 });
-    s.engine.handleAction('p0', 'input', { b: 1 });
-    s.advance(1000);
-    expect(a.x).toBeGreaterThan(8);
-    expect(a.a).toBeCloseTo(0);
-    s.engine.handleAction('p0', 'input', { b: 0 });
-    expect(a.rotDir).toBe(-1); // langes Halten wechselt die Richtung nicht
   });
 
-  it('Automatisches Feuer zerstört, Überlebender punktet, Spielende bei Siegpunktzahl', () => {
+  it('Feuer-Knopf schießt, Treffer zerstört, Überlebender punktet, Spielende bei Siegpunktzahl', () => {
     const s = setup(2);
     ready(s);
     const [a, b] = [s.eng.tanks.get('p0'), s.eng.tanks.get('p1')];
-    // beide halten „Fahren“ gedrückt gegen die Wand → kein Drehen; a schaut auf b
-    const aim = () => {
-      Object.assign(a, { x: 2.5, y: 4.5, a: 0, fireReadyAt: 0 });
-      Object.assign(b, { x: 6.5, y: 4.5, a: Math.PI / 2, fireReadyAt: Infinity });
+    const shoot = () => {
+      Object.assign(a, { x: 2.5, y: 4.5, a: 0 });
+      Object.assign(b, { x: 6.5, y: 4.5, a: Math.PI / 2 });
+      s.engine.handleAction('p0', 'input', { b: 2 });
+      s.engine.handleAction('p0', 'input', { b: 0 });
     };
-    aim();
+    s.advance(1000);
+    expect(s.eng.bullets).toHaveLength(0); // kein automatisches Feuer
+    shoot();
     s.advance(1500);
     expect(b.alive).toBe(false);
     expect(a.kills).toBe(1);
@@ -135,7 +140,7 @@ describe('Kettenchaos – Engine', () => {
     s.advance(3600 + 3100); // nächste Runde + Countdown
     expect(s.engine.getPublicState().round).toBe(2);
     expect(b.alive).toBe(true);
-    aim();
+    shoot();
     s.advance(1500 + 2600 + 3600);
     expect(s.ended()?.scores.p0).toBe(2);
   });
@@ -144,43 +149,53 @@ describe('Kettenchaos – Engine', () => {
     const s = setup(2);
     ready(s);
     const [a, b] = [s.eng.tanks.get('p0'), s.eng.tanks.get('p1')];
-    Object.assign(a, { x: 1.5, y: 7.5, a: Math.PI, fireReadyAt: 0 }); // direkt vor der linken Wand
-    Object.assign(b, { x: 20.5, y: 12.5, fireReadyAt: Infinity });
+    Object.assign(a, { x: 1.5, y: 7.5, a: Math.PI }); // direkt vor der linken Wand
+    Object.assign(b, { x: 20.5, y: 12.5 });
+    s.engine.handleAction('p0', 'input', { b: 2 });
     s.advance(17);
     expect(s.eng.bullets.length).toBeGreaterThan(0);
-    a.fireReadyAt = Infinity;
     s.advance(800);
     expect(s.eng.bullets).toHaveLength(0);
     expect(a.alive).toBe(true);
   });
 
-  it('Schild wirkt sofort beim Einsammeln, Laser ersetzt den nächsten Schuss, Mine zerstört', () => {
+  it('Items werden eingesammelt und erst mit dem Item-Knopf eingesetzt', () => {
     const s = setup(3);
     ready(s);
     const [a, b, c] = ['p0', 'p1', 'p2'].map((id) => s.eng.tanks.get(id));
-    for (const t of [a, b, c]) t.fireReadyAt = Infinity;
     Object.assign(a, { x: 2.5, y: 4.5, a: 0 });
     Object.assign(b, { x: 6.5, y: 4.5, a: 0 });
     Object.assign(c, { x: 20.5, y: 12.5, a: 0 });
-    // Kiste mit Schild unter b
+    const press = (id: string, bit: number) => {
+      s.engine.handleAction(id, 'input', { b: bit });
+      s.engine.handleAction(id, 'input', { b: 0 });
+    };
+    // Schild einsammeln → noch nicht aktiv
     s.eng.crates.push({ x: 6.5, y: 4.5, power: 'shield' });
     s.advance(17);
-    expect(b.shieldUntil).toBeGreaterThan(0);
-    expect(b.power).toBeNull();
-    // a schießt → Schild fängt ab
-    Object.assign(a, { a: 0, fireReadyAt: 0, rotDir: 1 });
+    expect(b.power).toBe('shield');
+    expect(b.shieldUntil).toBe(0);
+    press('p1', 4);
     s.advance(17);
-    a.fireReadyAt = Infinity;
+    expect(b.power).toBeNull();
+    expect(b.shieldUntil).toBeGreaterThan(0);
+    // a schießt → Schild fängt ab
+    a.a = 0;
+    press('p0', 2);
     s.advance(1200);
     expect(b.alive).toBe(true);
     expect(b.shieldUntil).toBe(0);
-    // Laser als nächster automatischer Schuss
-    Object.assign(a, { a: 0, power: 'laser', fireReadyAt: 0 });
+    // Laser per Item-Knopf
+    Object.assign(a, { a: 0, power: 'laser' });
+    press('p0', 4);
     s.advance(17);
     expect(a.power).toBeNull();
     expect(b.alive).toBe(false);
-    // Mine sofort beim Einsammeln
+    // Mine einsammeln und legen
     s.eng.crates.push({ x: 20.5, y: 12.5, power: 'mine' });
+    s.advance(17);
+    expect(s.eng.mines).toHaveLength(0);
+    press('p2', 4);
     s.advance(1300);
     expect(s.eng.mines).toHaveLength(1);
     Object.assign(a, { x: s.eng.mines[0].x + 0.2, y: s.eng.mines[0].y });

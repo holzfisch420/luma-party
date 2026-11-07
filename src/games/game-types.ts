@@ -55,6 +55,8 @@ export interface ClientGameModule<Pub = any, Priv = any, S = any> {
   HostView: ComponentType<HostViewProps<Pub>>;
   PlayerView: ComponentType<PlayerViewProps<Pub, Priv>>;
   SettingsPanel?: ComponentType<SettingsPanelProps<S>>;
+  /** kompakte Auswahl direkt im Startbildschirm (z. B. Kategorien) */
+  QuickSettings?: ComponentType<SettingsPanelProps<S>>;
   /** eigene Ergebnis-Ansicht; ohne Angabe zeigt der Launcher eine neutrale Rangliste */
   ResultsView?: ComponentType<ResultsViewProps>;
   /** kurze Spielregeln für den Launcher */

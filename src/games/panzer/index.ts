@@ -18,8 +18,8 @@ export const panzerModule: ClientGameModule<PanzerPublicState, PanzerPrivateStat
   SettingsPanel: PanzerSettingsPanel,
   ResultsView: PanzerResultsView,
   rules: [
-    'Nur ein Knopf: Der Panzer dreht sich von selbst. Tippen wechselt die Drehrichtung, Halten fährt vorwärts.',
-    'Geschossen wird automatisch – Kugeln prallen nicht ab, sie verschwinden an der Wand.',
+    'Fahrknopf halten = sofort vorwärts, loslassen = auf der Stelle drehen, kurz tippen = Drehrichtung wechseln.',
+    'Feuer-Knopf schießt (max. 3 Kugeln gleichzeitig), Item-Knopf setzt das eingesammelte Power-up ein. Kugeln prallen nicht ab.',
     'Fahr über Kisten, um Power-ups einzusammeln. Der letzte Panzer gewinnt die Runde.',
   ],
 };

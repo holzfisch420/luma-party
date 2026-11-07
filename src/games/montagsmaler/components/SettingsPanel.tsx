@@ -5,10 +5,10 @@ import { Chip, SectionTitle, Segmented, SettingRow, Stepper, Toggle } from '../.
 import { Modal } from '../../../components/ui/Modal';
 import { WordManager } from '../../../components/word-manager/WordManager';
 import { useWordLists } from '../../../components/word-manager/word-api';
-import { WORD_CATEGORIES, WORD_DIFFICULTIES, type WordCategory, type WordDifficulty } from '../../../shared/types/words';
 import type { SettingsPanelProps } from '../../game-types';
 import { DEFAULT_SCORING, WORD_MODE_LABELS, WORD_MODES, type MontagsmalerSettings } from '../game-config';
 import { DEFAULT_WORDS } from '../words/default-words';
+import { MontagsmalerQuickSettings } from './QuickSettings';
 
 function toggleIn<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -94,49 +94,7 @@ export function MontagsmalerSettingsPanel({ settings, onChange, disabled }: Sett
         )}
 
         <div className="py-3">
-          <div className="mb-2 flex items-center justify-between">
-            <div className="text-[15px] font-extrabold">Kategorien</div>
-            <button
-              className="text-xs font-black text-cyan-dark hover:text-cyan disabled:opacity-40"
-              disabled={disabled}
-              onClick={() => set({ categories: settings.categories.length === WORD_CATEGORIES.length ? [WORD_CATEGORIES[0]] : [...WORD_CATEGORIES] })}
-            >
-              {settings.categories.length === WORD_CATEGORIES.length ? 'Nur eine' : 'Alle'}
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {WORD_CATEGORIES.map((c) => (
-              <Chip
-                key={c}
-                active={settings.categories.includes(c)}
-                disabled={disabled}
-                onClick={() => {
-                  const next = toggleIn<WordCategory>(settings.categories, c);
-                  if (next.length) set({ categories: next });
-                }}
-              >
-                {c}
-              </Chip>
-            ))}
-          </div>
-        </div>
-        <div className="py-3">
-          <div className="mb-2 text-[15px] font-extrabold">Schwierigkeit</div>
-          <div className="flex flex-wrap gap-2">
-            {WORD_DIFFICULTIES.map((d) => (
-              <Chip
-                key={d}
-                active={settings.difficulties.includes(d)}
-                disabled={disabled}
-                onClick={() => {
-                  const next = toggleIn<WordDifficulty>(settings.difficulties, d);
-                  if (next.length) set({ difficulties: next });
-                }}
-              >
-                {d[0]!.toUpperCase() + d.slice(1)}
-              </Chip>
-            ))}
-          </div>
+          <MontagsmalerQuickSettings settings={settings} onChange={onChange} disabled={disabled} />
         </div>
       </div>
 

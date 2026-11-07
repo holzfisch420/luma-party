@@ -74,7 +74,8 @@ export const DEFAULT_MONTAGSMALER_SETTINGS: MontagsmalerSettings = {
   wordChoices: 3,
   wordMode: 'standard',
   categories: [...WORD_CATEGORIES],
-  difficulties: ['leicht', 'mittel', 'schwer'],
+  // standardmäßig anspruchsvoll – „leicht“ lässt sich zuschalten
+  difficulties: ['mittel', 'schwer'],
   customListIds: [],
   hints: true,
   showCategory: true,

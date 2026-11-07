@@ -202,7 +202,7 @@ function ColorLobby({ pub, room }: { pub: PanzerPublicState; room: HostViewProps
       <div className="flex items-center gap-5">
         <div className="grid size-16 place-items-center rounded-full bg-white text-2xl font-black text-[#4a752c] shadow">{Math.ceil(remaining / 1000)}</div>
         <div className="flat-card max-w-2xl px-5 py-3 text-base font-bold">
-          📱 Ein Knopf: <b>tippen</b> = Drehrichtung wechseln · <b>halten</b> = fahren · Schießen geht automatisch
+          📱 <b>Fahrknopf</b> halten = fahren, loslassen = drehen, tippen = Richtung wechseln · <b>Feuer</b> · <b>Item</b>
         </div>
       </div>
     </motion.div>

@@ -8,6 +8,7 @@ import { MontagsmalerCover } from './components/Cover';
 import { MontagsmalerHostView } from './components/host/HostView';
 import { MontagsmalerPlayerView } from './components/player/PlayerView';
 import { MontagsmalerSettingsPanel } from './components/SettingsPanel';
+import { MontagsmalerQuickSettings } from './components/QuickSettings';
 import { MontagsmalerResultsView } from './components/ResultsView';
 import type { MontagsmalerPrivateState, MontagsmalerPublicState } from './types';
 
@@ -17,6 +18,7 @@ export const montagsmalerModule: ClientGameModule<MontagsmalerPublicState, Monta
   HostView: MontagsmalerHostView,
   PlayerView: MontagsmalerPlayerView,
   SettingsPanel: MontagsmalerSettingsPanel,
+  QuickSettings: MontagsmalerQuickSettings,
   ResultsView: MontagsmalerResultsView,
   rules: [
     'Eine Person zeichnet ein geheimes Wort auf dem Smartphone.',

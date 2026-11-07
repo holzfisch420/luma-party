@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { haptics } from '../../../../app/haptics';
-import { Check, Maximize, Play, RotateCcw, RotateCw, Settings2 } from 'lucide-react';
+import { Check, Crosshair, Maximize, Play, RotateCcw, RotateCw, Settings2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useCountdown } from '../../../../app/session/hooks';
 import { useSession } from '../../../../app/session/session-store';
@@ -150,10 +150,10 @@ function Gamepad({
   sendAction: PlayerViewProps['sendAction'];
 }) {
   const [menu, setMenu] = useState(false);
-  const [down, setDown] = useState(false);
-  const [driving, setDriving] = useState(false);
-  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pointerId = useRef<number | null>(null);
+  const landscape = useLandscape();
+  const bits = useRef(0);
+  const [pressed, setPressed] = useState(0);
+  const mainDownAt = useRef(0);
   const offset = useSession((s) => s.clockOffset);
   const [now, setNow] = useState(Date.now());
   const mine = pub.players.find((p) => p.playerId === meId);
@@ -164,44 +164,30 @@ function Gamepad({
     return () => clearInterval(id);
   }, []);
 
-  const release = useCallback(
+  const setBit = useCallback(
+    (bit: number, on: boolean) => {
+      const next = on ? bits.current | bit : bits.current & ~bit;
+      if (next === bits.current) return;
+      bits.current = next;
+      setPressed(next);
+      sendAction('input', { b: next });
+    },
+    [sendAction],
+  );
+  const releaseAll = useCallback(
     (send = true) => {
-      if (holdTimer.current) clearTimeout(holdTimer.current);
-      holdTimer.current = null;
-      pointerId.current = null;
-      setDown(false);
-      setDriving(false);
+      bits.current = 0;
+      setPressed(0);
       if (send) sendAction('input', { b: 0 });
     },
     [sendAction],
   );
 
-  // bei Rundenwechsel/Tod Knopf loslassen
+  // bei Rundenwechsel/Tod alle Knöpfe loslassen
   useEffect(() => {
-    release();
-  }, [pub.round, priv.alive, release]);
-  useEffect(() => () => release(false), [release]);
-
-  const onDown = (e: React.PointerEvent) => {
-    if (pointerId.current !== null) return;
-    pointerId.current = e.pointerId;
-    try {
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    } catch {
-      /* egal */
-    }
-    setDown(true);
-    sendAction('input', { b: BTN.main });
-    holdTimer.current = setTimeout(() => {
-      setDriving(true);
-      haptics.play('medium');
-    }, TAP_MS);
-  };
-  const onUp = (e: React.PointerEvent) => {
-    if (pointerId.current !== e.pointerId) return;
-    if (!driving) haptics.play('light');
-    release();
-  };
+    releaseAll();
+  }, [pub.round, priv.alive, releaseAll]);
+  useEffect(() => () => releaseAll(false), [releaseAll]);
 
   // Haptik bei Spielereignissen
   const wasAlive = useRef(priv.alive);
@@ -263,37 +249,70 @@ function Gamepad({
         </button>
       </div>
 
-      {/* der eine Knopf */}
-      <div className="absolute inset-x-0 bottom-0 top-12 flex flex-col items-center justify-center gap-4 p-4 safe-pb">
-        <button
-          onPointerDown={onDown}
-          onPointerUp={onUp}
-          onPointerCancel={onUp}
-          onContextMenu={(e) => e.preventDefault()}
-          disabled={!active}
-          aria-label="Knopf: tippen = Drehrichtung wechseln, halten = fahren"
-          className={`relative grid aspect-square w-[min(78vw,62vh,420px)] select-none place-items-center rounded-full text-white transition-[transform,box-shadow] duration-75 disabled:opacity-40 ${down ? 'translate-y-2 shadow-[0_2px_0_rgba(0,0,0,0.3)]' : 'shadow-[0_12px_0_rgba(0,0,0,0.3)]'}`}
-          style={{ background: color }}
-        >
-          <span className="pointer-events-none flex flex-col items-center gap-1">
-            {driving ? (
+      {/* Knöpfe: Fahren (groß), Schießen, Item */}
+      <div className={`absolute inset-x-0 bottom-0 top-12 flex gap-4 p-4 safe-pb ${landscape ? 'flex-row items-center' : 'flex-col items-center justify-center'}`}>
+        <div className={`flex flex-col items-center justify-center gap-2 ${landscape ? 'h-full flex-1' : ''}`}>
+          <HoldButton
+            ariaLabel="Fahren: halten = vorwärts, loslassen = drehen, tippen = Drehrichtung wechseln"
+            disabled={!active}
+            down={(pressed & BTN.main) !== 0}
+            className={landscape ? 'size-[min(46vw,80vh,420px)]' : 'size-[min(74vw,44vh,400px)]'}
+            style={{ background: color }}
+            onDown={() => {
+              mainDownAt.current = performance.now();
+              haptics.play('medium');
+              setBit(BTN.main, true);
+            }}
+            onUp={() => {
+              if (performance.now() - mainDownAt.current < TAP_MS) haptics.play('light');
+              setBit(BTN.main, false);
+            }}
+          >
+            {pressed & BTN.main ? (
               <motion.span key="drive" initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="text-[min(12vw,9vh)] font-black leading-none drop-shadow">
                 ▲
               </motion.span>
             ) : (
               <motion.span key={`rot${priv.rotDir}`} initial={{ rotate: priv.rotDir * -90, scale: 0.7 }} animate={{ rotate: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 15 }}>
-                <RotIcon className="size-[min(22vw,16vh)] drop-shadow" strokeWidth={3} />
+                <RotIcon className="size-[min(18vw,13vh)] drop-shadow" strokeWidth={3} />
               </motion.span>
             )}
-            <span className="text-[min(6vw,4.5vh)] font-black drop-shadow">{driving ? 'Fahren!' : priv.rotDir === 1 ? 'Rechts herum' : 'Links herum'}</span>
-          </span>
-        </button>
-        <div className="text-center text-sm font-bold text-white/85">Tippen = Drehrichtung wechseln · Halten = vorwärts · Schießen geht automatisch</div>
-        {power && (
-          <div className="flex items-center gap-2 rounded-full px-4 py-1.5 text-base font-black" style={{ background: power.color }}>
-            <span className="text-xl">{power.icon}</span> Nächster Schuss: {power.name}
-          </div>
-        )}
+            <span className="text-[min(5.5vw,4vh)] font-black drop-shadow">{pressed & BTN.main ? 'Fahren!' : priv.rotDir === 1 ? 'Rechts herum' : 'Links herum'}</span>
+          </HoldButton>
+          <div className="text-center text-xs font-bold text-white/85">Halten = fahren · Loslassen = drehen · Tippen = Richtung wechseln</div>
+        </div>
+        <div className={`flex items-center justify-center gap-4 ${landscape ? 'h-full flex-col pr-4' : 'w-full flex-row'}`}>
+          <HoldButton
+            ariaLabel={power ? `Item einsetzen: ${power.name}` : 'Item einsetzen (kein Item)'}
+            disabled={!active || !power}
+            down={(pressed & BTN.item) !== 0}
+            className={landscape ? 'size-[min(20vw,34vh,170px)]' : 'size-[min(30vw,24vh,170px)]'}
+            style={{ background: power ? power.color : '#9aa0a6' }}
+            onDown={() => {
+              haptics.play('heavy');
+              setBit(BTN.item, true);
+            }}
+            onUp={() => setBit(BTN.item, false)}
+          >
+            <span className="text-[min(10vw,8vh)] leading-none">{power ? power.icon : '–'}</span>
+            <span className="text-[min(3.6vw,2.6vh)] font-black leading-tight drop-shadow">{power ? power.name : 'Item'}</span>
+          </HoldButton>
+          <HoldButton
+            ariaLabel="Schießen"
+            disabled={!active}
+            down={(pressed & BTN.fire) !== 0}
+            className={landscape ? 'size-[min(28vw,46vh,230px)]' : 'size-[min(38vw,30vh,210px)]'}
+            style={{ background: '#ea4335' }}
+            onDown={() => {
+              haptics.play('medium');
+              setBit(BTN.fire, true);
+            }}
+            onUp={() => setBit(BTN.fire, false)}
+          >
+            <Crosshair className="size-[min(13vw,10vh)] drop-shadow" strokeWidth={2.6} />
+            <span className="text-[min(4.4vw,3.2vh)] font-black drop-shadow">Feuer</span>
+          </HoldButton>
+        </div>
       </div>
 
       {status && (
@@ -346,6 +365,57 @@ function HapticsSwitch() {
       <span className={`relative h-7 w-12 shrink-0 rounded-full transition ${on ? 'bg-[#1a73e8]' : 'bg-white/25'}`}>
         <span className={`absolute top-0.5 size-6 rounded-full bg-white shadow transition-all ${on ? 'left-[22px]' : 'left-0.5'}`} />
       </span>
+    </button>
+  );
+}
+
+/** Runder, flacher Knopf mit eigenem Finger (Multi-Touch-fähig) */
+function HoldButton({
+  ariaLabel,
+  disabled,
+  down,
+  className,
+  style,
+  onDown,
+  onUp,
+  children,
+}: {
+  ariaLabel: string;
+  disabled?: boolean;
+  down: boolean;
+  className: string;
+  style: React.CSSProperties;
+  onDown: () => void;
+  onUp: () => void;
+  children: React.ReactNode;
+}) {
+  const pointer = useRef<number | null>(null);
+  const up = (e: React.PointerEvent) => {
+    if (pointer.current !== e.pointerId) return;
+    pointer.current = null;
+    onUp();
+  };
+  return (
+    <button
+      aria-label={ariaLabel}
+      disabled={disabled}
+      onPointerDown={(e) => {
+        if (pointer.current !== null) return;
+        pointer.current = e.pointerId;
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId);
+        } catch {
+          /* egal */
+        }
+        onDown();
+      }}
+      onPointerUp={up}
+      onPointerCancel={up}
+      onContextMenu={(e) => e.preventDefault()}
+      className={`relative flex shrink-0 select-none flex-col items-center justify-center gap-1 rounded-full text-white transition-[transform,box-shadow] duration-75 disabled:opacity-40 ${down ? 'translate-y-1.5 shadow-[0_2px_0_rgba(0,0,0,0.3)]' : 'shadow-[0_10px_0_rgba(0,0,0,0.3)]'} ${className}`}
+      style={style}
+    >
+      {children}
     </button>
   );
 }
