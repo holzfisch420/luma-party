@@ -73,7 +73,8 @@ export const DEFAULT_MONTAGSMALER_SETTINGS: MontagsmalerSettings = {
   drawTimeSeconds: 80,
   wordChoices: 3,
   wordMode: 'standard',
-  categories: [...WORD_CATEGORIES],
+  // Geeker-Vocab nur auf Wunsch (im Startbildschirm zuschaltbar)
+  categories: WORD_CATEGORIES.filter((c) => c !== 'Geeker-Vocab'),
   // standardmäßig anspruchsvoll – „leicht“ lässt sich zuschalten
   difficulties: ['mittel', 'schwer'],
   customListIds: [],

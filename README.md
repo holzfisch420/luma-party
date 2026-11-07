@@ -3,7 +3,7 @@
 Ein Multi-Game-Party-Launcher im Apple-TV-Stil. Ein Fernseher, Beamer oder Laptop ist der **Hauptbildschirm**,
 alle Mitspielenden nutzen ihr **Smartphone als Controller** – ohne App und ohne Anmeldung.
 
-Erstes vollständig spielbares Spiel: **Montagsmaler** (Zeichnen & Raten) mit rund 960 integrierten deutschen Wörtern in 11 Kategorien.
+Erstes vollständig spielbares Spiel: **Montagsmaler** (Zeichnen & Raten) mit rund 1100 integrierten Wörtern in 14 Kategorien.
 
 ---
 
@@ -117,7 +117,8 @@ Zeichnen & Raten im Comic-Stil (siehe oben).
 - **Kategorien & Schwierigkeit** lassen sich direkt im Startbildschirm des Spiels auswählen (TV oder Handy),
   z. B. nur „Tiere“ + „Redewendungen“. Standard ist „Mittel“ + „Schwer“; „Leicht“ lässt sich zuschalten.
 - Kategorien: Tiere, Essen, Gegenstände, Berufe, Natur, Fahrzeuge, Aktivitäten, Orte, Redewendungen,
-  Begriffe (abstrakt, z. B. „Fernweh“, „Datenschutz“) und Sonstiges.
+  Begriffe (abstrakt, z. B. „Fernweh“, „Datenschutz“), Deutschrap, Englischer Rap, Geeker-Vocab
+  (standardmässig aus, im Startbildschirm zuschaltbar) und Sonstiges.
 
 ### Kettenchaos (Panzer-Arena)
 Eigenes Panzer-Partyspiel in Draufsicht für **2–8 Spieler**, inspiriert von klassischen Panzer-Minispielen –

@@ -9,6 +9,9 @@ export const WORD_CATEGORIES = [
   'Orte',
   'Redewendungen',
   'Begriffe',
+  'Geeker-Vocab',
+  'Deutschrap',
+  'Englischer Rap',
   'Sonstiges',
 ] as const;
 export type WordCategory = (typeof WORD_CATEGORIES)[number];

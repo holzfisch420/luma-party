@@ -72,6 +72,23 @@ const POOL: Pool = {
     schwer:
       'Freiheit, Demokratie, Gerechtigkeit, Inflation, Internet, Gravitation, Evolution, Unendlichkeit, Ironie, Nostalgie, Fernweh, Schadenfreude, Gewissen, Vertrauen, Zufall, Karma, Déjà-vu, Stress, Burnout, Wahlkampf, Datenschutz, Fake News, Künstliche Intelligenz, Globalisierung, Bürokratie, Inspiration, Midlife-Crisis, Feierabend, Sommerzeit, Gruppenzwang',
   },
+  'Geeker-Vocab': {
+    mittel:
+      'Bong, Hash, Baggie, Hotbox, Pipe, Papes, Filter, Cannabis, Joint, Blunt, Grinder, Feuerzeug, Tabak, Weed, Kiffen, Rauchwolke, Aschenbecher, Long Papes, Bauen, Bröseln, Vaporizer, Space Cake, Stash, Rote Augen, Augentropfen, Hanfblatt, Munchies, Hustenanfall, Rauchring, Couch',
+    schwer:
+      'Maka, Weezy, Pueblo, Ott, Dübel, Tip, Kush, Dab, Edibles, Rolling Tray, Lungenzug, Fressflash, Couchlock, Kopfkino, Purple Haze, Ticker, Ofen, Sticky Fingers, Wake and Bake, Puff Puff Pass',
+  },
+  Deutschrap: {
+    mittel:
+      'Yung Hurn, Jonny5, Zackavelli, Kroka Koka, Nizi19, Lucio101, Fergy53, RIN, Ufo361, Money Boy, LGoony, Crack Ignaz, Haiyti, Pashanim, Ski Aggu, Makko, t-low, Ion Miles, Kasimir1441, OG Keemo, Bonez MC, RAF Camora, Gzuz, Apache 207, Haftbefehl, Luciano, Shindy, Capital Bra, Badmómzjay, Symba',
+    schwer: '1019, Young Krillin, Bausa, Sira, Brudi030, Monk, BHZ, Yin Kalle, Nimo, Bushido, Sido, Kool Savas, Cro, Casper, Marteria',
+  },
+  'Englischer Rap': {
+    mittel:
+      'Travis Scott, Playboi Carti, Ken Carson, Young Thug, Lil Uzi Vert, Nettspend, OsamaSon, Trippie Redd, Che, Gunna, Future, Slayr, Lil Yachty, Kanye West, Tupac, Snoop Dogg, The Weeknd, Drake, Kendrick Lamar, Metro Boomin, Destroy Lonely, Don Toliver, Lil Baby, 21 Savage, Kid Cudi, Quavo, Juice WRLD, XXXTentacion, Eminem, Dr. Dre',
+    schwer:
+      'Yeat, Homixide Gang, Sheck Wes, A$AP Rocky, Rich Homie Quan, Lil Tecca, Ski Mask the Slump God, Offset, Takeoff, Pharrell, Jay-Z, Nicki Minaj, Ty Dolla Sign, Wiz Khalifa, 50 Cent, Daft Punk, Ariana Grande, Lil Wayne, Swae Lee, Lil Durk',
+  },
   Sonstiges: {
     leicht:
       'Herz, Geist, Roboter, Drache, Einhorn, Meerjungfrau, Monster, Schneemann, Weihnachtsbaum, Osterei, Engel, Hexe, Vampir, Alien, Superheld, Mumie, Schatzkiste, Fußabdruck, Pflaster, Brief, Musiknote, Smiley, Pfeil',
