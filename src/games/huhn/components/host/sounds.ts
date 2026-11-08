@@ -99,12 +99,20 @@ function throttled(key: string, ms: number, fn: () => void) {
 }
 
 export const huhnSounds = {
-  /** kurzes „Bok!“ beim Sprung */
-  jump: () =>
-    throttled('jump', 90, () => {
-      tone(620 + Math.random() * 120, 0.07, 'square', 0.035, 420);
-      tone(900, 0.05, 'triangle', 0.03, 600, 0.05);
+  /** Schwerkraft umdrehen: Wusch nach oben bzw. unten + kurzes „Bok!“ */
+  flip: (up: boolean) =>
+    throttled('flip', 70, () => {
+      tone(up ? 280 : 760, 0.16, 'sine', 0.07, up ? 820 : 260);
+      tone(640 + Math.random() * 120, 0.06, 'square', 0.025, 430, 0.04);
     }),
+  /** zwei Hühner rempeln sich */
+  bump: () => throttled('bump', 120, () => tone(200, 0.12, 'sine', 0.09, 110)),
+  /** abgestürzt: fallender Pfeifton + Gackern */
+  fall: () => {
+    tone(1300, 0.75, 'sine', 0.07, 160);
+    tone(950, 0.12, 'sawtooth', 0.06, 380, 0.05);
+    tone(1100, 0.1, 'sawtooth', 0.05, 450, 0.17);
+  },
   /** Huhn geschnappt: Gackern + Trillerpfeife */
   caught: () => {
     tone(950, 0.12, 'sawtooth', 0.09, 380);

@@ -10,15 +10,15 @@ export const HUHN_ID = 'huehnerjagd';
 export const huhnMeta: GameMeta = {
   id: HUHN_ID,
   name: 'Hühnerjagd',
-  tagline: 'Spring, Huhn, spring!',
+  tagline: 'Boden, Decke, Boden – lauf, Huhn!',
   description:
-    'Bis zu 8 Hühner sind auf der Flucht – jedes auf seiner eigenen Spur. Mit einem Knopf auf dem Handy springst du über Polizisten, Polizeihunde und Streifenwagen. Wer zuletzt noch frei ist, gewinnt die Runde.',
+    'Bis zu 8 Hühner flüchten gemeinsam vor der Polizei. Mit einem Knopf auf dem Handy wechselst du zwischen Boden und Decke – fall nicht in die Lücken, lass dich nicht abhängen und schubs die anderen aus dem Weg. Wer zuletzt noch frei ist, gewinnt.',
   minPlayers: 1,
   maxPlayers: 8,
   durationMinutes: [5, 15],
   status: 'available',
   theme: { from: '#ffd23f', via: '#ff8c42', to: '#1d4ed8', accent: '#ff8c42' },
-  tags: ['Action', 'Reaktion', 'Ein Knopf'],
+  tags: ['Action', 'Schwerkraft', 'Ein Knopf'],
 };
 
 export const MAX_CHICKENS = 8;
@@ -50,25 +50,23 @@ export function parseHuhnSettings(raw: unknown): HuhnSettings {
   return huhnSettingsSchema.parse({ ...DEFAULT_HUHN_SETTINGS, ...obj });
 }
 
-/** Physik (Einheiten: Spurhöhen, Sekunden) */
+/** Physik (Einheiten: Kacheln, Sekunden; y zeigt nach unten) */
 export const PHYS = {
   tickHz: 60,
   frameHz: 20,
-  gravity: 32,
-  jumpV: 10,
-  /** solange gehalten wird, fällt die Schwerkraft geringer aus (höherer Sprung) */
-  holdGravity: 17,
-  holdMax: 0.18,
-  /** Sprung-Puffer: kurz vor der Landung gedrückt zählt trotzdem */
-  jumpBuffer: 0.12,
-  chickenHalfW: 0.27,
-  chickenH: 0.7,
-  /** ab hier werden Hindernisse erzeugt (vor dem Huhn) */
-  spawnDist: 46,
-  /** Schonfrist zu Rundenbeginn */
-  graceSeconds: 2.4,
-  /** nach so vielen Sekunden wird es enger */
-  rushAfter: 70,
+  gravity: 42,
+  maxFall: 17,
+  /** Hühnchen-Kasten */
+  size: 0.7,
+  /** hier läuft die Gruppe (Abstand zum linken Bildrand) */
+  anchor: 7,
+  /** so schnell holt ein zurückgefallenes Huhn wieder auf */
+  catchUp: 2.4,
+  /** Umschalt-Puffer und „Coyote-Time“ nach dem Verlassen einer Kante */
+  flipBuffer: 0.15,
+  coyote: 0.08,
+  /** links von hier schnappt die Polizei zu */
+  policeX: 0.55,
 } as const;
 
 export const TIMING = { countdownMs: 3500, roundEndMs: 5000, lastCatchMs: 1400 } as const;

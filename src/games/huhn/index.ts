@@ -18,8 +18,8 @@ export const huhnModule: ClientGameModule<HuhnPublicState, HuhnPrivateState, Huh
   SettingsPanel: HuhnSettingsPanel,
   QuickSettings: HuhnMapPicker,
   rules: [
-    'Jedes Huhn rennt auf seiner eigenen Spur – alle bekommen dieselben Hindernisse.',
-    'Knopf auf dem Handy drücken = springen, länger halten = höher springen.',
-    'Unter dem Helikopter-Scheinwerfer nicht springen! Wer zuletzt noch frei ist, gewinnt die Runde.',
+    'Alle Hühner laufen im selben Level. Knopf auf dem Handy = Schwerkraft umdrehen (Boden ↔ Decke).',
+    'Wer in eine Lücke fällt, einem Polizisten in die Arme läuft oder hinten von der Polizei eingeholt wird, ist raus.',
+    'Hühner rempeln sich gegenseitig – wer zuletzt noch frei ist, gewinnt die Runde.',
   ],
 };

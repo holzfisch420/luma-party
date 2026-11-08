@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowDown, ArrowUp } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { haptics } from '../../../../app/haptics';
 import { useCountdown } from '../../../../app/session/hooks';
 import type { PlayerViewProps } from '../../../game-types';
@@ -8,32 +9,21 @@ import { getMap } from '../../maps';
 import type { HuhnPrivateState, HuhnPublicState } from '../../types';
 import { ChickenIcon, Stars } from '../ChickenIcon';
 
-/** Handy: ein großer Knopf – drücken = springen, länger halten = höher */
+/** Handy: ein großer Knopf – Schwerkraft umdrehen (Boden ↔ Decke) */
 export function HuhnController({ me, state, sendAction }: PlayerViewProps<HuhnPublicState, HuhnPrivateState>) {
   const pub = state.public;
   const priv = state.private;
-  const [down, setDown] = useState(false);
-  const pointer = useRef<number | null>(null);
   const mine = pub.players.find((p) => p.playerId === me.id);
   const map = getMap(pub.mapId);
   const color = CHICKEN_COLORS[priv?.slot ?? 0] ?? CHICKEN_COLORS[0];
   const remaining = useCountdown(pub.phase === 'countdown' ? pub.phaseEndsAt : null, 200);
   const secs = Math.ceil(remaining / 1000);
-
-  const release = useCallback(() => {
-    pointer.current = null;
-    setDown(false);
-    sendAction('input', { down: false });
-  }, [sendAction]);
-
-  useEffect(() => {
-    release();
-  }, [pub.round, priv?.alive, release]);
+  const onCeiling = priv?.g === -1;
 
   // Haptik
   const wasAlive = useRef(priv?.alive);
   useEffect(() => {
-    if (wasAlive.current && priv && !priv.alive && pub.phase === 'run' && priv.place !== 1) haptics.play('error');
+    if (wasAlive.current && priv && !priv.alive && pub.phase === 'run') haptics.play('error');
     wasAlive.current = priv?.alive;
   }, [priv?.alive, priv, pub.phase]);
   useEffect(() => {
@@ -42,17 +32,17 @@ export function HuhnController({ me, state, sendAction }: PlayerViewProps<HuhnPu
     if (pub.phase === 'roundEnd' && pub.roundWinnerId === me.id) haptics.play('success');
   }, [secs, pub.phase, pub.roundWinnerId, me.id]);
 
-  const active = !!priv?.inRound && priv.alive && pub.phase !== 'roundEnd';
   const won = pub.roundWinnerId === me.id;
+  const active = !!priv?.inRound && priv.alive && pub.phase !== 'roundEnd';
 
   let status: string;
   if (!priv || priv.slot < 0) status = 'Alle 8 Plätze belegt – schau am Fernseher zu.';
   else if (!priv.inRound) status = 'Du steigst in der nächsten Runde ein.';
   else if (pub.phase === 'countdown') status = secs <= 3 ? `${secs || 'Los'}…` : `Runde ${pub.round}: ${map.name}`;
   else if (won) status = '🏆 Du bist entkommen!';
-  else if (!priv.alive) status = `🚓 Geschnappt! Platz ${priv.place}`;
+  else if (!priv.alive) status = mine?.out === 'fell' ? `💨 Abgestürzt! Platz ${priv.place}` : `🚓 Geschnappt! Platz ${priv.place}`;
   else if (pub.phase === 'roundEnd') status = 'Runde vorbei';
-  else status = 'Lauf, Huhn, lauf!';
+  else status = onCeiling ? 'Du läufst an der Decke' : 'Du läufst am Boden';
 
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden bg-[#1f2937] font-sans text-white safe-pt safe-pb" style={{ touchAction: 'none' }}>
@@ -75,39 +65,31 @@ export function HuhnController({ me, state, sendAction }: PlayerViewProps<HuhnPu
           {status}
         </motion.div>
         <div className="text-sm font-bold text-white/50">
-          Runde {Math.max(1, pub.round)}/{pub.totalRounds} · {pub.meters} m
+          Runde {Math.max(1, pub.round)}/{pub.totalRounds}
         </div>
       </div>
 
       <div className="flex flex-1 items-center justify-center p-5">
         <button
           disabled={!active}
-          aria-label="Springen – länger halten springt höher"
+          aria-label={onCeiling ? 'Umdrehen – runter auf den Boden' : 'Umdrehen – rauf an die Decke'}
           onPointerDown={(e) => {
-            if (pointer.current !== null) return;
-            pointer.current = e.pointerId;
-            try {
-              e.currentTarget.setPointerCapture(e.pointerId);
-            } catch {
-              /* egal */
-            }
-            setDown(true);
+            e.preventDefault();
             haptics.play('light');
-            sendAction('input', { down: true });
+            sendAction('flip');
           }}
-          onPointerUp={(e) => pointer.current === e.pointerId && release()}
-          onPointerCancel={(e) => pointer.current === e.pointerId && release()}
           onContextMenu={(e) => e.preventDefault()}
-          className={`relative flex aspect-square w-[min(80vw,60vh,440px)] select-none flex-col items-center justify-center gap-2 rounded-full transition-[transform,box-shadow] duration-75 disabled:opacity-40 ${down ? 'translate-y-2 shadow-[0_3px_0_rgba(0,0,0,0.35)]' : 'shadow-[0_12px_0_rgba(0,0,0,0.35)]'}`}
+          className="relative flex aspect-square w-[min(80vw,60vh,440px)] select-none flex-col items-center justify-center gap-1 rounded-full shadow-[0_12px_0_rgba(0,0,0,0.35)] transition-transform active:translate-y-2 active:shadow-[0_3px_0_rgba(0,0,0,0.35)] disabled:opacity-40"
           style={{ background: `radial-gradient(circle at 35% 30%, #fff6, transparent 60%), ${color.body}` }}
         >
-          <motion.div animate={down ? { y: -18, rotate: -8 } : { y: 0, rotate: 0 }} transition={{ type: 'spring', stiffness: 500, damping: 18 }}>
-            <ChickenIcon body={color.body} dark={color.dark} className="size-[min(34vw,26vh)] drop-shadow-lg" />
+          {onCeiling ? <ArrowDown className="size-[min(14vw,10vh)] text-[#1f2937]" strokeWidth={3} /> : <ArrowUp className="size-[min(14vw,10vh)] text-[#1f2937]" strokeWidth={3} />}
+          <motion.div animate={{ rotate: onCeiling ? 180 : 0, scaleX: onCeiling ? -1 : 1 }} transition={{ type: 'spring', stiffness: 380, damping: 20 }}>
+            <ChickenIcon body={color.body} dark={color.dark} className="size-[min(30vw,22vh)] drop-shadow-lg" />
           </motion.div>
-          <span className="text-[min(7vw,5vh)] font-black text-[#1f2937]">{down ? 'Flatter!' : 'Springen'}</span>
+          <span className="text-[min(7vw,5vh)] font-black text-[#1f2937]">Umdrehen!</span>
         </button>
       </div>
-      <p className="px-6 pb-4 text-center text-sm font-bold text-white/60">Kurz tippen = kleiner Sprung · halten = großer Sprung · unter dem Helikopter nicht springen!</p>
+      <p className="px-6 pb-4 text-center text-sm font-bold text-white/60">Tippen = zwischen Boden und Decke wechseln · Lücken, Polizisten und das Zurückfallen vermeiden · andere wegschubsen!</p>
     </div>
   );
 }

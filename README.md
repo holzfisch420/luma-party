@@ -133,20 +133,24 @@ Bluff-Spiel für **3–12 Spieler** im mysteriösen Look (dunkel, violetter Nebe
 - Einstellungen: Runden, Hinweisrunden (1–3), Diskussionszeit, Kategorie für alle sichtbar.
 
 ### Hühnerjagd
-Flucht-Rennen für **1–8 Spieler**, inspiriert von Hühner-Minispielen – eigene Grafik, eigene Strecken.
+Schwerkraft-Flucht für **1–8 Spieler**, nach dem Vorbild des Hühner-Minispiels aus „1 2 3 4 Player Games“ –
+eigene Grafik, eigene Level.
 
-- Jedes Huhn rennt auf seiner **eigenen Spur** (alle Spuren untereinander auf dem Fernseher). Alle bekommen
-  dieselbe Hindernisfolge, nur zeitlich versetzt – fair, aber nicht synchron.
-- **Steuerung:** ein großer Knopf auf dem Handy – tippen = kleiner Sprung, halten = großer Sprung (mit Sprung-Puffer).
-- **Hindernisse:** Pylone, Absperrung, Polizist (läuft entgegen, mit Handschellen), Polizeihund (schnell),
-  Streifenwagen mit Blaulicht (lang), Helikopter-Scheinwerfer (darunter **nicht** springen!).
-- **6 Strecken** mit Schwierigkeit 1–5: Bauernhof ★, Dorfstraße ★★, Marktplatz ★★★, Autobahn ★★★★,
-  Polizeirevier ★★★★, Nachtrazzia ★★★★★ – im Startbildschirm wählbar (Leicht/Mittel/Schwer). Das Tempo steigt
-  während der Runde; nach 70 s wird es zusätzlich enger.
-- **Punkte:** je überholtem (früher geschnapptem) Huhn 1 Punkt, Rundensieg +1. Solo: Punkte nach Strecke.
-- **Sound:** Gackern beim Sprung, Trillerpfeife + Federn beim Schnappen, Martinshorn, Hundegebell,
-  Helikopter-Rattern, Countdown, Fanfare und eine kleine Fluchtmelodie (alles synthetisch per Web Audio).
-- Technik: Server-Simulation 60 Hz, Positions-Frames 20 Hz an den Fernseher (interpoliert), Handys senden nur „gedrückt/losgelassen“.
+- **Alle Hühner laufen im selben Level**, die Kamera scrollt immer schneller nach rechts.
+- **Steuerung:** ein Knopf auf dem Handy – **Schwerkraft umdrehen**: vom Boden an die Decke und zurück
+  (nur mit festem Stand, mit kurzem Eingabe-Puffer).
+- **Plattformen auf verschiedenen Höhen** am Boden und an der Decke, mit Lücken und Stufen; ab „Dorfstraße“
+  auch schwebende Blöcke in der Mitte.
+- **Raus ist**, wer in eine Lücke fällt (abgestürzt), einem **Polizisten** in die Arme läuft (stehen oben und unten)
+  oder hinten vom **Polizei-Helikopter** eingeholt wird (zu weit zurückgefallen, z. B. an einer Wand hängen geblieben).
+- **Kollisionen zwischen den Hühnern:** sie schubsen sich, stehen aufeinander, und bei einer „Kopfnuss“ in der Luft
+  prallen beide zurück.
+- **6 Level** mit Schwierigkeit 1–5 (Bauernhof ★ … Nachtrazzia ★★★★★): Tempo, Lückenhäufigkeit, Höhenunterschiede,
+  Polizisten und schwebende Blöcke steigen. Der Generator garantiert, dass es immer einen Weg gibt (per Test geprüft,
+  inkl. Bot, der jedes Level schafft). Level kommen per Seed – Server und Fernseher erzeugen dasselbe Level.
+- **Punkte:** je früher ausgeschiedenem Huhn 1 Punkt, Rundensieg +1. Solo: Punkte nach Strecke.
+- **Sound:** Wusch beim Umdrehen, Boing beim Rempeln, Pfeifton beim Absturz, Gackern + Trillerpfeife beim Schnappen,
+  Martinshorn wenn die Polizei nah ist, Countdown, Fanfare und Fluchtmelodie (Web Audio, keine Dateien).
 
 ### Kettenchaos (Panzer-Arena)
 Eigenes Panzer-Partyspiel in Draufsicht für **2–8 Spieler**, inspiriert von klassischen Panzer-Minispielen –

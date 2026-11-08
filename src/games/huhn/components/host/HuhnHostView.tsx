@@ -27,7 +27,7 @@ export function HuhnHostView({ room, state }: HostViewProps<HuhnPublicState>) {
     };
   }, []);
 
-  useGameEvent<HuhnRoundEvent>(HUHN_EVENTS.round, (e) => rendererRef.current?.setRound(e.mapId, e.slots));
+  useGameEvent<HuhnRoundEvent>(HUHN_EVENTS.round, (e) => rendererRef.current?.setRound(e.mapId, e.seed));
   const [meters, setMeters] = useState(0);
   const lastMeters = useRef(0);
   useGameEvent<HuhnFrame>(HUHN_EVENTS.frame, (f) => {
@@ -35,18 +35,17 @@ export function HuhnHostView({ room, state }: HostViewProps<HuhnPublicState>) {
     const now = performance.now();
     if (now - lastMeters.current > 200) {
       lastMeters.current = now;
-      setMeters(Math.round(f.d));
+      setMeters(Math.round(f.cx));
     }
   });
 
   useEffect(() => {
-    rendererRef.current?.setMap(pub.mapId, pub.players.filter((p) => p.inRound).map((p) => p.slot));
-  }, [pub.mapId, pub.round, pub.players]);
+    rendererRef.current?.setRound(pub.mapId, pub.seed);
+  }, [pub.mapId, pub.seed]);
 
   // Namensschilder
   useEffect(() => {
-    const labels = new Map(pub.players.filter((p) => p.inRound).map((p) => [p.slot, { name: nameOf(p.playerId), score: p.score }]));
-    rendererRef.current?.setLabels(labels);
+    rendererRef.current?.setNames(new Map(pub.players.map((p) => [p.slot, nameOf(p.playerId)])));
     const w = pub.players.find((p) => p.playerId === pub.roundWinnerId);
     rendererRef.current?.setWinner(w ? w.slot : -1);
   });
@@ -115,14 +114,14 @@ export function HuhnHostView({ room, state }: HostViewProps<HuhnPublicState>) {
                 <motion.div key={secs} initial={{ scale: 2, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mt-6 text-[9rem] font-black leading-none text-[#ffd23f] drop-shadow-[0_6px_0_rgba(0,0,0,0.35)]">
                   {secs > 3 ? '' : secs || 'LOS!'}
                 </motion.div>
-                <div className="mt-2 text-xl font-bold text-white/80">📱 Knopf drücken = springen · länger halten = höher</div>
+                <div className="mt-2 text-xl font-bold text-white/80">📱 Knopf = Schwerkraft umdrehen (Boden ↔ Decke)</div>
               </div>
             </motion.div>
           )}
           {pub.phase === 'roundEnd' && (
             <motion.div key={`end-${pub.round}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 grid place-items-center bg-black/45">
               <motion.div initial={{ scale: 0.7, y: 30 }} animate={{ scale: 1, y: 0 }} transition={{ type: 'spring', stiffness: 220, damping: 16 }} className="rounded-[32px] bg-white px-12 py-8 text-center text-[#1f2937] shadow-2xl">
-                <div className="text-lg font-black uppercase tracking-[0.25em] text-[#ff8c42]">{pub.roundWinnerId ? 'Entkommen!' : 'Alle geschnappt!'}</div>
+                <div className="text-lg font-black uppercase tracking-[0.25em] text-[#ff8c42]">{pub.roundWinnerId ? 'Entkommen!' : 'Alle erwischt!'}</div>
                 <div className="mt-1 text-5xl font-black">{pub.roundWinnerId ? `${nameOf(pub.roundWinnerId)} ist frei!` : 'Die Polizei war schneller'}</div>
                 <div className="mt-1 text-xl font-bold text-gray-500">{pub.meters} m geflüchtet</div>
                 <div className="mt-6 flex flex-col gap-2">
@@ -130,7 +129,10 @@ export function HuhnHostView({ room, state }: HostViewProps<HuhnPublicState>) {
                     <div key={p.playerId} className="flex items-center gap-3 rounded-2xl bg-gray-100 px-4 py-2 text-xl font-black">
                       <span className="w-8 text-gray-400">{p.place || '–'}.</span>
                       <span className="size-6 rounded-full" style={{ background: CHICKEN_COLORS[p.slot]?.body }} />
-                      <span className="flex-1 text-left">{nameOf(p.playerId)}</span>
+                      <span className="flex-1 text-left">
+                        {nameOf(p.playerId)}
+                        {p.out && <span className="ml-2 text-base font-bold text-gray-400">{p.out === 'fell' ? 'abgestürzt' : 'geschnappt'}</span>}
+                      </span>
                       <span className="tabular-nums text-[#ff8c42]">{p.score}</span>
                     </div>
                   ))}
@@ -143,7 +145,7 @@ export function HuhnHostView({ room, state }: HostViewProps<HuhnPublicState>) {
 
       <footer className="flex h-10 shrink-0 items-center justify-between bg-[#111827] px-6 text-sm font-bold text-white/60">
         <span>Mitspielen: Code <span className="tracking-[0.2em] text-[#ffd23f]">{room.code}</span></span>
-        <span>Pylone · Absperrung · Polizist · Polizeihund · Streifenwagen · Helikopter (darunter nicht springen!)</span>
+        <span>Nicht in Lücken fallen · Polizisten ausweichen · nicht abhängen lassen · andere Hühner wegschubsen!</span>
       </footer>
     </div>
   );
