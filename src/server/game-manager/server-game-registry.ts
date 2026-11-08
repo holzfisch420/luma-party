@@ -7,6 +7,7 @@ import { montagsmalerServerModule } from '../../games/montagsmaler/game-engine';
 import { panzerServerModule } from '../../games/panzer/game-engine';
 import { theaterServerModule } from '../../games/theater/game-engine';
 import { imposterServerModule } from '../../games/imposter/game-engine';
+import { huhnServerModule } from '../../games/huhn/game-engine';
 
 const modules = new Map<string, ServerGameModule<any>>();
 
@@ -27,3 +28,4 @@ registerServerGame(montagsmalerServerModule);
 registerServerGame(panzerServerModule);
 registerServerGame(theaterServerModule);
 registerServerGame(imposterServerModule);
+registerServerGame(huhnServerModule);

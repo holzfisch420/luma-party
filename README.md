@@ -132,6 +132,22 @@ Bluff-Spiel für **3–12 Spieler** im mysteriösen Look (dunkel, violetter Nebe
 - Wörter und **Kategorien wie beim Montagsmaler** – direkt im Startbildschirm auswählbar.
 - Einstellungen: Runden, Hinweisrunden (1–3), Diskussionszeit, Kategorie für alle sichtbar.
 
+### Hühnerjagd
+Flucht-Rennen für **1–8 Spieler**, inspiriert von Hühner-Minispielen – eigene Grafik, eigene Strecken.
+
+- Jedes Huhn rennt auf seiner **eigenen Spur** (alle Spuren untereinander auf dem Fernseher). Alle bekommen
+  dieselbe Hindernisfolge, nur zeitlich versetzt – fair, aber nicht synchron.
+- **Steuerung:** ein großer Knopf auf dem Handy – tippen = kleiner Sprung, halten = großer Sprung (mit Sprung-Puffer).
+- **Hindernisse:** Pylone, Absperrung, Polizist (läuft entgegen, mit Handschellen), Polizeihund (schnell),
+  Streifenwagen mit Blaulicht (lang), Helikopter-Scheinwerfer (darunter **nicht** springen!).
+- **6 Strecken** mit Schwierigkeit 1–5: Bauernhof ★, Dorfstraße ★★, Marktplatz ★★★, Autobahn ★★★★,
+  Polizeirevier ★★★★, Nachtrazzia ★★★★★ – im Startbildschirm wählbar (Leicht/Mittel/Schwer). Das Tempo steigt
+  während der Runde; nach 70 s wird es zusätzlich enger.
+- **Punkte:** je überholtem (früher geschnapptem) Huhn 1 Punkt, Rundensieg +1. Solo: Punkte nach Strecke.
+- **Sound:** Gackern beim Sprung, Trillerpfeife + Federn beim Schnappen, Martinshorn, Hundegebell,
+  Helikopter-Rattern, Countdown, Fanfare und eine kleine Fluchtmelodie (alles synthetisch per Web Audio).
+- Technik: Server-Simulation 60 Hz, Positions-Frames 20 Hz an den Fernseher (interpoliert), Handys senden nur „gedrückt/losgelassen“.
+
 ### Kettenchaos (Panzer-Arena)
 Eigenes Panzer-Partyspiel in Draufsicht für **2–8 Spieler**, inspiriert von klassischen Panzer-Minispielen –
 mit eigenen Grafiken, eigenem Namen und eigenen Arenen.
