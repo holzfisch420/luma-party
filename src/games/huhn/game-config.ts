@@ -59,7 +59,7 @@ export const PHYS = {
   /** Hühnchen-Kasten */
   size: 0.7,
   /** hier läuft die Gruppe (Abstand zum linken Bildrand) */
-  anchor: 7,
+  anchor: 8.5,
   /** so schnell holt ein zurückgefallenes Huhn wieder auf */
   catchUp: 2.4,
   /** Umschalt-Puffer und „Coyote-Time“ nach dem Verlassen einer Kante */

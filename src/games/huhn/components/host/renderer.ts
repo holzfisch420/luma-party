@@ -191,6 +191,10 @@ export class ChaseRenderer {
       for (const p of inRange(this.level.floor, a, b)) this.drawBlock(sx(p.x0), p.y * u, sx(p.x1) - sx(p.x0), ch - p.y * u + 4, u, 'top');
       for (const p of inRange(this.level.ceil, a, b)) this.drawBlock(sx(p.x0), -4, sx(p.x1) - sx(p.x0), p.y * u + 4, u, 'bottom');
       for (const p of inRange(this.level.mid, a, b)) this.drawBlock(sx(p.x0), p.y * u, sx(p.x1) - sx(p.x0), MID_THICK * u, u, 'both');
+      for (const r of this.level.barriers) {
+        if (r.x1 < a || r.x0 > b) continue;
+        this.drawBarrier(sx(r.x0), r.y0 * u, (r.x1 - r.x0) * u, (r.y1 - r.y0) * u, u, r.side, t);
+      }
       const copU = u * (COP_H / 1.15);
       for (const cop of this.level.cops) {
         if (cop.x < a - 1) continue;
@@ -239,7 +243,8 @@ export class ChaseRenderer {
           const fs = Math.max(12, u * 0.24);
           g.font = `900 ${fs}px Nunito, sans-serif`;
           const tw = g.measureText(name).width + fs * 0.9;
-          const ly = c.g === 1 ? c.y * u - fs * 1.7 : (c.y + S) * u + fs * 0.45;
+          // Schild auf der Seite der Füße – so überlappen sich oben und unten laufende Hühner nicht
+          const ly = c.g === 1 ? (c.y + S) * u + fs * 0.35 : c.y * u - fs * 1.65;
           g.fillStyle = 'rgba(17,24,39,0.7)';
           g.beginPath();
           g.roundRect(px - tw / 2, ly, tw, fs * 1.3, fs * 0.65);
@@ -273,7 +278,7 @@ export class ChaseRenderer {
     }
 
     // Meldungen
-    this.popups = this.popups.filter((p) => t - p.born < 2.6);
+    this.popups = this.popups.filter((p) => t - p.born < 2.6).slice(-3);
     this.popups.forEach((p, i) => {
       const age = t - p.born;
       const fs = Math.max(16, u * 0.3);
@@ -330,6 +335,47 @@ export class ChaseRenderer {
       g.roundRect(x, y + h - sh, w, sh, [3, 3, r, r]);
       g.fill();
     }
+  }
+
+  /** Polizei-Absperrung: rot-weiß gestreift, mit Blinklicht an der freien Seite */
+  private drawBarrier(x: number, y: number, w: number, h: number, u: number, side: 'floor' | 'ceil', t: number) {
+    const g = this.g;
+    g.save();
+    g.beginPath();
+    g.roundRect(x, y, w, h, 0.08 * u);
+    g.clip();
+    g.fillStyle = '#fff';
+    g.fillRect(x, y, w, h);
+    g.fillStyle = '#dc2626';
+    const stripe = 0.22 * u;
+    for (let k = -h; k < w + h; k += stripe * 2) {
+      g.beginPath();
+      g.moveTo(x + k, y);
+      g.lineTo(x + k + stripe, y);
+      g.lineTo(x + k + stripe - h, y + h);
+      g.lineTo(x + k - h, y + h);
+      g.closePath();
+      g.fill();
+    }
+    g.restore();
+    g.strokeStyle = 'rgba(0,0,0,0.25)';
+    g.lineWidth = 2;
+    g.beginPath();
+    g.roundRect(x, y, w, h, 0.08 * u);
+    g.stroke();
+    // Blinklicht an der Spitze (zur Mitte hin)
+    const on = Math.floor(t * 4 + x * 0.01) % 2 === 0;
+    const ly = side === 'floor' ? y - 0.08 * u : y + h + 0.08 * u;
+    const lx = x + w / 2;
+    const glow = g.createRadialGradient(lx, ly, 0, lx, ly, 0.5 * u);
+    glow.addColorStop(0, on ? 'rgba(251,191,36,0.85)' : 'rgba(251,191,36,0.15)');
+    glow.addColorStop(1, 'rgba(251,191,36,0)');
+    g.fillStyle = glow;
+    g.fillRect(lx - 0.5 * u, ly - 0.5 * u, u, u);
+    g.fillStyle = on ? '#fbbf24' : '#b45309';
+    g.beginPath();
+    g.arc(lx, ly, 0.09 * u, 0, Math.PI * 2);
+    g.fill();
   }
 
   /** Polizei-Helikopter am linken Rand mit Blaulicht und Suchscheinwerfer */

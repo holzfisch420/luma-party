@@ -31,12 +31,26 @@ export interface Cop {
   side: 'floor' | 'ceil';
 }
 
+/** Polizei-Absperrung: fester Block am Boden oder an der Decke – bremst, aber tötet nicht */
+export interface Barrier {
+  x0: number;
+  x1: number;
+  y0: number;
+  y1: number;
+  side: 'floor' | 'ceil';
+}
+
 export interface Level {
   floor: Platform[];
   ceil: Platform[];
   mid: Platform[];
   cops: Cop[];
+  barriers: Barrier[];
 }
+
+/** Startröhre: Boden und Decke liegen 2 Einheiten auseinander */
+export const TUBE = { floor: 5.5, ceil: 3.5, length: 44 } as const;
+export const BARRIER_H = 0.9;
 
 const FLOOR_RANGE: [number, number] = [5.8, 8.0];
 const CEIL_RANGE: [number, number] = [1.0, 3.2];
@@ -68,15 +82,24 @@ export function generateLevel(map: HuhnMap, seed: number, length = LEVEL_LENGTH)
   const between = (a: number, b: number) => a + rnd() * (b - a);
   const O = flipDistance(map);
   const L = map.level;
-  const level: Level = { floor: [], ceil: [], mid: [], cops: [] };
+  const level: Level = { floor: [], ceil: [], mid: [], cops: [], barriers: [] };
+  const barrier = (x0: number, side: 'floor' | 'ceil', surfaceY: number, w = 0.7) =>
+    level.barriers.push(side === 'floor' ? { x0, x1: x0 + w, y0: surfaceY - BARRIER_H, y1: surfaceY, side } : { x0, x1: x0 + w, y0: surfaceY, y1: surfaceY + BARRIER_H, side });
 
-  // Startbereich: beide Seiten, lang und flach
-  let x = 30;
+  // Startröhre (2 Einheiten hoch) mit abwechselnden Absperrungen unten und oben
+  let x: number = TUBE.length;
   let kind: Kind = 'both';
-  let fy = 7.2;
-  let cy = 1.8;
+  let fy: number = TUBE.floor;
+  let cy: number = TUBE.ceil;
   level.floor.push({ x0: -20, x1: x, y: fy, side: 'floor' });
   level.ceil.push({ x0: -20, x1: x, y: cy, side: 'ceil' });
+  const spacing = Math.max(4.2, 7 - map.difficulty * 0.55);
+  let side: 'floor' | 'ceil' = rnd() < 0.5 ? 'floor' : 'ceil';
+  for (let bx = 14; bx < TUBE.length - 3; bx += spacing + rnd() * 1.5) {
+    barrier(bx, side, side === 'floor' ? fy : cy);
+    side = side === 'floor' ? 'ceil' : 'floor';
+  }
+  // danach mindestens ein Abschnitt mit Abstand zur nächsten Gefahr
 
   while (x < length) {
     // nächste Blockart
@@ -132,8 +155,16 @@ export function generateLevel(map: HuhnMap, seed: number, length = LEVEL_LENGTH)
         const cx = between(x + O, x1 - O - COP_W);
         level.cops.push({ x: cx, y: side === 'floor' ? fy : cy, side });
       }
+      // Absperrung auf einer Seite (bremst nur) – mit Platz zum Umschalten davor
+      if (rnd() < L.barrierChance && len >= O * 1.7 + 2.5) {
+        const side = rnd() < 0.5 ? 'floor' : 'ceil';
+        const bx = between(x + O * 0.7, x1 - O - 1.5);
+        const taken = level.cops.some((c) => Math.abs(c.x - bx) < 2.5);
+        if (!taken) barrier(bx, side, side === 'floor' ? fy : cy, between(0.5, 1.1));
+      }
       // schwebender Block in der Mitte
-      if (rnd() < L.midChance) {
+      // nur wenn Boden und Decke weit genug auseinander liegen (sonst wäre der Block eine Wand)
+      if (rnd() < L.midChance && fy >= FLOOR_RANGE[0] && cy <= CEIL_RANGE[1]) {
         const w = between(2, Math.min(5, len - 2));
         const mx = between(x + 1, x1 - w - 1);
         level.mid.push({ x0: mx, x1: mx + w, y: between(MID_RANGE[0], MID_RANGE[1]), side: 'mid' });
@@ -151,6 +182,7 @@ export function solidsIn(level: Level, a: number, b: number): [number, number, n
   for (const p of level.floor) if (p.x1 > a && p.x0 < b) out.push([p.x0, p.x1, p.y, WORLD_H + 50]);
   for (const p of level.ceil) if (p.x1 > a && p.x0 < b) out.push([p.x0, p.x1, -50, p.y]);
   for (const p of level.mid) if (p.x1 > a && p.x0 < b) out.push([p.x0, p.x1, p.y, p.y + MID_THICK]);
+  for (const r of level.barriers) if (r.x1 > a && r.x0 < b) out.push([r.x0, r.x1, r.y0, r.y1]);
   return out;
 }
 

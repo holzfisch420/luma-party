@@ -26,6 +26,8 @@ export interface LevelParams {
   step: number;
   copChance: number;
   midChance: number;
+  /** Chance auf eine Polizei-Absperrung je Abschnitt */
+  barrierChance: number;
 }
 
 export interface HuhnMap {
@@ -51,7 +53,7 @@ export const MAPS: HuhnMap[] = [
     v0: 5,
     accel: 0.05,
     vmax: 8,
-    level: { onlyChance: 0.35, onlyExtra: 4, bothExtra: 10, step: 0.6, copChance: 0.15, midChance: 0 },
+    level: { onlyChance: 0.35, onlyExtra: 4, bothExtra: 10, step: 0.6, copChance: 0.15, midChance: 0, barrierChance: 0.35 },
   },
   {
     id: 'dorf',
@@ -62,7 +64,7 @@ export const MAPS: HuhnMap[] = [
     v0: 5.6,
     accel: 0.06,
     vmax: 9,
-    level: { onlyChance: 0.5, onlyExtra: 5, bothExtra: 8, step: 0.9, copChance: 0.3, midChance: 0.1 },
+    level: { onlyChance: 0.5, onlyExtra: 5, bothExtra: 8, step: 0.9, copChance: 0.3, midChance: 0.1, barrierChance: 0.45 },
   },
   {
     id: 'markt',
@@ -73,7 +75,7 @@ export const MAPS: HuhnMap[] = [
     v0: 6.2,
     accel: 0.08,
     vmax: 10.5,
-    level: { onlyChance: 0.6, onlyExtra: 5, bothExtra: 6, step: 1.2, copChance: 0.4, midChance: 0.25 },
+    level: { onlyChance: 0.6, onlyExtra: 5, bothExtra: 6, step: 1.2, copChance: 0.4, midChance: 0.25, barrierChance: 0.5 },
   },
   {
     id: 'autobahn',
@@ -84,7 +86,7 @@ export const MAPS: HuhnMap[] = [
     v0: 7,
     accel: 0.1,
     vmax: 12,
-    level: { onlyChance: 0.7, onlyExtra: 3, bothExtra: 4, step: 1.5, copChance: 0.3, midChance: 0.3 },
+    level: { onlyChance: 0.7, onlyExtra: 3, bothExtra: 4, step: 1.5, copChance: 0.3, midChance: 0.3, barrierChance: 0.55 },
   },
   {
     id: 'revier',
@@ -95,7 +97,7 @@ export const MAPS: HuhnMap[] = [
     v0: 6.8,
     accel: 0.1,
     vmax: 12,
-    level: { onlyChance: 0.65, onlyExtra: 4, bothExtra: 5, step: 1.4, copChance: 0.6, midChance: 0.3 },
+    level: { onlyChance: 0.65, onlyExtra: 4, bothExtra: 5, step: 1.4, copChance: 0.6, midChance: 0.3, barrierChance: 0.6 },
   },
   {
     id: 'razzia',
@@ -106,7 +108,7 @@ export const MAPS: HuhnMap[] = [
     v0: 7.5,
     accel: 0.12,
     vmax: 13.5,
-    level: { onlyChance: 0.8, onlyExtra: 3, bothExtra: 3, step: 2, copChance: 0.5, midChance: 0.4 },
+    level: { onlyChance: 0.8, onlyExtra: 3, bothExtra: 3, step: 2, copChance: 0.5, midChance: 0.4, barrierChance: 0.65 },
   },
 ];
 

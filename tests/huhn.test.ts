@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { HuhnEngine, huhnServerModule } from '../src/games/huhn/game-engine';
 import { DEFAULT_HUHN_SETTINGS, parseHuhnSettings, PHYS } from '../src/games/huhn/game-config';
-import { COP_W, flipDistance, generateLevel, inRange, type Level } from '../src/games/huhn/logic/level';
+import { COP_W, flipDistance, generateLevel, inRange, TUBE, type Level } from '../src/games/huhn/logic/level';
 import { MAPS } from '../src/games/huhn/maps';
 import type { GameContext, GamePlayer } from '../src/server/game-engine/types';
 
@@ -66,7 +66,9 @@ function bot(s: ReturnType<typeof setup>, id: string) {
     const sup = surface(level, c.g, X);
     if (sup === null || here === null) danger = true;
     else if (c.g === 1 ? sup < here - 0.05 : sup > here + 0.05) danger = true;
-    if (level.cops.some((cop) => cop.side === (c.g === 1 ? 'floor' : 'ceil') && cop.x <= X && cop.x + COP_W >= X - PHYS.size)) danger = true;
+    const mySide = c.g === 1 ? 'floor' : 'ceil';
+    if (level.cops.some((cop) => cop.side === mySide && cop.x <= X && cop.x + COP_W >= X - PHYS.size)) danger = true;
+    if (level.barriers.some((b) => b.side === mySide && b.x0 <= X && b.x1 >= X - PHYS.size)) danger = true;
     if (danger) break;
   }
   if (danger) s.engine.handleAction(id, 'flip');
@@ -102,7 +104,7 @@ describe('Hühnerjagd – Engine', () => {
     s.engine.handleAction('p0', 'flip');
     s.advance(800);
     expect(c.g).toBe(-1);
-    expect(c.y).toBeLessThan(y0 - 3);
+    expect(c.y).toBeLessThan(y0 - 1);
     expect(c.grounded).toBe(true);
     expect(s.engine.getPrivateState('p0')!.g).toBe(-1);
     // in der Luft lässt sich nicht nochmal umschalten
@@ -124,20 +126,49 @@ describe('Hühnerjagd – Engine', () => {
     expect(s.events.some((e) => e.name === 'frame' && e.payload.fx.some((f: any) => f.t === 'bump'))).toBe(true);
   });
 
-  it('Zusammenstoß in der Luft: beide prallen ab statt sich gegenseitig zu stützen', () => {
+  it('Start in der Röhre: alle nebeneinander, niemand übereinander', () => {
+    const s = setup(8);
+    s.engine.start();
+    const cs = [...s.eng.chickens.values()];
+    for (const c of cs) {
+      expect(c.y).toBeGreaterThanOrEqual(TUBE.ceil - 0.01);
+      expect(c.y + PHYS.size).toBeLessThanOrEqual(TUBE.floor + 0.01);
+    }
+    for (const a of cs)
+      for (const b of cs) if (a !== b && a.g === b.g) expect(Math.abs(a.x - b.x)).toBeGreaterThanOrEqual(PHYS.size);
+    // in der Röhre stehen Absperrungen abwechselnd unten und oben
+    const tubeBarriers = s.eng.level.barriers.filter((b: any) => b.x1 < TUBE.length);
+    expect(tubeBarriers.length).toBeGreaterThanOrEqual(3);
+    expect(new Set(tubeBarriers.map((b: any) => b.side)).size).toBe(2);
+  });
+
+  it('in der Luft fliegen Hühner aneinander vorbei', () => {
     const s = setup(2);
     s.engine.start();
     s.advance(3600);
     const [a, b] = ['p0', 'p1'].map((id) => s.eng.chickens.get(id));
-    // a fällt nach unten, b nach oben – genau übereinander in der Mitte
-    Object.assign(a, { x: s.eng.camX + 7, y: 3.6, g: 1, vy: 5 });
-    Object.assign(b, { x: s.eng.camX + 7, y: 4.4, g: -1, vy: -5 });
-    s.advance(200);
+    s.eng.level.barriers = [];
+    // a steht unten, b steht oben genau darüber; a schaltet um und fliegt an b vorbei nach oben
+    Object.assign(b, { x: a.x, g: -1 });
+    s.advance(100);
+    s.engine.handleAction('p0', 'flip');
+    s.advance(500);
     expect(a.g).toBe(-1);
-    expect(b.g).toBe(1);
-    s.advance(800);
-    expect(a.y).toBeLessThan(3.5);
-    expect(b.y).toBeGreaterThan(5);
+    expect(b.g).toBe(-1); // b wurde nicht weggehauen
+    expect(a.grounded && b.grounded).toBe(true);
+  });
+
+  it('Absperrung bremst: wer hineinläuft, fällt zurück', () => {
+    const s = setup(1);
+    s.engine.start();
+    s.advance(3600);
+    const c = s.eng.chickens.get('p0');
+    s.eng.level.barriers = [];
+    const x = c.x + 1.5;
+    s.eng.level.barriers.push({ x0: x, x1: x + 0.7, y0: c.y + PHYS.size - 0.9, y1: c.y + PHYS.size, side: c.g === 1 ? 'floor' : 'ceil' });
+    s.advance(600);
+    expect(c.x + PHYS.size).toBeLessThanOrEqual(x + 0.01);
+    expect(c.alive).toBe(true);
   });
 
   it('wer nie umschaltet, fällt irgendwann raus; Letzter gewinnt', () => {
@@ -151,6 +182,16 @@ describe('Hühnerjagd – Engine', () => {
     expect(pub.players.filter((p) => p.out).length).toBe(2);
     s.advance(6000);
     expect(s.ended()?.scores.p2).toBe(3);
+  });
+
+  it('Sieger bekommt die Punkte nur einmal, auch wenn danach etwas passiert', () => {
+    const s = setup(2, { rounds: 1, maps: ['hof'] });
+    s.engine.start();
+    s.advance(3600);
+    s.advance(60_000); // niemand schaltet um
+    const pub = s.engine.getPublicState();
+    const total = pub.players.reduce((n, p) => n + p.score, 0);
+    expect(total).toBe(2); // 0 für den Ersten raus, 1 + 1 Siegbonus
   });
 
   for (const map of MAPS) {

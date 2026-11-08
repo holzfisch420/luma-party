@@ -145,7 +145,7 @@ export function HuhnHostView({ room, state }: HostViewProps<HuhnPublicState>) {
 
       <footer className="flex h-10 shrink-0 items-center justify-between bg-[#111827] px-6 text-sm font-bold text-white/60">
         <span>Mitspielen: Code <span className="tracking-[0.2em] text-[#ffd23f]">{room.code}</span></span>
-        <span>Nicht in Lücken fallen · Polizisten ausweichen · nicht abhängen lassen · andere Hühner wegschubsen!</span>
+        <span>Nicht in Lücken fallen · Polizisten ausweichen · Absperrungen bremsen · nicht abhängen lassen!</span>
       </footer>
     </div>
   );

@@ -143,8 +143,12 @@ eigene Grafik, eigene Level.
   auch schwebende Blöcke in der Mitte.
 - **Raus ist**, wer in eine Lücke fällt (abgestürzt), einem **Polizisten** in die Arme läuft (stehen oben und unten)
   oder hinten vom **Polizei-Helikopter** eingeholt wird (zu weit zurückgefallen, z. B. an einer Wand hängen geblieben).
-- **Kollisionen zwischen den Hühnern:** sie schubsen sich, stehen aufeinander, und bei einer „Kopfnuss“ in der Luft
-  prallen beide zurück.
+- **Start in einer 2 Einheiten hohen Röhre:** alle stehen nebeneinander (abwechselnd unten und oben), niemand übereinander.
+- **Kollisionen zwischen den Hühnern:** wer auf derselben Seite läuft, schubst seitlich. In der Luft fliegen die Hühner
+  aneinander vorbei – niemand wird weggehauen oder bleibt auf einem anderen stehen.
+- **Polizei-Absperrungen** (rot-weiß, mit Blinklicht) am Boden oder an der Decke: Wer hineinläuft, wird gebremst und fällt
+  zurück (Richtung Polizei-Helikopter) – so zieht sich das Feld auseinander. In der Startröhre stehen sie abwechselnd
+  unten und oben, danach verteilt im ganzen Level.
 - **6 Level** mit Schwierigkeit 1–5 (Bauernhof ★ … Nachtrazzia ★★★★★): Tempo, Lückenhäufigkeit, Höhenunterschiede,
   Polizisten und schwebende Blöcke steigen. Der Generator garantiert, dass es immer einen Weg gibt (per Test geprüft,
   inkl. Bot, der jedes Level schafft). Level kommen per Seed – Server und Fernseher erzeugen dasselbe Level.

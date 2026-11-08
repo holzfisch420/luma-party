@@ -48,7 +48,7 @@ export class HuhnEngine implements GameEngine<HuhnPublicState, HuhnPrivateState>
   private map: HuhnMap = MAPS[0]!;
   private mapCursor = 0;
   private seed = 1;
-  level: Level = { floor: [], ceil: [], mid: [], cops: [] };
+  level: Level = { floor: [], ceil: [], mid: [], cops: [], barriers: [] };
   private simT = 0;
   camX = 0;
   speed = 0;
@@ -193,9 +193,9 @@ export class HuhnEngine implements GameEngine<HuhnPublicState, HuhnPrivateState>
       c.alive = true;
       c.place = 0;
       c.out = null;
-      // abwechselnd Boden und Decke, leicht versetzt – so wird gleich gerempelt
+      // Startröhre: abwechselnd unten und oben, nebeneinander aufgereiht
       c.g = i % 2 === 0 ? 1 : -1;
-      c.x = PHYS.anchor + 1.2 - Math.floor(i / 2) * 1.0;
+      c.x = PHYS.anchor + 1.6 - Math.floor(i / 2) * 1.1;
       c.y = c.g === 1 ? floorY - S : ceilY;
       c.vy = 0;
       c.grounded = true;
@@ -271,59 +271,34 @@ export class HuhnEngine implements GameEngine<HuhnPublicState, HuhnPrivateState>
       this.resolve(c, solids, 'y');
     }
 
-    // Rempeln
+    // Rempeln: nur wer auf derselben Seite festen Stand hat, schubst seitlich.
+    // In der Luft fliegen die Hühner aneinander vorbei – niemand steht auf einem anderen.
     for (let i = 0; i < alive.length; i++)
       for (let j = i + 1; j < alive.length; j++) {
         const a = alive[i]!;
         const b = alive[j]!;
+        if (a.g !== b.g || !a.grounded || !b.grounded) continue;
         const ox = Math.min(a.x + S, b.x + S) - Math.max(a.x, b.x);
         const oy = Math.min(a.y + S, b.y + S) - Math.max(a.y, b.y);
-        if (ox <= 0 || oy <= 0) continue;
-        if (ox < oy) {
-          const push = ox / 2 + 0.001;
-          if (a.x < b.x) {
-            a.x -= push;
-            b.x += push;
-          } else {
-            a.x += push;
-            b.x -= push;
-          }
+        if (ox <= 0 || oy <= 0.2) continue;
+        const push = ox / 2 + 0.001;
+        if (a.x < b.x) {
+          a.x -= push;
+          b.x += push;
         } else {
-          const push = oy / 2 + 0.001;
-          const [top, bottom] = a.y < b.y ? [a, b] : [b, a];
-          top.y -= push;
-          bottom.y += push;
-          if (top.g === 1 && bottom.g === -1) {
-            // Kopfnuss in der Luft: beide prallen ab und fliegen zurück
-            top.g = -1;
-            bottom.g = 1;
-            top.vy = -3;
-            bottom.vy = 3;
-            top.grounded = bottom.grounded = false;
-            top.lastGroundAt = bottom.lastGroundAt = -1;
-            this.fx.push({ t: 'bump', s: top.slot });
-            this.ctx.publishState();
-          } else {
-            // wer auf einem anderen Huhn steht, hat festen Stand
-            if (top.g === 1 && top.vy >= 0) {
-              top.vy = 0;
-              this.land(top);
-            }
-            if (bottom.g === -1 && bottom.vy <= 0) {
-              bottom.vy = 0;
-              this.land(bottom);
-            }
-          }
+          a.x += push;
+          b.x -= push;
         }
         if (this.simT - a.bumpAt > 0.5) {
           a.bumpAt = this.simT;
           this.fx.push({ t: 'bump', s: a.slot });
         }
-        this.resolve(a, solids, 'any');
-        this.resolve(b, solids, 'any');
+        this.resolve(a, solids, 'x');
+        this.resolve(b, solids, 'x');
       }
 
-    // ausgeschieden?
+    // ausgeschieden? (nach Rundenende ist der Sieger unverwundbar)
+    if (this.endScheduled) return;
     for (const c of alive) {
       if (!c.alive) continue;
       if (c.y > WORLD_H + 0.6 || c.y + S < -0.6) this.knockOut(c, 'fell');
