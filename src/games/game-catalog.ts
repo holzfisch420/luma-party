@@ -9,8 +9,9 @@ import { theaterMeta } from './theater/game-config';
 import { imposterMeta } from './imposter/game-config';
 import { huhnMeta } from './huhn/game-config';
 import { echtMeta } from './echt/game-config';
+import { racerMeta } from './racer/game-config';
 
-export const GAME_CATALOG: GameMeta[] = [montagsmalerMeta, imposterMeta, echtMeta, huhnMeta, panzerMeta, theaterMeta];
+export const GAME_CATALOG: GameMeta[] = [montagsmalerMeta, imposterMeta, echtMeta, racerMeta, huhnMeta, panzerMeta, theaterMeta];
 
 export const DEFAULT_GAME_ID = montagsmalerMeta.id;
 

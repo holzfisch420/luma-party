@@ -154,6 +154,31 @@ Bluff-Spiel für **3–12 Spieler** im mysteriösen Look (dunkel, violetter Nebe
 - Wörter und **Kategorien wie beim Montagsmaler** – direkt im Startbildschirm auswählbar.
 - Einstellungen: Runden, Hinweisrunden (1–3), Diskussionszeit, Kategorie für alle sichtbar.
 
+### Kurvenrausch
+Low-Poly-Rennspiel für **1–8 Spieler** im Stil von PolyTrack/Trackmania – eigener Code, eigene Strecken, eigene Autos
+(das verlinkte PolyTrack-Repo ist ein Abbild des urheberrechtlich geschützten Originals und wird nicht verwendet).
+
+- **8 Strecken** mit Schwierigkeit 1–5: Übungsoval, Turbo-Speedway (Turbo-Felder), Hügelring (Höhenunterschiede),
+  Haarnadel-Alpen (Schnee, enge Kehren), Achterbahn (Acht mit Brücke), Küstenstraße (Sprint ohne Bande über dem Meer),
+  Canyon-Sprint (schmal) und Gipfelsturm bei Nacht. Rundkurse mit Runden, Sprints mit Ziel.
+- **Strecke wählen** im Startbildschirm – am Fernseher oder auf dem Handy des Spielleiters (einzelne Strecken,
+  „nur …“, alle; der Reihe nach von leicht nach schwer oder Zufall).
+- **Splitscreen** für alle (1 = Vollbild, 2 = übereinander, 3–4 = 2×2, 5–6 = 3×2, 7–8 = 4×2) mit eigener Anzeige je
+  Ansicht (Platz, Runde/Fortschritt, Zeit, km/h, „Falsche Richtung!“). Alternativ **gemeinsame Kamera** mit Rangliste.
+  Minikarte mit allen Autos.
+- **Handy-Controller** (quer): **Neigen wie ein Lenkrad** (Bewegungssensor; auf dem iPhone mit Erlaubnis-Abfrage,
+  nur über https) mit großen Pedalen für Gas und Bremse, „Mitte“ zum Kalibrieren und „Lenkung umkehren“ – oder
+  umschaltbar auf **klassisch: Lenk-Joystick, Gas, Bremse**. „Reset“ setzt zum letzten Checkpoint zurück. Vibration bei
+  Checkpoints, Ziel und Absturz.
+- **Physik** (Server, 60 Hz): Arcade-Fahrverhalten mit Driften (bremsen in der Kurve), Turbo-Feldern, Steigungen,
+  Banden (man gleitet ab statt hängen zu bleiben), Abschnitten ohne Bande (runterfallen → zurück zum Checkpoint) und
+  Zusammenstößen zwischen den Autos (abschaltbar). Punkte je Platz 10/8/6/5/4/3/2/1, 25 s Frist nach dem Ersten.
+- **Performance vor Grafik:** Three.js nur auf dem Fernseher und erst beim Start nachgeladen; ein Renderer für alle
+  Ansichten (Scissor), Strecke in einer einzigen Geometrie, Bäume/Häuser als Instanzen, keine Schatten, kein
+  Antialiasing, Nebel begrenzt die Sichtweite (bei vielen Ansichten kürzer), Auflösung passt sich der Bildrate an.
+  Strecken werden aus Kontrollpunkten berechnet – Server und Fernseher erzeugen dieselbe Strecke, übertragen werden
+  nur Autopositionen (30 Hz, interpoliert).
+
 ### Hühnerjagd
 Schwerkraft-Flucht für **1–8 Spieler**, nach dem Vorbild des Hühner-Minispiels aus „1 2 3 4 Player Games“ –
 eigene Grafik, eigene Level.
