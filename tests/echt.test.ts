@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
-import { EchtEngine, echtServerModule } from '../src/games/echt/game-engine';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { EchtEngine, echtServerModule, statementPool } from '../src/games/echt/game-engine';
+import { normalizeStatement } from '../src/server/storage/statement-store';
 import { DEFAULT_ECHT_SETTINGS, parseEchtSettings } from '../src/games/echt/game-config';
 import { STATEMENTS } from '../src/games/echt/statements';
 import type { GameContext, GamePlayer } from '../src/server/game-engine/types';
@@ -43,10 +44,12 @@ function setup(n = 4, overrides = {}) {
 }
 
 describe('Echt jetzt?', () => {
-  it('hat genug eigene Sätze mit genau einem Platzhalter', () => {
-    expect(STATEMENTS.klassisch.length).toBeGreaterThanOrEqual(80);
-    expect(STATEMENTS.party.length).toBeGreaterThanOrEqual(20);
-    for (const s of [...STATEMENTS.klassisch, ...STATEMENTS.party]) expect(s.split('___').length - 1, s).toBe(1);
+  it('hat genug eigene Sätze (auch mit zwei Platzhaltern)', () => {
+    const all = Object.values(STATEMENTS).flat();
+    expect(all.length).toBeGreaterThanOrEqual(250);
+    expect(new Set(all).size).toBe(all.length);
+    for (const s of all) expect(s.split('___').length - 1, s).toBeGreaterThanOrEqual(1);
+    expect(all.some((s) => s.split('___').length - 1 === 2)).toBe(true);
   });
 
   it('Ablauf: schreiben → abstimmen → Auflösung mit Punkten; Autoren bleiben bis zur Auflösung geheim', () => {
@@ -112,9 +115,48 @@ describe('Echt jetzt?', () => {
   });
 
   it('Einstellungen & Startprüfung', () => {
-    expect(parseEchtSettings({}).sets).toEqual(['klassisch']);
-    expect(() => parseEchtSettings({ sets: [] })).toThrow();
+    expect(parseEchtSettings({}).sets).toContain('klassisch');
+    expect(() => parseEchtSettings({ sets: ['gibtsnicht'] })).toThrow();
+    const three = [0, 1, 2].map((i) => ({ id: `p${i}`, name: 'x', avatarColor: '#fff', isConnected: true, joinedAt: i, avatar: null }));
+    expect(echtServerModule.canStart!(three, { ...DEFAULT_ECHT_SETTINGS, sets: [] }, { statements: { get: () => undefined } } as any)).toMatch(/Sammlung/);
     const two = [0, 1].map((i) => ({ id: `p${i}`, name: 'x', avatarColor: '#fff', isConnected: true, joinedAt: i, avatar: null }));
     expect(echtServerModule.canStart!(two, DEFAULT_ECHT_SETTINGS, {} as any)).toMatch(/3 Spieler/);
+  });
+});
+
+describe('Echt jetzt? – eigene Sätze', () => {
+  let server: Awaited<ReturnType<typeof import('../src/server/index').startServer>>;
+  let base = '';
+  beforeAll(async () => {
+    const mod = await import('../src/server/index');
+    server = await mod.startServer({ port: 0, dataDir: null, databaseUrl: null, publicMode: true });
+    base = `http://localhost:${server.port}`;
+  });
+  afterAll(async () => server?.close());
+
+  const A = 'a'.repeat(24);
+  const B = 'b'.repeat(24);
+  const api = (owner: string, path: string, init?: RequestInit) =>
+    fetch(`${base}/api/statements${path}`, { ...init, headers: { 'Content-Type': 'application/json', 'X-Luma-Owner': owner } });
+
+  it('Platzhalter werden erkannt – auch mehrfach und mitten im Wort', () => {
+    expect(normalizeStatement('Mein LieblingsBLUBB ist der BLUBB.')).toBe('Mein Lieblings___ ist der ___.');
+    expect(normalizeStatement('Ohne Lücke geht es nicht.')).toBeNull();
+  });
+
+  it('Sammlungen sind privat und landen im Spiel', async () => {
+    const created = await (
+      await api(A, '/', { method: 'POST', body: JSON.stringify({ name: 'Unsere', statements: ['Mein LieblingsBLUBB ist der BLUBB.', 'kein Platzhalter', '', 'Ich esse gern BLUBB.'] }) })
+    ).json();
+    expect(created.list.statements).toEqual(['Mein Lieblings___ ist der ___.', 'Ich esse gern ___.']);
+    expect(created.invalid).toBe(1);
+    expect((await (await api(B, '/')).json()).lists).toHaveLength(0);
+    expect((await api(B, `/${created.list.id}`)).status).toBe(404);
+    expect((await api(B, `/${created.list.id}`, { method: 'DELETE' })).status).toBe(400);
+    const updated = await (await api(A, `/${created.list.id}`, { method: 'PUT', body: JSON.stringify({ name: 'Neu', statements: ['Nur BLUBB.'] }) })).json();
+    expect(updated.list.name).toBe('Neu');
+    // Spiel nutzt eigene Sätze (auch ohne eingebaute Sammlungen)
+    const services = { statements: { get: (id: string) => (id === created.list.id ? updated.list : undefined) } } as any;
+    expect(statementPool({ ...DEFAULT_ECHT_SETTINGS, sets: [], customListIds: [created.list.id] }, services)).toEqual(['Nur ___.']);
   });
 });

@@ -6,13 +6,20 @@
  * Wer was geschrieben hat, wird erst bei der Auflösung verraten.
  */
 import { randomUUID } from 'node:crypto';
-import type { GameContext, GameEngine, GamePlayer, ServerGameModule, TimerHandle } from '../../server/game-engine/types';
+import type { GameContext, GameEngine, GamePlayer, GameServices, ServerGameModule, TimerHandle } from '../../server/game-engine/types';
 import type { PlayerId } from '../../shared/types/room';
 import { sanitizeText } from '../../shared/utils/text';
 import { normalizeGuess } from '../montagsmaler/logic/word-utils';
 import { ANSWER_MAX, DEFAULT_ECHT_SETTINGS, echtMeta, parseEchtSettings, POINTS, TIMING, type EchtSettings } from './game-config';
 import { STATEMENTS } from './statements';
 import type { EchtOption, EchtPhase, EchtPrivateState, EchtPublicState, EchtReveal, EchtRevealOption } from './types';
+
+export function statementPool(settings: EchtSettings, services: GameServices | undefined): string[] {
+  const builtIn = settings.sets.flatMap((s) => STATEMENTS[s]);
+  const custom = settings.customListIds.flatMap((id) => services?.statements?.get(id)?.statements ?? []);
+  const all = [...new Set([...builtIn, ...custom])];
+  return all.length ? all : STATEMENTS.klassisch;
+}
 
 function shuffle<T>(list: T[]): T[] {
   const a = [...list];
@@ -57,12 +64,17 @@ export class EchtEngine implements GameEngine<EchtPublicState, EchtPrivateState>
     this.order = players.map((p) => p.id);
     this.turnsTotal = this.order.length * this.settings.rounds;
     for (const p of this.ctx.getPlayers()) this.scores.set(p.id, 0);
-    this.deck = shuffle(this.settings.sets.flatMap((s) => STATEMENTS[s]));
+    this.deck = shuffle(this.pool());
     this.startStatement();
   }
 
   dispose(): void {
     this.timer?.cancel();
+  }
+
+  /** alle Sätze aus den gewählten Sammlungen (eingebaut + eigene) */
+  private pool(): string[] {
+    return statementPool(this.settings, this.ctx.services);
   }
 
   private get totalTurns() {
@@ -193,7 +205,7 @@ export class EchtEngine implements GameEngine<EchtPublicState, EchtPrivateState>
   }
 
   private startStatement() {
-    if (this.deck.length === 0) this.deck = shuffle(this.settings.sets.flatMap((s) => STATEMENTS[s]));
+    if (this.deck.length === 0) this.deck = shuffle(this.pool());
     this.statement = this.deck.pop()!;
     this.answers.clear();
     this.votes.clear();
@@ -288,8 +300,10 @@ export const echtServerModule: ServerGameModule<EchtSettings> = {
   meta: echtMeta,
   defaultSettings: DEFAULT_ECHT_SETTINGS,
   parseSettings: parseEchtSettings,
-  canStart(players) {
+  canStart(players, settings, services) {
     if (players.filter((p) => p.isConnected).length < 3) return '„Echt jetzt?“ braucht mindestens 3 Spieler.';
+    const custom = settings.customListIds.reduce((n, id) => n + (services.statements?.get(id)?.statements.length ?? 0), 0);
+    if (settings.sets.length === 0 && custom === 0) return 'Bitte mindestens eine Satz-Sammlung auswählen.';
     return null;
   },
   createEngine(ctx, settings) {

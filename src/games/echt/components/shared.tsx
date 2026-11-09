@@ -15,14 +15,25 @@ export function Avatar({ room, id, size = 'md' }: { room: RoomSnapshot; id: stri
   return <PlayerAvatar name={p?.name ?? '?'} color={p?.avatarColor ?? '#e8590c'} avatar={p?.avatar} size={size} dimmed={p ? !p.isConnected : true} />;
 }
 
-/** Satz mit hervorgehobenem Platzhalter (oder eingesetzter Antwort) */
+/**
+ * Satz mit hervorgehobenen Platzhaltern (oder eingesetzter Antwort). Dieselbe Antwort steht an
+ * allen Stellen; hängt der Platzhalter an einem Wort („Lieblings___“), wird klein weitergeschrieben.
+ */
 export function Statement({ text, fill, className = '' }: { text: string; fill?: string; className?: string }) {
-  const [before, after] = text.split('___');
+  const parts = text.split('___');
   return (
     <span className={className}>
-      {before}
-      <span className={`mx-0.5 inline-block -rotate-1 rounded-md px-2 font-black ${fill ? 'bg-[#ffe066] text-[#7a3c00]' : 'bg-[#e8590c] tracking-wider text-white'}`}>{fill ?? PLACEHOLDER}</span>
-      {after}
+      {parts.map((part, i) => {
+        if (i === parts.length - 1) return <span key={i}>{part}</span>;
+        const glued = /\p{L}$/u.test(part);
+        const value = fill ? (glued ? fill.charAt(0).toLowerCase() + fill.slice(1) : fill) : PLACEHOLDER;
+        return (
+          <span key={i}>
+            {part}
+            <span className={`${glued ? 'pl-0.5 pr-2' : 'mx-0.5 px-2'} inline-block -rotate-1 rounded-md font-black ${fill ? 'bg-[#ffe066] text-[#7a3c00]' : 'bg-[#e8590c] tracking-wider text-white'}`}>{value}</span>
+          </span>
+        );
+      })}
     </span>
   );
 }

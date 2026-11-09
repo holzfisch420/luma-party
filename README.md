@@ -130,8 +130,13 @@ und eigenem Look (Notizzettel auf einer Pinnwand, Handschrift).
   (für die eigene Antwort kann man nicht stimmen). Gleiche Antworten werden zusammengefasst.
 - **Punkte:** richtig geraten +1 (und +1 für die Person, die dran ist) · je reingelegter Person +1 · genau dieselbe Antwort
   wie die Person, die dran ist +2.
-- Rund 130 eigene Sätze in zwei Sammlungen: **Klassisch** (Alltag, Kindheit, Essen, Träume) und **Party** (etwas frecher) –
-  im Startbildschirm wählbar. Einstellungen: Runden, Sätze pro Person, Schreibzeit.
+- **266 eigene Sätze** in fünf Sammlungen: Klassisch, Familie & Freunde, Schule & Arbeit, Was wäre wenn und Party
+  (etwas frecher) – im Startbildschirm wählbar. Einstellungen: Runden, Sätze pro Person, Schreibzeit.
+- **Mehrere BLUBB pro Satz** möglich, auch mitten im Wort („Mein LieblingsBLUBB ist der BLUBB“): Man schreibt weiterhin
+  eine Antwort, sie steht dann an jeder Stelle („Mein Lieblingsmontag ist der Montag“).
+- **Eigene Sätze:** Im Startbildschirm unter „Eigene Sätze → Verwalten“ beliebig viele Sammlungen anlegen
+  (eine Zeile pro Satz, BLUBB oder ___ markiert die Lücke, bis 600 Sätze). Sie werden privat gespeichert –
+  mit Konto auf allen eigenen Geräten, sonst auf dem Gerät – und lassen sich mit den eingebauten Sammlungen mischen.
 
 ### Imposter
 Bluff-Spiel für **3–12 Spieler** im mysteriösen Look (dunkel, violetter Nebel).

@@ -12,6 +12,7 @@ import type { WordListStore } from '../storage/word-list-store';
 import type { AccountStore } from '../accounts/account-store';
 import type { TokenService } from '../accounts/tokens';
 import type { ScriptStore } from '../storage/script-store';
+import type { StatementStore } from '../storage/statement-store';
 import type { AvatarConfig } from '../../shared/avatar';
 
 export interface GamePlayer {
@@ -41,6 +42,7 @@ export interface GameServices {
   accounts: AccountStore;
   tokens: TokenService;
   scripts: ScriptStore;
+  statements: StatementStore;
 }
 
 export interface FinalScores {

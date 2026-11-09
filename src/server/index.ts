@@ -20,6 +20,8 @@ import { TokenService } from './accounts/tokens';
 import { createAuthRouter } from './routes/auth';
 import { ScriptStore } from './storage/script-store';
 import { createScriptRouter } from './routes/scripts';
+import { StatementStore } from './storage/statement-store';
+import { createStatementRouter } from './routes/statements';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '../..');
@@ -85,6 +87,8 @@ export async function startServer(portOrOptions: number | ServerOptions = PORT) 
   const tokens = await TokenService.create(store, accounts);
   const scripts = new ScriptStore(store);
   await scripts.load();
+  const statements = new StatementStore(store);
+  await statements.load();
 
   const app = express();
   app.disable('x-powered-by');
@@ -93,6 +97,7 @@ export async function startServer(portOrOptions: number | ServerOptions = PORT) 
   // Skript-Uploads brauchen ein höheres Limit und haben einen eigenen Parser
   app.use('/api/scripts', createScriptRouter(scripts, { publicMode, tokens }));
   app.use(express.json({ limit: '256kb' }));
+  app.use('/api/statements', createStatementRouter(statements, { publicMode, tokens }));
 
   const httpServer = createServer(app);
   const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
@@ -101,7 +106,7 @@ export async function startServer(portOrOptions: number | ServerOptions = PORT) 
     pingInterval: 10_000,
     pingTimeout: 8_000,
   });
-  const rooms = new RoomManager(io, { wordLists, accounts, tokens, scripts });
+  const rooms = new RoomManager(io, { wordLists, accounts, tokens, scripts, statements });
   registerSocketHandlers(io, rooms, { publicMode });
 
   app.get('/api/health', (_req, res) => {

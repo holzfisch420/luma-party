@@ -34,6 +34,8 @@ export function LaunchPanel({ meta, room, canEdit = true, connectedPlayers, canS
   useEffect(() => {
     if (!meta || !keyboard) return;
     const onKey = (e: KeyboardEvent) => {
+      // ein offenes Fenster (z. B. eigene Sätze) bekommt die Tasten zuerst
+      if (document.querySelector('[role="dialog"]')) return;
       if (e.key === 'Escape' || e.key === 'Backspace') {
         e.preventDefault();
         e.stopImmediatePropagation();
