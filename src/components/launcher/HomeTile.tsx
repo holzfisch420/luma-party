@@ -11,15 +11,17 @@ export interface HomeTileProps {
   showBubble?: boolean;
   onClick?: () => void;
   size?: 'md' | 'lg';
+  /** füllt die vorgegebene Rasterzelle (statt quadratisch) */
+  fill?: boolean;
 }
 
 /**
  * Kachel im Home-Menü-Stil: glänzender weißer Rahmen, bei Auswahl cyanfarbener Rahmen,
  * „Start“-Leiste und eine Sprechblase mit dem Namen.
  */
-export function HomeTile({ label, art, focused, actionLabel, showBubble = true, onClick }: HomeTileProps) {
+export function HomeTile({ label, art, focused, actionLabel, showBubble = true, onClick, fill = false }: HomeTileProps) {
   return (
-    <div className="relative aspect-square w-full">
+    <div className={`relative ${fill ? 'size-full' : 'aspect-square w-full'}`}>
       <AnimatePresence>
         {focused && showBubble && (
           <motion.div
@@ -75,6 +77,6 @@ export function HomeTile({ label, art, focused, actionLabel, showBubble = true, 
   );
 }
 
-export function EmptyTile() {
-  return <div className="aspect-square w-full rounded-[24%] border border-white/70 bg-white/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]" aria-hidden />;
+export function EmptyTile({ fill = false }: { fill?: boolean }) {
+  return <div className={`${fill ? 'size-full' : 'aspect-square w-full'} rounded-[24%] border border-white/70 bg-white/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]`} aria-hidden />;
 }

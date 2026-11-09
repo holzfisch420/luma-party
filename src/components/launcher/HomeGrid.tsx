@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { EmptyTile, HomeTile } from './HomeTile';
 
 export interface GridItem {
@@ -20,13 +20,36 @@ interface HomeGridProps {
   /** Tastatur-/Fernbedienungssteuerung aktiv */
   keyboard?: boolean;
   showArrows?: boolean;
+  /** Raster füllt den ganzen verfügbaren Platz (Kacheln dürfen etwas breiter als hoch werden) */
+  fill?: boolean;
+}
+
+/** Kachelmaße so, dass das Raster Breite und Höhe ausnutzt */
+function useFillLayout(enabled: boolean, columns: number, rows: number) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    if (!enabled || !ref.current) return;
+    const el = ref.current;
+    const ro = new ResizeObserver(() => setBox({ w: el.clientWidth, h: el.clientHeight }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [enabled]);
+  const gap = Math.max(10, box.w * 0.013);
+  let tw = (box.w - (columns - 1) * gap) / columns;
+  let th = (box.h - (rows - 1) * gap) / rows;
+  // höchstens 40 % breiter als hoch, nie höher als breit
+  tw = Math.min(tw, th * 1.4);
+  th = Math.min(th, tw);
+  return { ref, gap, tw: Math.max(0, tw), th: Math.max(0, th), ready: box.w > 0 && box.h > 0 };
 }
 
 /**
  * Seitenweises Kachelraster: Pfeiltasten bewegen die Auswahl, Enter startet,
  * Seitenpunkte oben und große Pfeile an den Rändern blättern.
  */
-export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, rows = 3, keyboard = true, showArrows = true }: HomeGridProps) {
+export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, rows = 3, keyboard = true, showArrows = true, fill = false }: HomeGridProps) {
+  const layout = useFillLayout(fill, columns, rows);
   const perPage = columns * rows;
   const pageCount = Math.max(1, Math.ceil(items.length / perPage));
   const focusedIndex = Math.max(0, items.findIndex((i) => i.id === focusedId));
@@ -76,10 +99,10 @@ export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, r
 
   const slots = Array.from({ length: perPage }, (_, k) => items[page * perPage + k] ?? null);
 
-  return (
-    <div className="relative">
+ return (
+    <div className={fill ? 'relative flex size-full flex-col' : 'relative'}>
       {/* Seitenpunkte */}
-      <div className="mb-[2.5%] flex justify-center gap-2.5" aria-label={`Seite ${page + 1} von ${pageCount}`}>
+      <div className={`${fill ? 'mb-[1.2vh] shrink-0' : 'mb-[2.5%]'} flex justify-center gap-2.5`} aria-label={`Seite ${page + 1} von ${pageCount}`}>
         {Array.from({ length: Math.max(pageCount, 1) }).map((_, p) => (
           <motion.button
             key={p}
@@ -91,7 +114,7 @@ export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, r
         ))}
       </div>
 
-      <div className="relative">
+      <div ref={layout.ref} className={fill ? 'relative flex min-h-0 flex-1 items-center justify-center' : 'relative'}>
         <AnimatePresence mode="popLayout" initial={false} custom={direction}>
           <motion.div
             key={page}
@@ -105,8 +128,12 @@ export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, r
             animate="center"
             exit="exit"
             transition={{ type: 'spring', stiffness: 260, damping: 32 }}
-            className="grid gap-[2.4%]"
-            style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+            className={fill ? 'grid' : 'grid gap-[2.4%]'}
+            style={
+              fill
+                ? { gridTemplateColumns: `repeat(${columns}, ${layout.tw}px)`, gridTemplateRows: `repeat(${rows}, ${layout.th}px)`, gap: layout.gap, visibility: layout.ready ? 'visible' : 'hidden' }
+                : { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }
+            }
           >
             {slots.map((item, k) =>
               item ? (
@@ -116,10 +143,11 @@ export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, r
                   art={item.art}
                   focused={item.id === focusedId}
                   actionLabel={item.actionLabel}
+                  fill={fill}
                   onClick={() => (item.id === focusedId ? onActivate(item.id) : onFocus(item.id))}
                 />
               ) : (
-                <EmptyTile key={`empty-${k}`} />
+                <EmptyTile key={`empty-${k}`} fill={fill} />
               ),
             )}
           </motion.div>
@@ -140,7 +168,7 @@ function PageArrow({ side, onClick }: { side: 'left' | 'right'; onClick: () => v
     <button
       onClick={onClick}
       aria-label={side === 'left' ? 'Vorherige Seite' : 'Nächste Seite'}
-      className={`absolute top-1/2 grid size-[clamp(3rem,6vw,6rem)] -translate-y-1/2 place-items-center rounded-full bg-white/70 text-[#b9c1ca] shadow-lg backdrop-blur transition hover:text-cyan ${side === 'left' ? '-left-[5%]' : '-right-[5%]'}`}
+      className={`absolute top-1/2 z-40 grid size-[clamp(3rem,5vw,5rem)] -translate-y-1/2 place-items-center rounded-full bg-white/80 text-[#b9c1ca] shadow-lg backdrop-blur transition hover:text-cyan ${side === 'left' ? 'left-0' : 'right-0'}`}
     >
       <Icon className="size-2/3" strokeWidth={3} />
     </button>

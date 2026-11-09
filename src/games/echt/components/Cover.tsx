@@ -3,7 +3,7 @@ import type { CoverProps } from '../../game-types';
 /** Kachel: Pinnwand mit Notizzetteln, einer davon „ECHT!“ */
 export function EchtCover({ focused }: CoverProps) {
   return (
-    <svg viewBox="0 0 200 200" className="size-full" role="img" aria-label="Echt jetzt?">
+    <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" className="size-full" role="img" aria-label="Echt jetzt?">
       <defs>
         <pattern id="ej-cork" width="8" height="8" patternUnits="userSpaceOnUse">
           <rect width="8" height="8" fill="#c38a52" />

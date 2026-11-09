@@ -111,54 +111,53 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
       <div className="home-shape right-[8%] top-[8%] h-56 w-56 rotate-12" />
       <div className="home-shape bottom-[16%] right-[30%] h-24 w-72 rotate-[8deg]" />
 
-      {/* Kopfzeile */}
-      <header className="relative z-10 flex items-start justify-between gap-6 px-[3vw] pt-[2.5vh]">
-        <button onClick={() => setSheet('join')} className="home-tile relative flex size-[clamp(5.5rem,9vw,8.5rem)] flex-col items-center justify-center rounded-[26%] text-home-text" aria-label={`Raumcode ${room.code}`}>
-          <span className="text-[clamp(0.6rem,0.8vw,0.85rem)] font-black uppercase tracking-[0.2em] text-home-muted">Raum</span>
-          <span className="text-[clamp(1.5rem,2.6vw,2.6rem)] font-black leading-none tracking-[0.08em] text-cyan-dark">{room.code}</span>
-          <span className="absolute -right-2.5 -top-2.5 grid min-w-9 place-items-center rounded-full border-2 border-white bg-[#ff8a1f] px-2 py-1 text-sm font-black text-white shadow-md" title="verbundene Spieler">
-            {connected}
-          </span>
-        </button>
+      {/* Kachelraster */}
+      <main className="relative z-10 flex min-h-0 w-full flex-1 px-[2vw] pb-[1.2vh] pt-[1.5vh]">
+        {/* 5 × 3 Kacheln über die ganze Breite und Höhe (wie das Home-Menü der Wii U) */}
+        <div className="size-full">
+          <HomeGrid items={gridItems} focusedId={focusedId} onFocus={focus} onActivate={activate} keyboard={keyboard} fill />
+        </div>
+      </main>
 
-        <div className="flex items-center gap-4">
-          <div className="hidden -space-x-2 sm:flex">
-            {room.players.slice(0, 8).map((p) => (
-              <div key={p.id} title={p.name}>
-                <PlayerAvatar name={p.name} color={p.avatarColor} avatar={p.avatar} size="md" dimmed={!p.isConnected} />
-              </div>
-            ))}
-          </div>
-          <button onClick={() => setQrZoom(true)} className="home-tile group flex cursor-zoom-in items-center gap-3 rounded-[22px] py-2 pl-2 pr-4 text-left" title="Zum Vergrößern klicken">
-            <QrCode text={joinUrl} className="size-[clamp(4rem,6vw,6rem)] rounded-[14px] p-1.5" />
-            <div className="hidden md:block">
-              <div className="text-sm font-black text-home-text">Handy-Kamera drauf!</div>
-              <div className="text-xs font-bold text-home-muted">oder Code {room.code} eingeben</div>
-              <div className="mt-0.5 flex items-center gap-1 text-xs font-black text-cyan-dark">
-                <ZoomIn className="size-3.5" /> Klicken zum Vergrößern
+      {/* Icon-Leiste */}
+      {/* untere Leiste (wie beim Wii-U-Menü): links Raum & QR, Mitte Symbolleiste, rechts Spieler & Status */}
+      <footer className="relative z-10 grid grid-cols-[1fr_auto_1fr] items-end gap-4 px-[2vw] pb-[1.5vh]">
+        <div className="flex items-end gap-3">
+          <button onClick={() => setSheet('join')} className="home-tile relative flex h-[clamp(3.6rem,5vw,5rem)] items-center gap-2 rounded-[22px] px-4 text-home-text" aria-label={`Raumcode ${room.code}`}>
+            <span className="text-[clamp(0.55rem,0.7vw,0.75rem)] font-black uppercase tracking-[0.2em] text-home-muted [writing-mode:vertical-rl] rotate-180">Raum</span>
+            <span className="text-[clamp(1.4rem,2.1vw,2.2rem)] font-black leading-none tracking-[0.08em] text-cyan-dark">{room.code}</span>
+            <span className="absolute -right-2.5 -top-2.5 grid min-w-8 place-items-center rounded-full border-2 border-white bg-[#ff8a1f] px-1.5 py-0.5 text-xs font-black text-white shadow-md" title="verbundene Spieler">
+              {connected}
+            </span>
+          </button>
+          <button onClick={() => setQrZoom(true)} className="home-tile group flex cursor-zoom-in items-center gap-2 rounded-[22px] p-1.5 pr-3 text-left" title="Zum Vergrößern klicken">
+            <QrCode text={joinUrl} className="size-[clamp(3.2rem,4.4vw,4.4rem)] rounded-[14px] p-1" />
+            <div className="hidden xl:block">
+              <div className="text-xs font-black text-home-text">Handy-Kamera drauf!</div>
+              <div className="flex items-center gap-1 text-[11px] font-black text-cyan-dark">
+                <ZoomIn className="size-3" /> vergrößern
               </div>
             </div>
           </button>
           <QrZoom open={qrZoom} onClose={() => setQrZoom(false)} text={joinUrl} code={room.code} />
         </div>
-      </header>
-
-      {/* Kachelraster */}
-      <main className="relative z-10 mx-auto flex w-full min-h-0 flex-1 items-center justify-center px-[2.5vw]">
-        {/* 5 × 2 Kacheln: so breit wie möglich – begrenzt nur durch die verfügbare Höhe */}
-        <div className="w-full" style={{ maxWidth: 'min(95vw, calc((100dvh - 18.5rem) * 2.45))' }}>
-          <HomeGrid items={gridItems} focusedId={focusedId} onFocus={focus} onActivate={activate} keyboard={keyboard} rows={2} />
-        </div>
-      </main>
-
-      {/* Icon-Leiste */}
-      <footer className="relative z-10 flex items-end justify-between px-[3vw] pb-[2.5vh]">
-        <ConnectionStatusBadge status={status} compact />
         <HomeDock items={dock} />
-        <div className="w-28 text-right text-xs font-bold leading-tight text-home-muted">
-          {!room.hostHasControl && room.controllerId
-            ? `${room.players.find((p) => p.id === room.controllerId)?.name ?? ''} wählt per Handy`
-            : 'Auswahl am Bildschirm'}
+        <div className="flex items-end justify-end gap-3">
+          <div className="hidden -space-x-2 lg:flex">
+            {room.players.slice(0, 8).map((p) => (
+              <div key={p.id} title={p.name}>
+                <PlayerAvatar name={p.name} color={p.avatarColor} avatar={p.avatar} size="sm" dimmed={!p.isConnected} />
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            <ConnectionStatusBadge status={status} compact />
+            <div className="w-28 text-right text-xs font-bold leading-tight text-home-muted">
+              {!room.hostHasControl && room.controllerId
+                ? `${room.players.find((p) => p.id === room.controllerId)?.name ?? ''} wählt per Handy`
+                : 'Auswahl am Bildschirm'}
+            </div>
+          </div>
         </div>
       </footer>
 

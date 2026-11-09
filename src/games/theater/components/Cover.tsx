@@ -4,7 +4,7 @@ import type { CoverProps } from '../../game-types';
 export function TheaterCover({ focused }: CoverProps) {
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#160b0e]">
-      <svg viewBox="0 0 200 200" className="absolute inset-0 size-full" aria-hidden>
+      <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 size-full" aria-hidden>
         <defs>
           <radialGradient id="th-spot" cx="50%" cy="45%" r="55%">
             <stop offset="0" stopColor="#ffe2a8" stopOpacity="0.55" />

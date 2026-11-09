@@ -3,7 +3,7 @@ import type { CoverProps } from '../../game-types';
 /** Kachel: Low-Poly-Strecke mit Kurve und zwei Autos */
 export function RacerCover({ focused }: CoverProps) {
   return (
-    <svg viewBox="0 0 200 200" className="size-full" role="img" aria-label="Kurvenrausch">
+    <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" className="size-full" role="img" aria-label="Kurvenrausch">
       <defs>
         <linearGradient id="kr-sky" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#7c5cff" />

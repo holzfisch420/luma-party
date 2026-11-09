@@ -4,7 +4,7 @@ import type { CoverProps } from '../../game-types';
 export function PanzerCover({ focused }: CoverProps) {
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#aad751]">
-      <svg viewBox="0 0 200 200" className="absolute inset-0 size-full" aria-hidden>
+      <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 size-full" aria-hidden>
         {Array.from({ length: 64 }).map((_, i) => (
           <rect key={i} x={(i % 8) * 25} y={Math.floor(i / 8) * 25} width="25" height="25" fill={(i % 8) + Math.floor(i / 8) * 1 === 0 || ((i % 8) + Math.floor(i / 8)) % 2 === 0 ? '#aad751' : '#a2d149'} />
         ))}

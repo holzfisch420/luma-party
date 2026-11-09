@@ -3,7 +3,7 @@ import type { CoverProps } from '../../game-types';
 /** Kachel: Huhn springt über einen Polizisten, Blaulicht im Hintergrund */
 export function HuhnCover({ focused }: CoverProps) {
   return (
-    <svg viewBox="0 0 200 200" className="size-full" role="img" aria-label="Hühnerjagd">
+    <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" className="size-full" role="img" aria-label="Hühnerjagd">
       <defs>
         <linearGradient id="hj-sky" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#7ec8f7" />

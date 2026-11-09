@@ -4,7 +4,7 @@ import type { CoverProps } from '../../game-types';
 export function MontagsmalerCover({ focused }: CoverProps) {
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#fcfcf7]">
-      <svg viewBox="0 0 200 200" className="absolute inset-0 size-full" aria-hidden>
+      <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 size-full" aria-hidden>
         <defs>
           <pattern id="mm-grid" width="16" height="16" patternUnits="userSpaceOnUse">
             <path d="M16 0H0V16" fill="none" stroke="#a9d9ee" strokeWidth="1.2" />

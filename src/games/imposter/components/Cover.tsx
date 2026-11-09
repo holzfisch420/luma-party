@@ -3,7 +3,7 @@ import type { CoverProps } from '../../game-types';
 /** Kachel: Nebel, Kapuzen-Silhouette mit leuchtenden Augen */
 export function ImposterCover({ focused }: CoverProps) {
   return (
-    <svg viewBox="0 0 200 200" className="size-full" role="img" aria-label="Imposter">
+    <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" className="size-full" role="img" aria-label="Imposter">
       <defs>
         <radialGradient id="imp-bg" cx="50%" cy="85%" r="80%">
           <stop offset="0%" stopColor="#5b21b6" />
