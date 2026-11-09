@@ -144,9 +144,10 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
       </header>
 
       {/* Kachelraster */}
-      <main className="relative z-10 mx-auto flex w-full min-h-0 flex-1 items-center justify-center px-[6vw]">
-        <div className="w-full" style={{ maxWidth: 'min(80vw, calc((100dvh - 21rem) * 1.66))' }}>
-          <HomeGrid items={gridItems} focusedId={focusedId} onFocus={focus} onActivate={activate} keyboard={keyboard} />
+      <main className="relative z-10 mx-auto flex w-full min-h-0 flex-1 items-center justify-center px-[2.5vw]">
+        {/* 5 × 2 Kacheln: so breit wie möglich – begrenzt nur durch die verfügbare Höhe */}
+        <div className="w-full" style={{ maxWidth: 'min(95vw, calc((100dvh - 18.5rem) * 2.45))' }}>
+          <HomeGrid items={gridItems} focusedId={focusedId} onFocus={focus} onActivate={activate} keyboard={keyboard} rows={2} />
         </div>
       </main>
 
