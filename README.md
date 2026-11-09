@@ -120,6 +120,19 @@ Zeichnen & Raten im Comic-Stil (siehe oben).
   Begriffe (abstrakt, z. B. „Fernweh“, „Datenschutz“), Deutschrap, Englischer Rap, Geeker-Vocab
   (standardmässig aus, im Startbildschirm zuschaltbar) und Sonstiges.
 
+### Echt jetzt?
+Bluff- und Schreibspiel für **3–12 Spieler**, angelehnt an „Der wahre Walter“ – mit eigenem Namen, eigenen Sätzen
+und eigenem Look (Notizzettel auf einer Pinnwand, Handschrift).
+
+- Reihum ist eine Person **dran** und ergänzt einen persönlichen Satz **ehrlich**, z. B. „Mein heimliches Talent ist BLUBB“.
+- Alle anderen schreiben gleichzeitig eine **Fälschung**, die nach dieser Person klingt.
+- Dann erscheinen alle Antworten gemischt als Notizzettel; alle außer der Person, die dran ist, **stimmen ab**, welche echt ist
+  (für die eigene Antwort kann man nicht stimmen). Gleiche Antworten werden zusammengefasst.
+- **Punkte:** richtig geraten +1 (und +1 für die Person, die dran ist) · je reingelegter Person +1 · genau dieselbe Antwort
+  wie die Person, die dran ist +2.
+- Rund 130 eigene Sätze in zwei Sammlungen: **Klassisch** (Alltag, Kindheit, Essen, Träume) und **Party** (etwas frecher) –
+  im Startbildschirm wählbar. Einstellungen: Runden, Sätze pro Person, Schreibzeit.
+
 ### Imposter
 Bluff-Spiel für **3–12 Spieler** im mysteriösen Look (dunkel, violetter Nebel).
 

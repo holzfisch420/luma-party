@@ -1,0 +1,120 @@
+import { describe, expect, it } from 'vitest';
+import { EchtEngine, echtServerModule } from '../src/games/echt/game-engine';
+import { DEFAULT_ECHT_SETTINGS, parseEchtSettings } from '../src/games/echt/game-config';
+import { STATEMENTS } from '../src/games/echt/statements';
+import type { GameContext, GamePlayer } from '../src/server/game-engine/types';
+
+function setup(n = 4, overrides = {}) {
+  let now = 1_000_000;
+  const timers: { at: number; fn: () => void; dead: boolean }[] = [];
+  let ended: any = null;
+  const players: GamePlayer[] = Array.from({ length: n }, (_, i) => ({ id: `p${i}`, name: `P${i}`, avatarColor: '#fff', isConnected: true, joinedAt: i, avatar: null }));
+  const ctx: GameContext = {
+    roomCode: 'TEST',
+    gameId: 'echtjetzt',
+    services: {} as any,
+    getPlayers: () => players,
+    getPlayer: (id) => players.find((p) => p.id === id),
+    publishState: () => {},
+    emit: () => {},
+    notify: () => {},
+    setTimer: (ms, fn) => {
+      const t = { at: now + ms, fn, dead: false };
+      timers.push(t);
+      return { cancel: () => (t.dead = true) };
+    },
+    now: () => now,
+    endGame: (r) => (ended = r),
+    log: () => {},
+  };
+  const engine = new EchtEngine(ctx, { ...DEFAULT_ECHT_SETTINGS, perTurn: 1, ...overrides });
+  const advance = (ms: number) => {
+    const end = now + ms;
+    for (;;) {
+      const next = timers.filter((t) => !t.dead && t.at <= end).sort((a, b) => a.at - b.at)[0];
+      if (!next) break;
+      now = next.at;
+      next.dead = true;
+      next.fn();
+    }
+    now = end;
+  };
+  return { engine, advance, players, pub: () => engine.getPublicState(), ended: () => ended };
+}
+
+describe('Echt jetzt?', () => {
+  it('hat genug eigene Sätze mit genau einem Platzhalter', () => {
+    expect(STATEMENTS.klassisch.length).toBeGreaterThanOrEqual(80);
+    expect(STATEMENTS.party.length).toBeGreaterThanOrEqual(20);
+    for (const s of [...STATEMENTS.klassisch, ...STATEMENTS.party]) expect(s.split('___').length - 1, s).toBe(1);
+  });
+
+  it('Ablauf: schreiben → abstimmen → Auflösung mit Punkten; Autoren bleiben bis zur Auflösung geheim', () => {
+    const s = setup(4);
+    s.engine.start();
+    const hero = s.pub().heroId;
+    expect(hero).toBe('p0');
+    s.engine.handleAction('p0', 'answer', { text: 'Pfannkuchen' });
+    s.engine.handleAction('p1', 'answer', { text: 'Pizza' });
+    s.engine.handleAction('p2', 'answer', { text: 'pfannkuchen!' }); // gleiche Antwort wie p0
+    expect(s.pub().phase).toBe('write');
+    s.engine.handleAction('p3', 'answer', { text: 'Sushi' });
+    expect(s.pub().phase).toBe('vote');
+    const opts = s.pub().options;
+    expect(opts).toHaveLength(3); // zusammengefasst
+    expect(JSON.stringify(s.pub())).not.toContain('authors');
+    const optOf = (text: string) => opts.find((o) => o.text.toLowerCase().startsWith(text))!.id;
+    // p2 darf nicht für die eigene (= echte) Antwort stimmen
+    s.engine.handleAction('p2', 'vote', { optionId: optOf('pfann') });
+    expect(s.pub().voted).not.toContain('p2');
+    s.engine.handleAction('p0', 'vote', { optionId: optOf('pizza') }); // Person, die dran ist, stimmt nicht ab
+    expect(s.pub().voted).not.toContain('p0');
+    s.engine.handleAction('p1', 'vote', { optionId: optOf('pfann') }); // richtig
+    s.engine.handleAction('p2', 'vote', { optionId: optOf('sushi') }); // fällt auf p3 rein
+    s.engine.handleAction('p3', 'vote', { optionId: optOf('pizza') }); // fällt auf p1 rein
+    const r = s.pub().reveal!;
+    expect(s.pub().phase).toBe('reveal');
+    expect(r.options[0]!.real).toBe(true);
+    expect(r.options[0]!.authors).toEqual(['p0', 'p2']);
+    expect(r.gained).toEqual({ p2: 2, p1: 2, p0: 1, p3: 1 });
+  });
+
+  it('jede Person ist einmal dran, dann Spielende', () => {
+    const s = setup(3);
+    s.engine.start();
+    const heroes: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      heroes.push(s.pub().heroId);
+      for (const p of s.players) s.engine.handleAction(p.id, 'answer', { text: `Antwort ${p.id}` });
+      s.advance(80_000);
+    }
+    expect(heroes).toEqual(['p0', 'p1', 'p2']);
+    expect(s.ended()).not.toBeNull();
+  });
+
+  it('ohne echte Antwort wird der Satz übersprungen', () => {
+    const s = setup(3, { rounds: 2 });
+    s.engine.start();
+    s.engine.handleAction('p1', 'answer', { text: 'X' });
+    s.advance(DEFAULT_ECHT_SETTINGS.writeSeconds * 1000 + 10);
+    expect(s.pub().phase).toBe('reveal');
+    expect(s.pub().reveal!.skipped).toBe(true);
+    s.advance(6000);
+    expect(s.pub().heroId).toBe('p1');
+  });
+
+  it('Person, die dran ist, verlässt das Spiel → nächste Person', () => {
+    const s = setup(4);
+    s.engine.start();
+    s.engine.onPlayerLeft!(s.players[0]!);
+    expect(s.pub().phase).toBe('write');
+    expect(s.pub().heroId).toBe('p1');
+  });
+
+  it('Einstellungen & Startprüfung', () => {
+    expect(parseEchtSettings({}).sets).toEqual(['klassisch']);
+    expect(() => parseEchtSettings({ sets: [] })).toThrow();
+    const two = [0, 1].map((i) => ({ id: `p${i}`, name: 'x', avatarColor: '#fff', isConnected: true, joinedAt: i, avatar: null }));
+    expect(echtServerModule.canStart!(two, DEFAULT_ECHT_SETTINGS, {} as any)).toMatch(/3 Spieler/);
+  });
+});

@@ -8,9 +8,10 @@ import { panzerMeta } from './panzer/game-config';
 import { theaterMeta } from './theater/game-config';
 import { imposterMeta } from './imposter/game-config';
 import { huhnMeta } from './huhn/game-config';
+import { echtMeta } from './echt/game-config';
 import { FUTURE_GAMES } from './future-games/catalog';
 
-export const GAME_CATALOG: GameMeta[] = [montagsmalerMeta, imposterMeta, huhnMeta, panzerMeta, theaterMeta, ...FUTURE_GAMES];
+export const GAME_CATALOG: GameMeta[] = [montagsmalerMeta, imposterMeta, echtMeta, huhnMeta, panzerMeta, theaterMeta, ...FUTURE_GAMES];
 
 export const DEFAULT_GAME_ID = montagsmalerMeta.id;
 
