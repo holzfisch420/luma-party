@@ -293,7 +293,6 @@ src/
 │   │   ├── words/          # 586 Standardwörter
 │   │   ├── components/     # UI für TV und Smartphone
 │   │   └── hooks/          # Live-Canvas, gebündeltes Senden
-│   └── future-games/       # Platzhalter („Bald verfügbar“) + Cover-Icons
 ├── server/
 │   ├── index.ts            # Express + Socket.IO (startServer)
 │   ├── main.ts             # Startpunkt für npm run dev / npm start

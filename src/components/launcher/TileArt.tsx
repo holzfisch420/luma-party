@@ -1,11 +1,10 @@
-import { Lock } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import type { CoverProps } from '../../games/game-types';
 import { getClientGame } from '../../games/game-registry';
-import { DEFAULT_COVER_ICON, FUTURE_GAME_ICONS } from '../../games/future-games/covers';
 
 /** Generische, quadratische Kachel-Grafik aus den Theme-Farben eines Spiels. */
 export function GenericTileArt({ meta, focused }: CoverProps) {
-  const Icon = FUTURE_GAME_ICONS[meta.id] ?? DEFAULT_COVER_ICON;
+  const Icon = Sparkles;
   const { from, via, to } = meta.theme;
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ background: `linear-gradient(145deg, ${from}, ${via ?? from} 55%, ${to})` }}>
@@ -15,11 +14,6 @@ export function GenericTileArt({ meta, focused }: CoverProps) {
         strokeWidth={1.75}
         style={{ transform: `translate(-50%,-50%) rotate(${focused ? -8 : 0}deg) scale(${focused ? 1.08 : 1})` }}
       />
-      {meta.status === 'coming-soon' && (
-        <div className="absolute right-[6%] top-[6%] grid size-[22%] place-items-center rounded-full bg-black/35 text-white backdrop-blur-sm">
-          <Lock className="size-1/2" />
-        </div>
-      )}
     </div>
   );
 }

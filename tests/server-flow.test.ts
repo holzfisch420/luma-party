@@ -49,23 +49,23 @@ describe('Lobby', () => {
     dup.close();
 
     // Nicht-Controller darf kein Spiel wählen
-    players[1]!.socket.emit('room:selectGame', { gameId: 'quiz' });
+    players[1]!.socket.emit('room:selectGame', { gameId: 'imposter' });
     await sleep(100);
     expect(host.room!.selectedGameId).toBe('montagsmaler');
     // Controller darf
-    players[0]!.socket.emit('room:selectGame', { gameId: 'quiz' });
-    await host.waitFor(() => host.room!.selectedGameId === 'quiz');
+    players[0]!.socket.emit('room:selectGame', { gameId: 'imposter' });
+    await host.waitFor(() => host.room!.selectedGameId === 'imposter');
     // Host übernimmt -> Controller gesperrt
     host.socket.emit('room:setHostControl', { enabled: true });
     await host.waitFor(() => host.room!.hostHasControl);
     players[0]!.socket.emit('room:selectGame', { gameId: 'montagsmaler' });
     await sleep(100);
-    expect(host.room!.selectedGameId).toBe('quiz');
+    expect(host.room!.selectedGameId).toBe('imposter');
     host.socket.emit('room:selectGame', { gameId: 'montagsmaler' });
     await host.waitFor(() => host.room!.selectedGameId === 'montagsmaler');
     // Coming-soon-Spiel lässt sich nicht starten
-    host.socket.emit('room:selectGame', { gameId: 'quiz' });
-    await host.waitFor(() => host.room!.selectedGameId === 'quiz');
+    host.socket.emit('room:selectGame', { gameId: 'imposter' });
+    await host.waitFor(() => host.room!.selectedGameId === 'imposter');
     const start = await emitAck(host, 'room:startGame');
     expect(start.ok).toBe(false);
 
