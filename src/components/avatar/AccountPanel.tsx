@@ -1,15 +1,17 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { KeyRound, LogIn, LogOut, Pencil, Trash2, UserPlus } from 'lucide-react';
+import { KeyRound, LogIn, LogOut, Pencil, Trash2, Trophy, UserPen, UserPlus } from 'lucide-react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { accountActions, useAccount } from '../../app/account/account-store';
-import { SHIRT_COLORS, randomAvatar, type AvatarConfig } from '../../shared/avatar';
+import { getGameMeta } from '../../games/game-catalog';
+import { randomAvatar, type AvatarConfig } from '../../shared/avatar';
+import type { GameStats } from '../../shared/types/account';
 import { PASSWORD_MIN, USERNAME_MAX, USERNAME_MIN } from '../../shared/types/account';
 import { Button } from '../ui/Button';
 import { Segmented } from '../ui/Controls';
 import { Spinner } from '../ui/Feedback';
 import { useToast } from '../ui/Toast';
 import { AvatarEditor } from './AvatarEditor';
-import { AvatarFace, shade } from './AvatarFace';
+import { AvatarFace, avatarBackground } from './AvatarFace';
 
 interface Props {
   /** nach Anmeldung/Registrierung oder gespeichertem Avatar */
@@ -68,7 +70,7 @@ export function AccountPanel({ onChanged }: Props) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-5">
-        <div className="home-tile relative size-28 shrink-0 overflow-hidden rounded-[28%]" style={{ background: `radial-gradient(circle at 50% 35%, #fff, ${shade(SHIRT_COLORS[account.avatar.shirt]!, 0.7)})` }}>
+        <div className="home-tile relative size-28 shrink-0 overflow-hidden rounded-[28%]" style={{ background: avatarBackground(account.avatar) }}>
           <AvatarFace avatar={account.avatar} className="absolute inset-0 size-full" />
         </div>
         <div className="min-w-0">
@@ -79,6 +81,12 @@ export function AccountPanel({ onChanged }: Props) {
           </Button>
         </div>
       </div>
+
+      <StatsCard stats={account.stats} />
+
+      <Collapsible icon={<UserPen className="size-4" />} title="Benutzername ändern">
+        <Rename current={account.username} onDone={() => onChanged?.('avatar')} />
+      </Collapsible>
 
       <Collapsible icon={<KeyRound className="size-4" />} title="Passwort ändern">
         <ChangePassword />
@@ -263,3 +271,71 @@ function Collapsible({ title, icon, children, danger }: { title: string; icon: R
   );
 }
 
+
+function StatsCard({ stats }: { stats: GameStats }) {
+  const games = Object.entries(stats.games).sort((a, b) => b[1].played - a[1].played);
+  return (
+    <div className="rounded-2xl border border-home-line bg-white p-4">
+      <div className="mb-3 flex items-center gap-2 font-extrabold">
+        <Trophy className="size-4 text-[#f59f00]" /> Meine Statistik
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-center">
+        {(
+          [
+            ['Partien', stats.played],
+            ['Siege', stats.wins],
+            ['Punkte', stats.points],
+          ] as const
+        ).map(([label, value]) => (
+          <div key={label} className="rounded-xl bg-home-bg px-2 py-2.5">
+            <div className="text-2xl font-black tabular-nums">{value}</div>
+            <div className="text-[11px] font-extrabold uppercase tracking-wider text-home-muted">{label}</div>
+          </div>
+        ))}
+      </div>
+      {games.length > 0 ? (
+        <div className="mt-3 flex flex-col gap-1.5">
+          {games.map(([id, g]) => (
+            <div key={id} className="flex items-center justify-between rounded-xl px-2 py-1.5 text-sm font-bold odd:bg-home-bg/60">
+              <span>{getGameMeta(id)?.name ?? id}</span>
+              <span className="text-home-muted">
+                {g.played}× gespielt · {g.wins} {g.wins === 1 ? 'Sieg' : 'Siege'} · Rekord {g.best}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-3 text-sm font-bold text-home-muted">Noch keine Partie gespielt – spiel mit deinem Konto mit, dann wird hier gezählt.</p>
+      )}
+    </div>
+  );
+}
+
+function Rename({ current, onDone }: { current: string; onDone: () => void }) {
+  const toast = useToast();
+  const [name, setName] = useState(current);
+  const [busy, setBusy] = useState(false);
+  return (
+    <form
+      className="flex flex-col gap-3"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setBusy(true);
+        try {
+          await accountActions.rename(name.trim());
+          toast('Benutzername geändert.', 'success');
+          onDone();
+        } catch (err) {
+          toast((err as Error).message, 'error');
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <input value={name} onChange={(e) => setName(e.target.value)} minLength={USERNAME_MIN} maxLength={USERNAME_MAX} autoComplete="username" className="home-input font-bold" required />
+      <Button type="submit" size="md" loading={busy} disabled={name.trim() === current} className="self-start">
+        Speichern
+      </Button>
+    </form>
+  );
+}

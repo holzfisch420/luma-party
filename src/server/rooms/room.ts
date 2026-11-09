@@ -218,6 +218,9 @@ export class Room implements SessionHost {
       if (!taken) record.name = name;
     }
     if (record.accountId !== account.id) return;
+    // neuer Benutzername übernehmen (falls im Raum frei)
+    const newName = account.username.slice(0, PLAYER_NAME_MAX);
+    if (newName !== record.name && ![...this.players.values()].some((p) => p !== record && p.name.toLowerCase() === newName.toLowerCase())) record.name = newName;
     record.avatar = account.avatar;
     this.broadcast();
   }
@@ -422,6 +425,12 @@ export class Room implements SessionHost {
     this.results = buildResults(gameId, this.getGamePlayers(), result);
     this.phase = 'results';
     this.broadcast();
+    // Statistik für angemeldete Spieler
+    const winners = new Set(this.results.winnerIds);
+    for (const e of this.results.entries) {
+      const accountId = this.players.get(e.playerId)?.accountId;
+      if (accountId) void this.services.accounts.recordResult(accountId, gameId, e.score, winners.has(e.playerId)).catch(() => {});
+    }
   }
 
   // ------------------------------------------------------------------ Sonstiges

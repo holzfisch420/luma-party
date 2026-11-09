@@ -82,6 +82,11 @@ export const accountActions = {
     set({ account });
     return account;
   },
+  async rename(username: string) {
+    const { account } = await api<{ account: PublicAccount }>('/me/username', { method: 'PUT', body: JSON.stringify({ username }) });
+    set({ account });
+    return account;
+  },
   async changePassword(oldPassword: string, newPassword: string) {
     applyAuth(await api<AuthResponse>('/me/password', { method: 'POST', body: JSON.stringify({ oldPassword, newPassword }) }));
   },

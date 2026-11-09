@@ -321,3 +321,22 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .fog-layer { animation: none; }
 }
+
+/* Regler im Knubbel-Editor */
+.knubbel-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, #fff, #e9f8fc 45%, #b8e6f2);
+  border: 2px solid #1fb3d4;
+  box-shadow: 0 3px 8px rgba(19, 143, 174, 0.35);
+}
+.knubbel-range::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, #fff, #e9f8fc 45%, #b8e6f2);
+  border: 2px solid #1fb3d4;
+  box-shadow: 0 3px 8px rgba(19, 143, 174, 0.35);
+}

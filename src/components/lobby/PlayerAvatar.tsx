@@ -1,6 +1,6 @@
-import { SHIRT_COLORS, type AvatarConfig } from '../../shared/avatar';
+import type { AvatarConfig } from '../../shared/avatar';
 import { initials } from '../../shared/utils/text';
-import { AvatarFace, shade } from '../avatar/AvatarFace';
+import { AvatarFace, avatarBackground } from '../avatar/AvatarFace';
 
 const SIZES = {
   xs: 'size-6 text-[10px]',
@@ -36,9 +36,8 @@ export function PlayerAvatar({
   const state = dimmed ? 'opacity-40 grayscale' : '';
 
   if (avatar) {
-    const bg = shade(SHIRT_COLORS[avatar.shirt] ?? '#1fb3d4', 0.72);
     return (
-      <div className={`${SIZES[size]} ${frame} ${state} relative shrink-0 overflow-hidden rounded-full transition-all duration-300`} style={{ background: bg }} aria-hidden>
+      <div className={`${SIZES[size]} ${frame} ${state} relative shrink-0 overflow-hidden rounded-full transition-all duration-300`} style={{ background: avatarBackground(avatar) }} aria-hidden>
         <AvatarFace avatar={avatar} look={variant} crop="bust" className="absolute inset-0 size-full" title={name} />
       </div>
     );

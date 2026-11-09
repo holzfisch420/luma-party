@@ -1,20 +1,22 @@
-import { AnimatePresence, motion } from 'framer-motion';
-import { Check, Dices, Glasses, Palette, Scissors, Smile, Sparkles, UserRound, Eye, type LucideIcon } from 'lucide-react';
+import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { Check, Crown, Dices, Eye, Image, Shapes, Smile, Sparkles, type LucideIcon } from 'lucide-react';
 import { useState } from 'react';
 import {
   AVATAR_PARTS,
+  AVATAR_SLIDERS,
+  BG_COLORS,
+  BODY_COLORS,
   EYE_COLORS,
-  HAIR_COLORS,
-  SHIRT_COLORS,
-  SKIN_TONES,
+  SLIDER_MAX,
   randomAvatar,
   type AvatarConfig,
   type AvatarPart,
+  type AvatarSlider,
 } from '../../shared/avatar';
 import { Button } from '../ui/Button';
-import { AvatarFace, shade } from './AvatarFace';
+import { AvatarFace, avatarBackground } from './AvatarFace';
 
-type ColorKey = 'skin' | 'hairColor' | 'eyeColor' | 'shirt';
+type ColorKey = 'color' | 'bg' | 'eyeColor';
 
 interface Section {
   id: string;
@@ -22,19 +24,17 @@ interface Section {
   icon: LucideIcon;
   part?: AvatarPart;
   color?: { key: ColorKey; colors: readonly string[]; label: string };
+  sliders?: AvatarSlider[];
   extra?: 'cheeks';
 }
 
 const SECTIONS: Section[] = [
-  { id: 'face', label: 'Gesicht', icon: UserRound, part: 'face', color: { key: 'skin', colors: SKIN_TONES, label: 'Hautton' }, extra: 'cheeks' },
-  { id: 'hair', label: 'Frisur', icon: Scissors, part: 'hair', color: { key: 'hairColor', colors: HAIR_COLORS, label: 'Haarfarbe' } },
-  { id: 'eyes', label: 'Augen', icon: Eye, part: 'eyes', color: { key: 'eyeColor', colors: EYE_COLORS, label: 'Augenfarbe' } },
+  { id: 'shape', label: 'Form', icon: Shapes, part: 'shape', color: { key: 'color', colors: BODY_COLORS, label: 'Farbe' } },
+  { id: 'eyes', label: 'Augen', icon: Eye, part: 'eyes', color: { key: 'eyeColor', colors: EYE_COLORS, label: 'Augenfarbe' }, sliders: ['eyeSize', 'eyeGap', 'eyeY'] },
   { id: 'brows', label: 'Brauen', icon: Sparkles, part: 'brows' },
-  { id: 'nose', label: 'Nase', icon: UserRound, part: 'nose' },
-  { id: 'mouth', label: 'Mund', icon: Smile, part: 'mouth' },
-  { id: 'beard', label: 'Bart', icon: UserRound, part: 'facialHair', color: { key: 'hairColor', colors: HAIR_COLORS, label: 'Bartfarbe' } },
-  { id: 'glasses', label: 'Brille', icon: Glasses, part: 'glasses' },
-  { id: 'color', label: 'Lieblingsfarbe', icon: Palette, color: { key: 'shirt', colors: SHIRT_COLORS, label: 'Lieblingsfarbe' } },
+  { id: 'mouth', label: 'Mund', icon: Smile, part: 'mouth', sliders: ['mouthSize', 'mouthY'], extra: 'cheeks' },
+  { id: 'extra', label: 'Extras', icon: Crown, part: 'extra' },
+  { id: 'bg', label: 'Hintergrund', icon: Image, color: { key: 'bg', colors: BG_COLORS, label: 'Hintergrundfarbe' } },
 ];
 
 interface Props {
@@ -44,7 +44,7 @@ interface Props {
   saveLabel?: string;
 }
 
-/** Avatar-Baukasten: Vorschau, Kategorien, Mini-Vorschauen je Option, Farben, Würfeln. */
+/** Knubbel-Baukasten: große 3D-Vorschau, Kategorien mit Mini-Vorschauen, Farben und Regler. */
 export function AvatarEditor({ initial, onSave, onCancel, saveLabel = 'Speichern' }: Props) {
   const [avatar, setAvatar] = useState<AvatarConfig>(initial);
   const [sectionId, setSectionId] = useState(SECTIONS[0]!.id);
@@ -52,7 +52,6 @@ export function AvatarEditor({ initial, onSave, onCancel, saveLabel = 'Speichern
   const [spin, setSpin] = useState(0);
   const section = SECTIONS.find((s) => s.id === sectionId)!;
   const set = (patch: Partial<AvatarConfig>) => setAvatar((a) => ({ ...a, ...patch }));
-  const bg = shade(SHIRT_COLORS[avatar.shirt]!, 0.72);
 
   const save = async () => {
     setSaving(true);
@@ -67,20 +66,11 @@ export function AvatarEditor({ initial, onSave, onCancel, saveLabel = 'Speichern
     <div className="flex flex-col gap-5">
       {/* Vorschau */}
       <div className="flex items-end justify-center gap-4">
-        <motion.div
-          key={spin}
-          initial={{ scale: 0.9, rotate: spin ? -6 : 0 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-          className="home-tile relative size-48 overflow-hidden rounded-[28%] sm:size-56"
-          style={{ background: `radial-gradient(circle at 50% 35%, #fff, ${bg})` }}
-        >
-          <AvatarFace avatar={avatar} className="absolute inset-0 size-full" />
-        </motion.div>
+        <Preview avatar={avatar} spin={spin} />
         <Button
           variant="secondary"
           className="!size-14 !p-0"
-          aria-label="Zufälliger Avatar"
+          aria-label="Zufälliger Knubbel"
           title="Würfeln"
           onClick={() => {
             setAvatar(randomAvatar());
@@ -121,7 +111,7 @@ export function AvatarEditor({ initial, onSave, onCancel, saveLabel = 'Speichern
                     aria-pressed={active}
                     className={`flex flex-col items-center gap-1 rounded-2xl border-2 p-1.5 transition ${active ? 'border-cyan bg-cyan/10 shadow' : 'border-home-line bg-white'}`}
                   >
-                    <div className="relative aspect-square w-full overflow-hidden rounded-xl" style={{ background: shade(SHIRT_COLORS[avatar.shirt]!, 0.82) }}>
+                    <div className="relative aspect-square w-full overflow-hidden rounded-xl" style={{ background: avatarBackground(avatar) }}>
                       <AvatarFace avatar={preview} crop="bust" className="absolute inset-0 size-full" />
                       {active && (
                         <span className="absolute right-1 top-1 grid size-5 place-items-center rounded-full bg-cyan text-white">
@@ -133,6 +123,14 @@ export function AvatarEditor({ initial, onSave, onCancel, saveLabel = 'Speichern
                   </button>
                 );
               })}
+            </div>
+          )}
+
+          {section.sliders && (
+            <div className="flex flex-col gap-3 rounded-2xl border border-home-line bg-white px-4 py-3">
+              {section.sliders.map((key) => (
+                <Slider key={key} label={AVATAR_SLIDERS[key]} value={avatar[key]} onChange={(v) => set({ [key]: v } as Partial<AvatarConfig>)} />
+              ))}
             </div>
           )}
 
@@ -149,9 +147,9 @@ export function AvatarEditor({ initial, onSave, onCancel, saveLabel = 'Speichern
                       aria-label={`${section.color!.label} ${i + 1}`}
                       aria-pressed={active}
                       className={`grid size-11 place-items-center rounded-full border-2 border-white shadow-md transition ${active ? 'scale-110 ring-[3px] ring-cyan' : ''}`}
-                      style={{ background: c }}
+                      style={{ background: `radial-gradient(circle at 35% 30%, #ffffffaa, transparent 45%), ${c}` }}
                     >
-                      {active && <Check className="size-5 drop-shadow" color={i >= 6 && section.color!.key === 'hairColor' ? '#333' : '#fff'} strokeWidth={3} />}
+                      {active && <Check className="size-5 drop-shadow" color={isLight(c) ? '#333' : '#fff'} strokeWidth={3} />}
                     </button>
                   );
                 })}
@@ -161,7 +159,7 @@ export function AvatarEditor({ initial, onSave, onCancel, saveLabel = 'Speichern
 
           {section.extra === 'cheeks' && (
             <label className="flex items-center justify-between rounded-2xl border border-home-line bg-white px-4 py-3">
-              <span className="font-extrabold">Rote Bäckchen</span>
+              <span className="font-extrabold">Rosige Bäckchen</span>
               <input type="checkbox" checked={avatar.cheeks} onChange={(e) => set({ cheeks: e.target.checked })} className="size-5 accent-[#1fb3d4]" />
             </label>
           )}
@@ -179,5 +177,71 @@ export function AvatarEditor({ initial, onSave, onCancel, saveLabel = 'Speichern
         </Button>
       </div>
     </div>
+  );
+}
+
+function isLight(hex: string) {
+  const n = parseInt(hex.slice(1), 16);
+  return ((n >> 16) & 255) * 0.3 + ((n >> 8) & 255) * 0.59 + (n & 255) * 0.11 > 190;
+}
+
+/** große Vorschau: schwebt leicht und kippt räumlich mit dem Finger/der Maus */
+function Preview({ avatar, spin }: { avatar: AvatarConfig; spin: number }) {
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rotY = useSpring(useTransform(mx, [-1, 1], [-16, 16]), { stiffness: 180, damping: 18 });
+  const rotX = useSpring(useTransform(my, [-1, 1], [12, -12]), { stiffness: 180, damping: 18 });
+  return (
+    <div
+      className="[perspective:700px]"
+      onPointerMove={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        mx.set(((e.clientX - r.left) / r.width) * 2 - 1);
+        my.set(((e.clientY - r.top) / r.height) * 2 - 1);
+      }}
+      onPointerLeave={() => {
+        mx.set(0);
+        my.set(0);
+      }}
+    >
+      <motion.div
+        key={spin}
+        initial={{ scale: 0.85, rotate: spin ? -10 : 0 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: 'spring', stiffness: 380, damping: 14 }}
+        style={{ rotateX: rotX, rotateY: rotY, background: avatarBackground(avatar) }}
+        className="home-tile relative size-48 overflow-hidden rounded-[28%] shadow-[inset_0_-10px_24px_rgba(0,0,0,0.08)] sm:size-56"
+      >
+        <motion.div className="absolute inset-0" animate={{ y: [0, -5, 0] }} transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}>
+          <AvatarFace avatar={avatar} className="absolute inset-0 size-full" />
+        </motion.div>
+        {/* Glanz auf der Kachel */}
+        <div className="pointer-events-none absolute inset-0 rounded-[28%] bg-[linear-gradient(150deg,rgba(255,255,255,0.55),transparent_38%)]" />
+      </motion.div>
+    </div>
+  );
+}
+
+function Slider({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
+  const pct = (value / SLIDER_MAX) * 100;
+  return (
+    <label className="flex items-center gap-3">
+      <span className="w-28 shrink-0 text-sm font-extrabold">{label}</span>
+      <input
+        type="range"
+        min={0}
+        max={SLIDER_MAX}
+        step={1}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="knubbel-range h-2 flex-1 cursor-pointer appearance-none rounded-full"
+        style={{ background: `linear-gradient(90deg, #1fb3d4 ${pct}%, #d5dbe1 ${pct}%)` }}
+        aria-label={label}
+      />
+      <button type="button" onClick={() => onChange(SLIDER_MAX / 2)} className="w-12 shrink-0 text-right text-xs font-black text-home-muted hover:text-cyan-dark" title="Zurücksetzen">
+        {value - SLIDER_MAX / 2 > 0 ? '+' : ''}
+        {value - SLIDER_MAX / 2}
+      </button>
+    </label>
   );
 }

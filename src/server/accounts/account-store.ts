@@ -6,6 +6,8 @@ import { randomBytes, randomUUID, scrypt as scryptCb, timingSafeEqual } from 'no
 import { promisify } from 'node:util';
 import { DEFAULT_AVATAR, parseAvatar, type AvatarConfig } from '../../shared/avatar';
 import {
+  EMPTY_STATS,
+  type GameStats,
   PASSWORD_MAX,
   PASSWORD_MIN,
   USERNAME_MAX,
@@ -34,6 +36,7 @@ interface AccountDoc {
   tokenVersion: number;
   createdAt: number;
   updatedAt: number;
+  stats?: GameStats;
 }
 
 export function normalizeUsername(raw: unknown): string {
@@ -77,7 +80,11 @@ export class AccountStore {
   constructor(private readonly store: DocumentStore) {}
 
   async load(): Promise<void> {
-    for (const a of await this.store.loadAll<AccountDoc>(COLLECTION)) this.index(a);
+    for (const a of await this.store.loadAll<AccountDoc>(COLLECTION)) {
+      // ältere Avatare (Version 1) automatisch in Knubbel umwandeln
+      a.avatar = parseAvatar(a.avatar) ?? { ...DEFAULT_AVATAR };
+      this.index(a);
+    }
   }
 
   private index(a: AccountDoc) {
@@ -91,7 +98,7 @@ export class AccountStore {
   }
 
   toPublic(a: AccountDoc): PublicAccount {
-    return { id: a.id, username: a.username, avatar: a.avatar, createdAt: a.createdAt };
+    return { id: a.id, username: a.username, avatar: a.avatar, createdAt: a.createdAt, stats: a.stats ?? structuredClone(EMPTY_STATS) };
   }
 
   get(id: string): AccountDoc | undefined {
@@ -159,6 +166,36 @@ export class AccountStore {
     this.byId.delete(id);
     this.byKey.delete(doc.key);
     await this.store.remove(COLLECTION, id);
+  }
+
+  async rename(id: string, rawUsername: unknown): Promise<AccountDoc> {
+    const doc = this.require(id);
+    const username = normalizeUsername(rawUsername);
+    validateUsername(username);
+    const key = username.toLowerCase();
+    const other = this.byKey.get(key);
+    if (other && other.id !== id) throw new AccountError('Dieser Benutzername ist schon vergeben.');
+    this.byKey.delete(doc.key);
+    doc.username = username;
+    doc.key = key;
+    this.byKey.set(key, doc);
+    await this.save(doc);
+    return doc;
+  }
+
+  /** Ergebnis einer beendeten Partie in die Statistik schreiben */
+  async recordResult(id: string, gameId: string, score: number, won: boolean): Promise<void> {
+    const doc = this.byId.get(id);
+    if (!doc) return;
+    const s = (doc.stats ??= structuredClone(EMPTY_STATS));
+    s.played++;
+    if (won) s.wins++;
+    s.points += Math.max(0, Math.round(score));
+    const g = (s.games[gameId] ??= { played: 0, wins: 0, best: 0 });
+    g.played++;
+    if (won) g.wins++;
+    g.best = Math.max(g.best, Math.round(score));
+    await this.save(doc);
   }
 
   private require(id: string): AccountDoc {

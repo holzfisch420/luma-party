@@ -209,10 +209,16 @@ gesteuert wird Zeile für Zeile per Handy.
 
 - **Konto (optional):** Benutzername + Passwort. Gäste können weiterhin ohne Konto mitspielen.
   Mit Konto kommen Name und Avatar automatisch mit – auf jedem Gerät.
-- **Avatar-Editor** auf dem Handy (`/konto` oder in der Lobby über den eigenen Avatar):
-  Gesichtsform, Hautton, Frisur & Haarfarbe, Augen & Augenfarbe, Brauen, Nase, Mund, Bart, Brille,
-  Bäckchen und Lieblingsfarbe – mit Live-Vorschau, Mini-Vorschau je Option und „Würfeln“.
-  Eigene SVG-Figur im Mii-ähnlichen Stil (keine fremden Grafiken), im Spiel automatisch mit Comic-Kontur.
+- **Knubbel-Avatare** – eigenes Figuren-System (keine Menschenköpfe): glänzende Vinyl-Spielzeugfiguren
+  mit Licht, Reflexlicht, Glanzpunkten und Bodenschatten. Editor auf dem Handy (`/konto` oder in der Lobby):
+  - **Form** (Kugel, Ei, Würfel, Tropfen, Bohne, Geist, Wolke) und 14 Körperfarben
+  - **Augen** (8 Stile) mit Augenfarbe und Reglern für **Größe, Abstand und Höhe**
+  - **Brauen** (5), **Mund** (8 Stile) mit Reglern für **Größe und Höhe**, rosige Bäckchen
+  - **Extras** (Antenne, Hörner, Katzenohren, Blatt, Krone, Schleife, Mütze) und **Hintergrundfarbe**
+  - große 3D-Vorschau (schwebt, kippt mit Finger/Maus), Mini-Vorschau je Option, „Würfeln“
+  - alte Avatare werden automatisch in Knubbel umgewandelt; im Spiel optional mit Comic-Kontur
+- **Profil:** Statistik (Partien, Siege, Punkte, je Spiel mit Rekord) – wird nach jeder Partie automatisch
+  gezählt –, Benutzername ändern, Passwort ändern, abmelden, Konto löschen.
 - Ein Gast kann sich in der Lobby anmelden – sein Platz im Raum wird dann mit dem Konto verknüpft.
 - Gleiches Konto auf einem zweiten Gerät übernimmt den bestehenden Platz im Raum.
 - **Sicherheit:** Passwörter mit scrypt gehasht, signierte Anmelde-Tokens (HMAC), Passwortänderung

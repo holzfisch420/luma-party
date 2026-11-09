@@ -1,93 +1,145 @@
 /**
- * Avatar-Modell (Mii-ähnliche Figur aus Bausteinen).
+ * Avatar-Modell „Knubbel“: eigene, glänzende Spielzeug-Figuren aus Form, Augen, Mund und Extras.
  * Wird von Client (Editor, Darstellung) und Server (Validierung, Speicherung) geteilt.
+ *
+ * Version 2. Ältere Avatare (Version 1, menschliche Gesichter) werden beim Einlesen
+ * automatisch in einen passenden Knubbel umgewandelt.
  */
 import { z } from 'zod';
 
-export const SKIN_TONES = ['#fde3cf', '#f7cfae', '#efbd92', '#e0a473', '#c68652', '#a0673e', '#7c4a2b', '#5a341f'] as const;
-export const HAIR_COLORS = ['#2b1d14', '#4a2f1e', '#7a4a28', '#b07034', '#d9a441', '#f1d27a', '#9e9e9e', '#eeeeee', '#c0392b', '#3b6fd8', '#e86fb0'] as const;
-export const EYE_COLORS = ['#3b2414', '#2f6fd1', '#2f9e5b', '#6b7884', '#8a6a2f', '#161616'] as const;
-export const SHIRT_COLORS = [
-  '#e53935', '#fb8c00', '#fdd835', '#9ccc65', '#2e9d4f', '#1e63c6',
-  '#4fc3f7', '#f48fb1', '#8e5bd6', '#8d5a36', '#f5f5f5', '#333333',
+/** Körperfarben */
+export const BODY_COLORS = [
+  '#ff5a5f', '#ff8a3d', '#ffc93c', '#9be15d', '#2ecc71', '#1abc9c',
+  '#3ec1f3', '#3b82f6', '#6c5ce7', '#b06ef3', '#ff7eb6', '#f5f0e8',
+  '#8d6e63', '#3d3d4e',
 ] as const;
+/** Hintergrundfarben */
+export const BG_COLORS = [
+  '#ffe3e3', '#ffe8cc', '#fff3bf', '#e6fcd5', '#d3f9d8', '#c3fae8',
+  '#d0ebff', '#dbe4ff', '#e5dbff', '#f3d9fa', '#fcc2d7', '#f1f3f5',
+  '#343a40', '#1b1f3b',
+] as const;
+export const EYE_COLORS = ['#2b2b38', '#5b3a29', '#2f6fd1', '#22a06b', '#8e44ad', '#e67e22', '#d6336c', '#0c8599'] as const;
 
-/** Anzahl der Varianten je Baustein + Bezeichnungen für den Editor */
+/** Bausteine + Bezeichnungen für den Editor */
 export const AVATAR_PARTS = {
-  face: ['Rund', 'Oval', 'Eckig', 'Spitz'],
-  hair: ['Glatze', 'Kurz', 'Seitenscheitel', 'Stachelig', 'Locken', 'Lang', 'Bob', 'Pferdeschwanz', 'Dutt', 'Irokese'],
-  eyes: ['Punkte', 'Groß', 'Fröhlich', 'Müde', 'Mandel', 'Wimpern', 'Klein'],
-  brows: ['Normal', 'Buschig', 'Gewölbt', 'Grimmig', 'Dünn'],
-  nose: ['Klein', 'Strich', 'Knubbel', 'Spitz'],
-  mouth: ['Lächeln', 'Lachen', 'Neutral', 'Staunen', 'Zunge', 'Schmunzeln', 'Strahlen'],
-  glasses: ['Keine', 'Rund', 'Eckig', 'Sonnenbrille', 'Groß'],
-  facialHair: ['Keiner', 'Schnurrbart', 'Vollbart', 'Spitzbart', 'Stoppeln'],
+  shape: ['Kugel', 'Ei', 'Würfel', 'Tropfen', 'Bohne', 'Geist', 'Wolke'],
+  eyes: ['Glanz', 'Oval', 'Kulleraugen', 'Fröhlich', 'Schläfrig', 'Punkte', 'Sterne', 'Zwinkern'],
+  mouth: ['Lächeln', 'Grinsen', 'Staunen', 'Zunge', 'Katzenmund', 'Neutral', 'Zähnchen', 'Schmollen'],
+  brows: ['Keine', 'Sanft', 'Hochgezogen', 'Grimmig', 'Besorgt'],
+  extra: ['Nichts', 'Antenne', 'Hörner', 'Katzenohren', 'Blatt', 'Krone', 'Schleife', 'Mütze'],
 } as const;
 
 export type AvatarPart = keyof typeof AVATAR_PARTS;
 
+/** Regler 0 … SLIDER_MAX (Mitte = Standard) */
+export const SLIDER_MAX = 10;
+export const AVATAR_SLIDERS = {
+  eyeSize: 'Augengröße',
+  eyeGap: 'Augenabstand',
+  eyeY: 'Augenhöhe',
+  mouthSize: 'Mundgröße',
+  mouthY: 'Mundhöhe',
+} as const;
+export type AvatarSlider = keyof typeof AVATAR_SLIDERS;
+
 const idx = (n: number) => z.number().int().min(0).max(n - 1);
+const slider = z.number().int().min(0).max(SLIDER_MAX);
 
 export const avatarSchema = z.object({
-  v: z.literal(1),
-  face: idx(AVATAR_PARTS.face.length),
-  skin: idx(SKIN_TONES.length),
-  hair: idx(AVATAR_PARTS.hair.length),
-  hairColor: idx(HAIR_COLORS.length),
+  v: z.literal(2),
+  shape: idx(AVATAR_PARTS.shape.length),
+  color: idx(BODY_COLORS.length),
+  bg: idx(BG_COLORS.length),
   eyes: idx(AVATAR_PARTS.eyes.length),
   eyeColor: idx(EYE_COLORS.length),
-  brows: idx(AVATAR_PARTS.brows.length),
-  nose: idx(AVATAR_PARTS.nose.length),
+  eyeSize: slider,
+  eyeGap: slider,
+  eyeY: slider,
   mouth: idx(AVATAR_PARTS.mouth.length),
-  glasses: idx(AVATAR_PARTS.glasses.length),
-  facialHair: idx(AVATAR_PARTS.facialHair.length),
+  mouthSize: slider,
+  mouthY: slider,
+  brows: idx(AVATAR_PARTS.brows.length),
+  extra: idx(AVATAR_PARTS.extra.length),
   cheeks: z.boolean(),
-  shirt: idx(SHIRT_COLORS.length),
 });
 
 export type AvatarConfig = z.infer<typeof avatarSchema>;
 
 export const DEFAULT_AVATAR: AvatarConfig = {
-  v: 1,
-  face: 0,
-  skin: 1,
-  hair: 1,
-  hairColor: 1,
+  v: 2,
+  shape: 0,
+  color: 6,
+  bg: 6,
   eyes: 0,
   eyeColor: 0,
-  brows: 0,
-  nose: 0,
+  eyeSize: 5,
+  eyeGap: 5,
+  eyeY: 5,
   mouth: 0,
-  glasses: 0,
-  facialHair: 0,
+  mouthSize: 5,
+  mouthY: 5,
+  brows: 0,
+  extra: 0,
   cheeks: true,
-  shirt: 5,
 };
 
 const pick = (n: number) => Math.floor(Math.random() * n);
+const around = (spread: number) => Math.max(0, Math.min(SLIDER_MAX, 5 + pick(spread * 2 + 1) - spread));
 
-/** Zufälliger, aber stimmiger Avatar („Würfeln“-Knopf). */
+/** Zufälliger, aber stimmiger Knubbel („Würfeln“-Knopf). */
 export function randomAvatar(): AvatarConfig {
   return {
-    v: 1,
-    face: pick(AVATAR_PARTS.face.length),
-    skin: pick(SKIN_TONES.length),
-    hair: pick(AVATAR_PARTS.hair.length),
-    hairColor: Math.random() < 0.85 ? pick(8) : pick(HAIR_COLORS.length),
+    v: 2,
+    shape: pick(AVATAR_PARTS.shape.length),
+    color: pick(BODY_COLORS.length),
+    bg: pick(BG_COLORS.length - 2),
     eyes: pick(AVATAR_PARTS.eyes.length),
     eyeColor: pick(EYE_COLORS.length),
-    brows: pick(AVATAR_PARTS.brows.length),
-    nose: pick(AVATAR_PARTS.nose.length),
+    eyeSize: around(3),
+    eyeGap: around(3),
+    eyeY: around(2),
     mouth: pick(AVATAR_PARTS.mouth.length),
-    glasses: Math.random() < 0.7 ? 0 : 1 + pick(AVATAR_PARTS.glasses.length - 1),
-    facialHair: Math.random() < 0.75 ? 0 : 1 + pick(AVATAR_PARTS.facialHair.length - 1),
-    cheeks: Math.random() < 0.5,
-    shirt: pick(SHIRT_COLORS.length),
+    mouthSize: around(3),
+    mouthY: around(2),
+    brows: Math.random() < 0.5 ? 0 : pick(AVATAR_PARTS.brows.length),
+    extra: Math.random() < 0.35 ? 0 : pick(AVATAR_PARTS.extra.length),
+    cheeks: Math.random() < 0.6,
   };
 }
 
-/** Prüft und normalisiert einen Avatar; null bei ungültigen Daten. */
+/** alter Avatar (Version 1) → möglichst ähnlicher Knubbel */
+const legacySchema = z.object({
+  v: z.literal(1),
+  face: z.number().int(),
+  skin: z.number().int(),
+  eyes: z.number().int(),
+  eyeColor: z.number().int(),
+  mouth: z.number().int(),
+  glasses: z.number().int(),
+  cheeks: z.boolean(),
+  shirt: z.number().int(),
+});
+
+function migrateV1(raw: z.infer<typeof legacySchema>): AvatarConfig {
+  const m = (v: number, n: number) => ((v % n) + n) % n;
+  return {
+    ...DEFAULT_AVATAR,
+    shape: m(raw.face, AVATAR_PARTS.shape.length),
+    // Lieblingsfarbe wird Körperfarbe, Hintergrund passend dazu
+    color: m(raw.shirt, BODY_COLORS.length),
+    bg: m(raw.shirt, BG_COLORS.length - 2),
+    eyes: m(raw.eyes, AVATAR_PARTS.eyes.length),
+    eyeColor: m(raw.eyeColor, EYE_COLORS.length),
+    mouth: m(raw.mouth, AVATAR_PARTS.mouth.length),
+    cheeks: raw.cheeks,
+  };
+}
+
+/** Prüft und normalisiert einen Avatar (wandelt alte Versionen um); null bei ungültigen Daten. */
 export function parseAvatar(raw: unknown): AvatarConfig | null {
   const r = avatarSchema.safeParse(raw);
-  return r.success ? r.data : null;
+  if (r.success) return r.data;
+  const old = legacySchema.safeParse(raw);
+  return old.success ? migrateV1(old.data) : null;
 }

@@ -43,7 +43,15 @@ describe('Konten', () => {
     const avatar = randomAvatar();
     const saved = await (await post('/me/avatar', { avatar }, login.token, 'PUT')).json();
     expect(saved.account.avatar).toEqual(avatar);
-    expect((await post('/me/avatar', { avatar: { ...avatar, hair: 999 } }, login.token, 'PUT')).status).toBe(400);
+    expect((await post('/me/avatar', { avatar: { ...avatar, eyeSize: 999 } }, login.token, 'PUT')).status).toBe(400);
+
+    // Benutzername ändern (eindeutig, Anmeldung mit neuem Namen)
+    await post('/register', { username: 'Max', password: 'geheim123' });
+    expect((await post('/me/username', { username: 'max' }, login.token, 'PUT')).status).toBe(400);
+    const renamed = await (await post('/me/username', { username: 'Lena Neu' }, login.token, 'PUT')).json();
+    expect(renamed.account.username).toBe('Lena Neu');
+    expect((await post('/login', { username: 'lena neu', password: 'geheim123' })).status).toBe(200);
+    expect(renamed.account.stats).toEqual({ played: 0, wins: 0, points: 0, games: {} });
 
     // Passwort ändern macht alte Anmeldungen ungültig
     const changed = await (await post('/me/password', { oldPassword: 'geheim123', newPassword: 'neuesPW1' }, login.token)).json();
@@ -52,7 +60,7 @@ describe('Konten', () => {
 
     expect((await post('/me', { password: 'falsch' }, changed.token, 'DELETE')).status).toBe(400);
     expect((await post('/me', { password: 'neuesPW1' }, changed.token, 'DELETE')).status).toBe(200);
-    expect((await post('/login', { username: 'Lena', password: 'neuesPW1' })).status).toBe(400);
+    expect((await post('/login', { username: 'Lena Neu', password: 'neuesPW1' })).status).toBe(400);
   });
 
   it('Spieler mit Konto treten mit Name und Avatar bei – auch von einem zweiten Gerät', async () => {
@@ -98,5 +106,15 @@ describe('Konten', () => {
     await host.waitFor(() => host.room!.players.find((p) => p.name === 'Greta')?.hasAccount);
     expect(host.room!.players).toHaveLength(2);
     [host, phone, guest, tablet, g2].forEach((c) => c.close());
+  });
+
+  it('alte Avatare (Version 1) werden in Knubbel umgewandelt', async () => {
+    const { parseAvatar } = await import('../src/shared/avatar');
+    const old = { v: 1, face: 2, skin: 1, hair: 3, hairColor: 2, eyes: 4, eyeColor: 1, brows: 0, nose: 0, mouth: 1, glasses: 0, facialHair: 0, cheeks: true, shirt: 5 };
+    const a = parseAvatar(old)!;
+    expect(a.v).toBe(2);
+    expect(a.shape).toBe(2);
+    expect(a.eyes).toBe(4);
+    expect(parseAvatar({ v: 3 })).toBeNull();
   });
 });

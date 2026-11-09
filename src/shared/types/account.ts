@@ -1,11 +1,22 @@
 import type { AvatarConfig } from '../avatar';
 
 /** Öffentliche Kontodaten (ohne Passwort). */
+export interface GameStats {
+  played: number;
+  wins: number;
+  points: number;
+  /** je Spiel */
+  games: Record<string, { played: number; wins: number; best: number }>;
+}
+
+export const EMPTY_STATS: GameStats = { played: 0, wins: 0, points: 0, games: {} };
+
 export interface PublicAccount {
   id: string;
   username: string;
   avatar: AvatarConfig;
   createdAt: number;
+  stats: GameStats;
 }
 
 export interface AuthResponse {

@@ -80,6 +80,16 @@ export function createAuthRouter(accounts: AccountStore, tokens: TokenService): 
     }),
   );
 
+  r.put(
+    '/me/username',
+    wrap(async (req, res) => {
+      const account = requireAccount(req, res);
+      if (!account) return;
+      const updated = await accounts.rename(account.id, body(req).username);
+      return { account: accounts.toPublic(updated) };
+    }, attempts),
+  );
+
   r.post(
     '/me/password',
     wrap(async (req, res) => {
