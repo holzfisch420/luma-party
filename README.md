@@ -103,6 +103,9 @@ Der Server liefert dann das gebaute Frontend aus und gibt die LAN-Adressen für 
 4. **Montagsmaler**: Wer dran ist, wählt ein Wort und zeichnet auf dem Handy. Die Zeichnung erscheint live auf dem TV,
    die anderen raten über ihr Handy. Vermutungen erscheinen als Chat-Bubbles links oder rechts unten.
 5. Nach der letzten Runde: Rangliste mit Siegertreppchen, „Nochmal spielen“ oder „Zurück zum Launcher“.
+6. **Spiel vorzeitig beenden:** In jedem Spiel gibt es oben rechts am TV den Knopf **„✕ Beenden“** und auf dem Handy
+   des Spielleiters (die Person mit der Spielauswahl) oben in der Mitte ein kleines **✕**. Nach einer kurzen Rückfrage
+   („Spiel beenden? Ja / Nein“) geht es für alle zurück zum Launcher.
 
 Eigene Wörter: TV-Menü → „Eigene Wörter“, auf dem Handy in der Lobby oder unter `/words`. Im Spiel unter
 Einstellungen → Wörter → **Eigene Wörter** (nur eigene) oder **Mix** wählen und die Listen aktivieren.

@@ -84,8 +84,8 @@ function ColorPicker({
   const remaining = useCountdown(pub.phaseEndsAt, 250);
   const ready = !!mine?.ready;
   return (
-    <div className="flat fixed inset-0 overflow-y-auto bg-[#578a34] p-4 safe-pt safe-pb">
-      <div className={`mx-auto flex max-w-3xl gap-5 ${landscape ? 'flex-row items-start' : 'flex-col'}`}>
+    <div className="flat fixed inset-0 overflow-y-auto bg-[#578a34] px-4 pb-4 safe-pt safe-pb">
+      <div className={`mx-auto mt-8 flex max-w-3xl gap-5 ${landscape ? 'flex-row items-start' : 'flex-col'}`}>
         <div className={`flex flex-col items-center gap-3 ${landscape ? 'w-56 shrink-0' : ''}`}>
           <div className="text-3xl font-black">Dein Panzer</div>
           <motion.div key={priv.color} initial={{ scale: 0.6, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 400, damping: 14 }}>

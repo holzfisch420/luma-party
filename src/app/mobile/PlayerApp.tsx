@@ -1,6 +1,7 @@
 import { LogOut, MonitorX } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { GameResults } from '../../components/game/GameResults';
+import { QuitButton } from '../../components/game/QuitButton';
 import { MobileJoinScreen } from '../../components/mobile-controller/MobileJoinScreen';
 import { MobileLobby } from '../../components/mobile-controller/MobileLobby';
 import { Button } from '../../components/ui/Button';
@@ -50,13 +51,13 @@ export function PlayerApp() {
     <>
       <ReconnectBanner status={status} />
       {room.phase === 'lobby' && <MobileLobby room={room} me={me} status={status} onLeave={leave} />}
-      {room.phase === 'playing' && <PlayerGame room={room} me={me} />}
+      {room.phase === 'playing' && <PlayerGame room={room} me={me} canControl={canControl} />}
       {room.phase === 'results' && room.results && <PlayerResults room={room} meId={me.id} canControl={canControl} onLeave={leave} onError={(m) => toast(m, 'error')} />}
     </>
   );
 }
 
-function PlayerGame({ room, me }: { room: RoomSnapshot; me: PublicPlayer }) {
+function PlayerGame({ room, me, canControl }: { room: RoomSnapshot; me: PublicPlayer; canControl: boolean }) {
   const game = useSession((s) => s.game);
   const module = getClientGame(room.activeGameId);
   if (!module) return <div className="p-8 text-center font-bold text-home-muted">Dieses Spiel wird auf dem Smartphone nicht unterstützt.</div>;
@@ -71,6 +72,12 @@ function PlayerGame({ room, me }: { room: RoomSnapshot; me: PublicPlayer }) {
   return (
     <div className="min-h-dvh">
       <View room={room} me={me} state={game as never} sendAction={sendGameAction} />
+      {/* nur der Spielleiter darf das laufende Spiel beenden */}
+      {canControl && (
+        <div className="pointer-events-none fixed inset-x-0 top-0 z-[60] flex justify-center safe-pt">
+          <QuitButton size="sm" compact className="pointer-events-auto mt-1" onQuit={() => getSocket().emit('room:backToLauncher')} />
+        </div>
+      )}
     </div>
   );
 }
