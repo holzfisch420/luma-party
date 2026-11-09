@@ -11,10 +11,10 @@ export interface DockItem {
 }
 
 /** Icon-Leiste am unteren Bildschirmrand. */
-export function HomeDock({ items }: { items: DockItem[] }) {
+export function HomeDock({ items, spread = false }: { items: DockItem[]; spread?: boolean }) {
   const [hover, setHover] = useState<string | null>(null);
   return (
-    <nav className="flex items-end justify-center gap-[clamp(0.75rem,3vw,3.5rem)]" aria-label="Werkzeuge">
+    <nav className={`flex items-end ${spread ? 'w-full justify-between' : 'justify-center gap-[clamp(0.75rem,3vw,3.5rem)]'}`} aria-label="Werkzeuge">
       {items.map((item) => (
         <div key={item.id} className="relative flex flex-col items-center">
           {hover === item.id && (

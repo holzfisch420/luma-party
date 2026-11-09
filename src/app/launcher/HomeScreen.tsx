@@ -1,4 +1,4 @@
-import { BookOpen, HelpCircle, Maximize, QrCode as QrIcon, Settings, Users, ZoomIn } from 'lucide-react';
+import { BookOpen, HelpCircle, Maximize, QrCode as QrIcon, Settings, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppTileArt } from '../../components/launcher/AppTileArt';
 import { GameSettingsSheet } from '../../components/launcher/GameSettingsSheet';
@@ -7,7 +7,6 @@ import { HomeGrid, type GridItem } from '../../components/launcher/HomeGrid';
 import { LaunchPanel } from '../../components/launcher/LaunchPanel';
 import { TileArt } from '../../components/launcher/TileArt';
 import { JoinInstructions, QrCode, QrZoom, useJoinUrl } from '../../components/lobby/JoinInstructions';
-import { PlayerAvatar } from '../../components/lobby/PlayerAvatar';
 import { PlayerList } from '../../components/lobby/PlayerList';
 import { SettingRow, Toggle } from '../../components/ui/Controls';
 import { ConnectionStatusBadge } from '../../components/ui/Feedback';
@@ -104,6 +103,28 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
   const launchMeta = GAMES.find((g) => g.id === launchId) ?? null;
   const keyboard = !launchMeta && !settingsOpen && !sheet && !menuOpen && !qrZoom;
 
+  const controllerName = !room.hostHasControl && room.controllerId ? room.players.find((p) => p.id === room.controllerId)?.name : null;
+  const qrCorner = (
+    <div className="flex h-full items-center gap-3 py-[1.2vh]">
+      <button onClick={() => setQrZoom(true)} className="home-tile relative aspect-square h-full cursor-zoom-in rounded-[22%] p-[0.7vh]" title="QR-Code scannen zum Mitspielen – klicken zum Vergrößern" aria-label="QR-Code vergrößern">
+        <QrCode text={joinUrl} className="size-full rounded-[16%] p-[6%]" />
+        <span className="absolute -right-2 -top-2 grid min-w-7 place-items-center rounded-full border-2 border-white bg-[#ff8a1f] px-1.5 py-0.5 text-xs font-black text-white shadow-md" title="verbundene Spieler">
+          {connected}
+        </span>
+      </button>
+      <button onClick={() => setSheet('join')} className="flex flex-col items-start leading-none text-home-text" aria-label={`Raumcode ${room.code}`}>
+        <span className="text-[clamp(0.55rem,0.75vw,0.8rem)] font-black uppercase tracking-[0.2em] text-home-muted">Raum</span>
+        <span className="mt-1 text-[clamp(1.1rem,1.8vw,2rem)] font-black tracking-[0.08em] text-cyan-dark">{room.code}</span>
+      </button>
+    </div>
+  );
+  const statusCorner = (
+    <div className="flex flex-col items-end gap-1">
+      {status !== 'connected' && <ConnectionStatusBadge status={status} />}
+      {controllerName && <div className="text-xs font-bold text-home-muted">{controllerName} wählt per Handy</div>}
+    </div>
+  );
+
   return (
     <div className="home-bg relative flex h-dvh flex-col overflow-hidden">
       {/* weiche Hintergrundformen */}
@@ -111,55 +132,16 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
       <div className="home-shape right-[8%] top-[8%] h-56 w-56 rotate-12" />
       <div className="home-shape bottom-[16%] right-[30%] h-24 w-72 rotate-[8deg]" />
 
-      {/* Kachelraster */}
-      <main className="relative z-10 flex min-h-0 w-full flex-1 px-[2vw] pb-[1.2vh] pt-[1.5vh]">
-        {/* 5 × 3 Kacheln über die ganze Breite und Höhe (wie das Home-Menü der Wii U) */}
-        <div className="size-full">
-          <HomeGrid items={gridItems} focusedId={focusedId} onFocus={focus} onActivate={activate} keyboard={keyboard} fill />
-        </div>
+      {/* Aufbau wie das Wii-U-Menü: oben links QR-Code (statt Mii), Seitenpunkte oben mittig,
+          5 × 3 quadratische Kacheln, Symbolleiste über die ganze Breite unten */}
+      <main className="relative z-10 flex min-h-0 w-full flex-1 px-[2vw] pb-[1vh]">
+        <HomeGrid items={gridItems} focusedId={focusedId} onFocus={focus} onActivate={activate} keyboard={keyboard} fill corner={qrCorner} cornerRight={statusCorner} />
       </main>
 
-      {/* Icon-Leiste */}
-      {/* untere Leiste (wie beim Wii-U-Menü): links Raum & QR, Mitte Symbolleiste, rechts Spieler & Status */}
-      <footer className="relative z-10 grid grid-cols-[1fr_auto_1fr] items-end gap-4 px-[2vw] pb-[1.5vh]">
-        <div className="flex items-end gap-3">
-          <button onClick={() => setSheet('join')} className="home-tile relative flex h-[clamp(3.6rem,5vw,5rem)] items-center gap-2 rounded-[22px] px-4 text-home-text" aria-label={`Raumcode ${room.code}`}>
-            <span className="text-[clamp(0.55rem,0.7vw,0.75rem)] font-black uppercase tracking-[0.2em] text-home-muted [writing-mode:vertical-rl] rotate-180">Raum</span>
-            <span className="text-[clamp(1.4rem,2.1vw,2.2rem)] font-black leading-none tracking-[0.08em] text-cyan-dark">{room.code}</span>
-            <span className="absolute -right-2.5 -top-2.5 grid min-w-8 place-items-center rounded-full border-2 border-white bg-[#ff8a1f] px-1.5 py-0.5 text-xs font-black text-white shadow-md" title="verbundene Spieler">
-              {connected}
-            </span>
-          </button>
-          <button onClick={() => setQrZoom(true)} className="home-tile group flex cursor-zoom-in items-center gap-2 rounded-[22px] p-1.5 pr-3 text-left" title="Zum Vergrößern klicken">
-            <QrCode text={joinUrl} className="size-[clamp(3.2rem,4.4vw,4.4rem)] rounded-[14px] p-1" />
-            <div className="hidden xl:block">
-              <div className="text-xs font-black text-home-text">Handy-Kamera drauf!</div>
-              <div className="flex items-center gap-1 text-[11px] font-black text-cyan-dark">
-                <ZoomIn className="size-3" /> vergrößern
-              </div>
-            </div>
-          </button>
-          <QrZoom open={qrZoom} onClose={() => setQrZoom(false)} text={joinUrl} code={room.code} />
-        </div>
-        <HomeDock items={dock} />
-        <div className="flex items-end justify-end gap-3">
-          <div className="hidden -space-x-2 lg:flex">
-            {room.players.slice(0, 8).map((p) => (
-              <div key={p.id} title={p.name}>
-                <PlayerAvatar name={p.name} color={p.avatarColor} avatar={p.avatar} size="sm" dimmed={!p.isConnected} />
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <ConnectionStatusBadge status={status} compact />
-            <div className="w-28 text-right text-xs font-bold leading-tight text-home-muted">
-              {!room.hostHasControl && room.controllerId
-                ? `${room.players.find((p) => p.id === room.controllerId)?.name ?? ''} wählt per Handy`
-                : 'Auswahl am Bildschirm'}
-            </div>
-          </div>
-        </div>
+      <footer className="relative z-10 px-[3vw] pb-[2vh]">
+        <HomeDock items={dock} spread />
       </footer>
+      <QrZoom open={qrZoom} onClose={() => setQrZoom(false)} text={joinUrl} code={room.code} />
 
       <LaunchPanel
         meta={launchMeta}
@@ -196,7 +178,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
       </Modal>
       <Modal open={sheet === 'help'} onClose={() => setSheet(null)} title="So geht's">
         <ol className="space-y-3 text-[15px] font-semibold">
-          <li><b className="font-black text-cyan-dark">1.</b> Alle scannen den QR-Code oben rechts und geben ihren Namen ein.</li>
+          <li><b className="font-black text-cyan-dark">1.</b> Alle scannen den QR-Code oben links und geben ihren Namen ein.</li>
           <li><b className="font-black text-cyan-dark">2.</b> Mit den Pfeiltasten (oder Maus) ein Spiel wählen – die Sprechblase zeigt den Namen.</li>
           <li><b className="font-black text-cyan-dark">3.</b> Enter oder nochmal klicken öffnet das Spiel, „Start“ legt los.</li>
           <li><b className="font-black text-cyan-dark">4.</b> Die zuerst beigetretene Person kann das Spiel auch auf ihrem Handy auswählen.</li>

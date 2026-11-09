@@ -20,8 +20,12 @@ interface HomeGridProps {
   /** Tastatur-/Fernbedienungssteuerung aktiv */
   keyboard?: boolean;
   showArrows?: boolean;
-  /** Raster füllt den ganzen verfügbaren Platz (Kacheln dürfen etwas breiter als hoch werden) */
+  /** Raster füllt den verfügbaren Platz mit möglichst großen, quadratischen Kacheln */
   fill?: boolean;
+  /** Inhalt links in der oberen Leiste (neben den Seitenpunkten) */
+  corner?: ReactNode;
+  /** Inhalt rechts in der oberen Leiste */
+  cornerRight?: ReactNode;
 }
 
 /** Kachelmaße so, dass das Raster Breite und Höhe ausnutzt */
@@ -35,20 +39,17 @@ function useFillLayout(enabled: boolean, columns: number, rows: number) {
     ro.observe(el);
     return () => ro.disconnect();
   }, [enabled]);
-  const gap = Math.max(10, box.w * 0.013);
-  let tw = (box.w - (columns - 1) * gap) / columns;
-  let th = (box.h - (rows - 1) * gap) / rows;
-  // höchstens 40 % breiter als hoch, nie höher als breit
-  tw = Math.min(tw, th * 1.4);
-  th = Math.min(th, tw);
-  return { ref, gap, tw: Math.max(0, tw), th: Math.max(0, th), ready: box.w > 0 && box.h > 0 };
+  // Kacheln immer quadratisch; Abstand = 10 % der Kachelgröße (wie beim Wii-U-Menü)
+  const G = 0.1;
+  const t = Math.max(0, Math.min(box.w / (columns + G * (columns - 1)), box.h / (rows + G * (rows - 1))));
+  return { ref, gap: t * G, tw: t, th: t, ready: box.w > 0 && box.h > 0 };
 }
 
 /**
  * Seitenweises Kachelraster: Pfeiltasten bewegen die Auswahl, Enter startet,
  * Seitenpunkte oben und große Pfeile an den Rändern blättern.
  */
-export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, rows = 3, keyboard = true, showArrows = true, fill = false }: HomeGridProps) {
+export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, rows = 3, keyboard = true, showArrows = true, fill = false, corner, cornerRight }: HomeGridProps) {
   const layout = useFillLayout(fill, columns, rows);
   const perPage = columns * rows;
   const pageCount = Math.max(1, Math.ceil(items.length / perPage));
@@ -102,7 +103,9 @@ export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, r
  return (
     <div className={fill ? 'relative flex size-full flex-col' : 'relative'}>
       {/* Seitenpunkte */}
-      <div className={`${fill ? 'mb-[1.2vh] shrink-0' : 'mb-[2.5%]'} flex justify-center gap-2.5`} aria-label={`Seite ${page + 1} von ${pageCount}`}>
+      <div className={`${fill ? 'relative h-[14vh] shrink-0 items-center' : 'mb-[2.5%]'} flex justify-center gap-2.5`} aria-label={`Seite ${page + 1} von ${pageCount}`}>
+        {corner && <div className="absolute inset-y-0 left-0 flex items-center">{corner}</div>}
+        {cornerRight && <div className="absolute inset-y-0 right-0 flex items-center">{cornerRight}</div>}
         {Array.from({ length: Math.max(pageCount, 1) }).map((_, p) => (
           <motion.button
             key={p}
@@ -153,17 +156,29 @@ export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, r
           </motion.div>
         </AnimatePresence>
 
-        {showArrows && page > 0 && (
-          <PageArrow side="left" onClick={() => goPage(page - 1)} />
-        )}
-        {showArrows && page < pageCount - 1 && <PageArrow side="right" onClick={() => goPage(page + 1)} />}
+        {showArrows && page > 0 && <PageArrow side="left" edge={fill} onClick={() => goPage(page - 1)} />}
+        {showArrows && page < pageCount - 1 && <PageArrow side="right" edge={fill} onClick={() => goPage(page + 1)} />}
       </div>
     </div>
   );
 }
 
-function PageArrow({ side, onClick }: { side: 'left' | 'right'; onClick: () => void }) {
+function PageArrow({ side, onClick, edge }: { side: 'left' | 'right'; onClick: () => void; edge?: boolean }) {
   const Icon = side === 'left' ? ChevronLeft : ChevronRight;
+  if (edge) {
+    // Lasche am Bildschirmrand (wie beim Wii-U-Menü)
+    return (
+      <button
+        onClick={onClick}
+        aria-label={side === 'left' ? 'Vorherige Seite' : 'Nächste Seite'}
+        className={`absolute top-1/2 z-40 grid h-[clamp(5rem,16vh,10rem)] w-[clamp(2.5rem,3.6vw,4rem)] -translate-y-1/2 place-items-center bg-white/90 text-[#b9c1ca] shadow-[0_4px_16px_-4px_rgba(40,50,70,0.35)] transition hover:text-cyan ${
+          side === 'left' ? '-left-[2vw] rounded-r-[999px] pr-1' : '-right-[2vw] rounded-l-[999px] pl-1'
+        }`}
+      >
+        <Icon className="size-[70%]" strokeWidth={3} />
+      </button>
+    );
+  }
   return (
     <button
       onClick={onClick}
