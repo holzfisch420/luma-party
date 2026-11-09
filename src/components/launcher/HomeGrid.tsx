@@ -26,6 +26,8 @@ interface HomeGridProps {
   corner?: ReactNode;
   /** Inhalt rechts in der oberen Leiste */
   cornerRight?: ReactNode;
+  /** meldet die Breite des Kachelrasters (z. B. um die Symbolleiste darauf auszurichten) */
+  onGridWidth?: (width: number) => void;
 }
 
 /** Kachelmaße so, dass das Raster Breite und Höhe ausnutzt */
@@ -49,8 +51,12 @@ function useFillLayout(enabled: boolean, columns: number, rows: number) {
  * Seitenweises Kachelraster: Pfeiltasten bewegen die Auswahl, Enter startet,
  * Seitenpunkte oben und große Pfeile an den Rändern blättern.
  */
-export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, rows = 3, keyboard = true, showArrows = true, fill = false, corner, cornerRight }: HomeGridProps) {
+export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, rows = 3, keyboard = true, showArrows = true, fill = false, corner, cornerRight, onGridWidth }: HomeGridProps) {
   const layout = useFillLayout(fill, columns, rows);
+  const gridWidth = layout.ready ? columns * layout.tw + (columns - 1) * layout.gap : 0;
+  useEffect(() => {
+    if (fill && gridWidth > 0) onGridWidth?.(gridWidth);
+  }, [fill, gridWidth, onGridWidth]);
   const perPage = columns * rows;
   const pageCount = Math.max(1, Math.ceil(items.length / perPage));
   const focusedIndex = Math.max(0, items.findIndex((i) => i.id === focusedId));

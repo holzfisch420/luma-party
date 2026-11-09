@@ -32,6 +32,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [sheet, setSheet] = useState<Sheet>(null);
   const [qrZoom, setQrZoom] = useState(false);
+  const [gridWidth, setGridWidth] = useState(0);
   const [starting, setStarting] = useState(false);
   const joinUrl = useJoinUrl(room.code);
   const connected = room.players.filter((p) => p.isConnected).length;
@@ -135,10 +136,11 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
       {/* Aufbau wie das Wii-U-Menü: oben links QR-Code (statt Mii), Seitenpunkte oben mittig,
           5 × 3 quadratische Kacheln, Symbolleiste über die ganze Breite unten */}
       <main className="relative z-10 flex min-h-0 w-full flex-1 px-[2vw] pb-[1vh]">
-        <HomeGrid items={gridItems} focusedId={focusedId} onFocus={focus} onActivate={activate} keyboard={keyboard} fill corner={qrCorner} cornerRight={statusCorner} />
+        <HomeGrid items={gridItems} focusedId={focusedId} onFocus={focus} onActivate={activate} keyboard={keyboard} fill corner={qrCorner} cornerRight={statusCorner} onGridWidth={setGridWidth} />
       </main>
 
-      <footer className="relative z-10 px-[3vw] pb-[2vh]">
+      {/* Symbolleiste: gleichmäßig verteilt von Rasterkante zu Rasterkante */}
+      <footer className="relative z-10 mx-auto w-full px-[2vw] pb-[2vh]" style={gridWidth ? { maxWidth: `calc(${gridWidth}px + 4vw)` } : undefined}>
         <HomeDock items={dock} spread />
       </footer>
       <QrZoom open={qrZoom} onClose={() => setQrZoom(false)} text={joinUrl} code={room.code} />
