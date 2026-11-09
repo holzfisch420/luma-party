@@ -28,7 +28,7 @@ function setup(n = 4, overrides = {}) {
     endGame: (r) => (ended = r),
     log: () => {},
   };
-  const engine = new EchtEngine(ctx, { ...DEFAULT_ECHT_SETTINGS, perTurn: 1, ...overrides });
+  const engine = new EchtEngine(ctx, { ...DEFAULT_ECHT_SETTINGS, perTurn: 1, sets: ['familie'], ...overrides });
   const advance = (ms: number) => {
     const end = now + ms;
     for (;;) {
@@ -66,7 +66,7 @@ describe('Echt jetzt?', () => {
     const opts = s.pub().options;
     expect(opts).toHaveLength(3); // zusammengefasst
     expect(JSON.stringify(s.pub())).not.toContain('authors');
-    const optOf = (text: string) => opts.find((o) => o.text.toLowerCase().startsWith(text))!.id;
+    const optOf = (text: string) => opts.find((o) => o.parts[0]!.toLowerCase().startsWith(text))!.id;
     // p2 darf nicht für die eigene (= echte) Antwort stimmen
     s.engine.handleAction('p2', 'vote', { optionId: optOf('pfann') });
     expect(s.pub().voted).not.toContain('p2');
@@ -80,6 +80,22 @@ describe('Echt jetzt?', () => {
     expect(r.options[0]!.real).toBe(true);
     expect(r.options[0]!.authors).toEqual(['p0', 'p2']);
     expect(r.gained).toEqual({ p2: 2, p1: 2, p0: 1, p3: 1 });
+  });
+
+  it('mehrere Lücken: eine eigene Antwort je Lücke', () => {
+    const s = setup(3);
+    s.engine.start();
+    (s.engine as any).statement = 'Früher hatte ich Angst vor ___, heute liebe ich ___.';
+    s.engine.handleAction('p0', 'answer', { text: 'Hunden' }); // zu wenige Antworten
+    expect(s.pub().submitted).not.toContain('p0');
+    s.engine.handleAction('p0', 'answer', { parts: ['Hunden', ''] });
+    expect(s.pub().submitted).not.toContain('p0');
+    s.engine.handleAction('p0', 'answer', { parts: ['Hunden', 'Katzen'] });
+    s.engine.handleAction('p1', 'answer', { parts: ['hunden', 'Spinnen'] }); // nur gleich, wenn beide Teile gleich sind
+    s.engine.handleAction('p2', 'answer', { parts: ['Hunden!', 'katzen'] });
+    expect(s.pub().phase).toBe('vote');
+    expect(s.pub().options).toHaveLength(2);
+    expect(s.engine.getPrivateState('p0').myAnswer).toEqual(['Hunden', 'Katzen']);
   });
 
   it('jede Person ist einmal dran, dann Spielende', () => {

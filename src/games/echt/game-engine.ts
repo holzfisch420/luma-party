@@ -10,7 +10,7 @@ import type { GameContext, GameEngine, GamePlayer, GameServices, ServerGameModul
 import type { PlayerId } from '../../shared/types/room';
 import { sanitizeText } from '../../shared/utils/text';
 import { normalizeGuess } from '../montagsmaler/logic/word-utils';
-import { ANSWER_MAX, DEFAULT_ECHT_SETTINGS, echtMeta, parseEchtSettings, POINTS, TIMING, type EchtSettings } from './game-config';
+import { ANSWER_MAX, blankCount, DEFAULT_ECHT_SETTINGS, echtMeta, parseEchtSettings, POINTS, TIMING, type EchtSettings } from './game-config';
 import { STATEMENTS } from './statements';
 import type { EchtOption, EchtPhase, EchtPrivateState, EchtPublicState, EchtReveal, EchtRevealOption } from './types';
 
@@ -45,7 +45,7 @@ export class EchtEngine implements GameEngine<EchtPublicState, EchtPrivateState>
   private step = 0;
   private statement = '';
   private deck: string[] = [];
-  private answers = new Map<PlayerId, string>();
+  private answers = new Map<PlayerId, string[]>();
   private votes = new Map<PlayerId, string>();
   private options: Option[] = [];
   private reveal: EchtReveal | null = null;
@@ -104,7 +104,7 @@ export class EchtEngine implements GameEngine<EchtPublicState, EchtPrivateState>
       phaseEndsAt: this.phaseEndsAt,
       submitted: [...this.answers.keys()],
       voted: [...this.votes.keys()],
-      options: this.phase === 'write' ? [] : this.options.map((o) => ({ id: o.id, text: o.text })),
+      options: this.phase === 'write' ? [] : this.options.map((o) => ({ id: o.id, parts: o.parts })),
       reveal: this.reveal,
       scores: Object.fromEntries(this.scores),
     };
@@ -126,9 +126,11 @@ export class EchtEngine implements GameEngine<EchtPublicState, EchtPrivateState>
     const data = (payload && typeof payload === 'object' ? payload : {}) as Record<string, unknown>;
     if (type === 'answer') {
       if (this.phase !== 'write') return;
-      const text = sanitizeText(data.text, ANSWER_MAX);
-      if (!text) return;
-      this.answers.set(playerId, text);
+      // eine Antwort je Lücke
+      const raw = Array.isArray(data.parts) ? data.parts : [data.text];
+      const parts = raw.slice(0, 5).map((t) => sanitizeText(t, ANSWER_MAX));
+      if (parts.length !== blankCount(this.statement) || parts.some((t) => !t)) return;
+      this.answers.set(playerId, parts);
       if (this.active().every((id) => this.answers.has(id))) this.startVote();
       else this.ctx.publishState();
       return;
@@ -224,14 +226,14 @@ export class EchtEngine implements GameEngine<EchtPublicState, EchtPrivateState>
     }
     // gleiche Antworten zusammenfassen
     const byKey = new Map<string, Option>();
-    const realKey = normalizeGuess(real) || real;
-    byKey.set(realKey, { id: randomUUID().slice(0, 8), text: real, authors: [this.heroId], real: true });
-    for (const [id, text] of this.answers) {
+    const keyOf = (parts: string[]) => parts.map((t) => normalizeGuess(t) || t).join('|');
+    byKey.set(keyOf(real), { id: randomUUID().slice(0, 8), parts: real, authors: [this.heroId], real: true });
+    for (const [id, parts] of this.answers) {
       if (id === this.heroId) continue;
-      const key = normalizeGuess(text) || text;
+      const key = keyOf(parts);
       const existing = byKey.get(key);
       if (existing) existing.authors.push(id);
-      else byKey.set(key, { id: randomUUID().slice(0, 8), text, authors: [id], real: false });
+      else byKey.set(key, { id: randomUUID().slice(0, 8), parts, authors: [id], real: false });
     }
     this.options = shuffle([...byKey.values()]);
     this.votes.clear();
@@ -261,7 +263,7 @@ export class EchtEngine implements GameEngine<EchtPublicState, EchtPrivateState>
     }
     const options: EchtRevealOption[] = this.options.map((o) => ({
       id: o.id,
-      text: o.text,
+      parts: o.parts,
       authors: o.authors,
       real: o.real,
       voters: [...this.votes].filter(([, v]) => v === o.id).map(([k]) => k),

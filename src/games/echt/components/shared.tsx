@@ -16,24 +16,45 @@ export function Avatar({ room, id, size = 'md' }: { room: RoomSnapshot; id: stri
 }
 
 /**
- * Satz mit hervorgehobenen Platzhaltern (oder eingesetzter Antwort). Dieselbe Antwort steht an
- * allen Stellen; hängt der Platzhalter an einem Wort („Lieblings___“), wird klein weitergeschrieben.
+ * Satz mit hervorgehobenen Platzhaltern bzw. eingesetzten Antworten (eine je Lücke).
+ * Bei mehreren Lücken sind die Platzhalter nummeriert. Hängt eine Lücke an einem Wort
+ * („Lieblings___“), wird die Antwort klein weitergeschrieben.
  */
-export function Statement({ text, fill, className = '' }: { text: string; fill?: string; className?: string }) {
+export function Statement({ text, fill, className = '' }: { text: string; fill?: string[]; className?: string }) {
   const parts = text.split('___');
+  const multi = parts.length > 2;
   return (
     <span className={className}>
       {parts.map((part, i) => {
         if (i === parts.length - 1) return <span key={i}>{part}</span>;
         const glued = /\p{L}$/u.test(part);
-        const value = fill ? (glued ? fill.charAt(0).toLowerCase() + fill.slice(1) : fill) : PLACEHOLDER;
+        const answer = fill?.[i];
+        const value = answer ? (glued ? answer.charAt(0).toLowerCase() + answer.slice(1) : answer) : PLACEHOLDER;
         return (
           <span key={i}>
             {part}
-            <span className={`${glued ? 'pl-0.5 pr-2' : 'mx-0.5 px-2'} inline-block -rotate-1 rounded-md font-black ${fill ? 'bg-[#ffe066] text-[#7a3c00]' : 'bg-[#e8590c] tracking-wider text-white'}`}>{value}</span>
+            <span className={`${glued ? 'pl-0.5 pr-2' : 'mx-0.5 px-2'} inline-block -rotate-1 rounded-md font-black ${answer ? 'bg-[#ffe066] text-[#7a3c00]' : 'bg-[#e8590c] tracking-wider text-white'}`}>
+              {value}
+              {multi && !answer && <sup className="ml-0.5 text-[0.55em] font-black">{i + 1}</sup>}
+            </span>
           </span>
         );
       })}
+    </span>
+  );
+}
+
+/** Antwort(en) auf einem Zettel – bei mehreren Lücken nummeriert untereinander */
+export function AnswerParts({ parts, className = '' }: { parts: string[]; className?: string }) {
+  if (parts.length <= 1) return <span className={className}>{parts[0]}</span>;
+  return (
+    <span className={`flex flex-col gap-1 ${className}`}>
+      {parts.map((p, i) => (
+        <span key={i} className="flex items-center justify-center gap-2">
+          <span className="grid size-6 shrink-0 place-items-center rounded-full bg-[#e8590c] font-sans text-xs font-black text-white">{i + 1}</span>
+          {p}
+        </span>
+      ))}
     </span>
   );
 }

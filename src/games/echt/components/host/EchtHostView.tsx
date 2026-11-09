@@ -4,7 +4,7 @@ import { useCountdown } from '../../../../app/session/hooks';
 import type { RoomSnapshot } from '../../../../shared/types/room';
 import type { HostViewProps } from '../../../game-types';
 import type { EchtPublicState } from '../../types';
-import { Avatar, LETTERS, nameOf, NOTE_COLORS, Statement, Sticky, tilt } from '../shared';
+import { AnswerParts, Avatar, LETTERS, nameOf, NOTE_COLORS, Statement, Sticky, tilt } from '../shared';
 
 /** Fernseher: Pinnwand mit Satzkarte, Notizzetteln, Abstimmung und Auflösung. */
 export function EchtHostView({ room, state }: HostViewProps<EchtPublicState>) {
@@ -39,7 +39,7 @@ export function EchtHostView({ room, state }: HostViewProps<EchtPublicState>) {
         <motion.div key={`${pub.turn}-${pub.step}`} initial={{ rotate: -6, y: -30, opacity: 0 }} animate={{ rotate: -1.2, y: 0, opacity: 1 }} className="index-card max-w-5xl flex-1 rounded-md px-10 py-7">
           <div className="text-sm font-black uppercase tracking-[0.25em] text-[#e8590c]">{hero} ergänzt ehrlich – alle anderen fälschen</div>
           <div className="mt-2 text-[clamp(1.8rem,3.2vw,3.4rem)] font-black leading-tight text-[#3b2a1a]">
-            <Statement text={pub.statement} />
+            <Statement text={pub.statement} fill={pub.phase === 'reveal' ? pub.reveal?.options.find((o) => o.real)?.parts : undefined} />
           </div>
         </motion.div>
       </div>
@@ -113,7 +113,7 @@ function VotePhase({ room, pub }: { room: RoomSnapshot; pub: EchtPublicState }) 
           <motion.div key={o.id} initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.08, type: 'spring', stiffness: 260, damping: 18 }}>
             <Sticky color={NOTE_COLORS[i % NOTE_COLORS.length]!} rotate={tilt(o.id)} className="flex min-h-36 w-64 flex-col px-5 pb-4 pt-6">
               <span className="absolute left-3 top-2 text-lg font-black text-[#3b2a1a]/45">{LETTERS[i]}</span>
-              <span className="m-auto text-center font-hand text-4xl font-bold leading-tight">{o.text}</span>
+              <AnswerParts parts={o.parts} className="m-auto text-center font-hand text-4xl font-bold leading-tight" />
             </Sticky>
           </motion.div>
         ))}
@@ -143,7 +143,7 @@ function RevealPhase({ room, pub }: { room: RoomSnapshot; pub: EchtPublicState }
         {r.options.map((o, i) => (
           <motion.div key={o.id} initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 + i * 0.25 }}>
             <Sticky color={o.real ? '#fff3a0' : NOTE_COLORS[(i + 1) % NOTE_COLORS.length]!} rotate={tilt(o.id)} className={`flex w-64 flex-col gap-2 px-5 pb-4 pt-6 ${o.real ? 'ring-4 ring-[#2b8a3e]' : ''}`}>
-              <span className="text-center font-hand text-4xl font-bold leading-tight">{o.text}</span>
+              <AnswerParts parts={o.parts} className="text-center font-hand text-4xl font-bold leading-tight" />
               <div className="flex items-center justify-center gap-1.5 text-sm font-black">
                 {o.real ? (
                   <span className="text-[#2b8a3e]">echt von {nameOf(room, pub.heroId)}</span>

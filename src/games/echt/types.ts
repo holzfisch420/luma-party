@@ -4,7 +4,8 @@ export type EchtPhase = 'write' | 'vote' | 'reveal';
 
 export interface EchtOption {
   id: string;
-  text: string;
+  /** eine Antwort je Lücke */
+  parts: string[];
 }
 
 export interface EchtRevealOption extends EchtOption {
@@ -44,7 +45,7 @@ export interface EchtPublicState {
 
 export interface EchtPrivateState {
   isHero: boolean;
-  myAnswer: string | null;
+  myAnswer: string[] | null;
   myVote: string | null;
   /** eigene Antwort(en) – dafür darf man nicht stimmen */
   ownOptionIds: string[];

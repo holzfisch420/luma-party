@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { haptics } from '../../../../app/haptics';
 import { useCountdown } from '../../../../app/session/hooks';
 import type { PlayerViewProps } from '../../../game-types';
-import { ANSWER_MAX } from '../../game-config';
+import { ANSWER_MAX, blankCount } from '../../game-config';
 import type { EchtPrivateState, EchtPublicState } from '../../types';
-import { Avatar, LETTERS, nameOf, NOTE_COLORS, Statement, Sticky, tilt } from '../shared';
+import { AnswerParts, Avatar, LETTERS, nameOf, NOTE_COLORS, Statement, Sticky, tilt } from '../shared';
 
 type Props = PlayerViewProps<EchtPublicState, EchtPrivateState>;
 
@@ -59,14 +59,16 @@ export function EchtController({ room, me, state, sendAction }: Props) {
 }
 
 function Write({ pub, priv, hero, isHero, sendAction }: { pub: EchtPublicState; priv: EchtPrivateState | null; hero: string; isHero: boolean; sendAction: Props['sendAction'] }) {
-  const [text, setText] = useState(priv?.myAnswer ?? '');
+  const n = blankCount(pub.statement);
+  const [parts, setParts] = useState<string[]>(() => Array.from({ length: n }, (_, i) => priv?.myAnswer?.[i] ?? ''));
   const [editing, setEditing] = useState(!priv?.myAnswer);
   const sent = !!priv?.myAnswer && !editing;
+  const ready = parts.every((p) => p.trim());
   const waiting = pub.submitted.length;
   return sent ? (
     <div className="flex flex-col items-center gap-4 pt-2">
       <Sticky color={NOTE_COLORS[0]} rotate={-2} className="w-full max-w-sm px-5 pb-5 pt-7 text-center">
-        <span className="font-hand text-4xl font-bold">{priv!.myAnswer}</span>
+        <AnswerParts parts={priv!.myAnswer!} className="font-hand text-4xl font-bold" />
       </Sticky>
       <div className="flex items-center gap-2 rounded-full bg-white/90 px-4 py-1.5 text-sm font-black">
         <Check className="size-4 text-[#2b8a3e]" strokeWidth={3} /> Abgegeben – warte auf die anderen ({waiting})
@@ -80,31 +82,35 @@ function Write({ pub, priv, hero, isHero, sendAction }: { pub: EchtPublicState; 
       className="flex flex-col gap-3"
       onSubmit={(e) => {
         e.preventDefault();
-        if (!text.trim()) return;
+        if (!ready) return;
         haptics.play('light');
-        sendAction('answer', { text: text.trim() });
+        sendAction('answer', { parts: parts.map((p) => p.trim()) });
         setEditing(false);
       }}
     >
       <p className="rounded-xl bg-black/25 px-4 py-2 text-center text-base font-bold text-white">
         {isHero ? 'Schreib deine ehrliche Antwort. Die anderen versuchen, sie zu erraten.' : `Was würde ${hero} schreiben? Schreib eine Fälschung, die echt wirkt!`}
+        {n > 1 && <span className="block text-sm text-white/80">Dieser Satz hat {n} Lücken – für jede eine eigene Antwort.</span>}
       </p>
-      <Sticky color={isHero ? '#fff3a0' : '#ffd3e0'} rotate={-1} className="px-4 pb-4 pt-6">
-        <textarea
-          autoFocus
-          value={text}
-          maxLength={ANSWER_MAX}
-          onChange={(e) => setText(e.target.value.replace(/\n/g, ' '))}
-          rows={2}
-          placeholder={isHero ? 'Meine Antwort …' : `${hero} würde schreiben …`}
-          className="w-full resize-none bg-transparent text-center font-hand text-4xl font-bold leading-tight outline-none placeholder:text-[#3b2a1a]/35"
-          style={{ outline: 'none', boxShadow: 'none' }}
-        />
-        <div className="text-right text-xs font-bold text-[#3b2a1a]/50">
-          {text.length}/{ANSWER_MAX}
-        </div>
-      </Sticky>
-      <button type="submit" disabled={!text.trim()} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-[#e8590c] text-xl font-black text-white shadow-[0_5px_0_#a33c05] transition active:translate-y-1 active:shadow-[0_2px_0_#a33c05] disabled:opacity-50">
+      {parts.map((value, i) => (
+        <Sticky key={i} color={isHero ? '#fff3a0' : '#ffd3e0'} rotate={i % 2 ? 1 : -1} className="px-4 pb-3 pt-6">
+          {n > 1 && <span className="absolute left-3 top-2 grid size-7 place-items-center rounded-full bg-[#e8590c] text-sm font-black text-white">{i + 1}</span>}
+          <textarea
+            autoFocus={i === 0}
+            value={value}
+            maxLength={ANSWER_MAX}
+            onChange={(e) => setParts((ps) => ps.map((p, k) => (k === i ? e.target.value.replace(/\n/g, ' ') : p)))}
+            rows={n > 1 ? 1 : 2}
+            placeholder={n > 1 ? `Lücke ${i + 1} …` : isHero ? 'Meine Antwort …' : `${hero} würde schreiben …`}
+            className="w-full resize-none bg-transparent text-center font-hand text-4xl font-bold leading-tight outline-none placeholder:text-[#3b2a1a]/35"
+            style={{ outline: 'none', boxShadow: 'none' }}
+          />
+          <div className="text-right text-xs font-bold text-[#3b2a1a]/50">
+            {value.length}/{ANSWER_MAX}
+          </div>
+        </Sticky>
+      ))}
+      <button type="submit" disabled={!ready} className="flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-[#e8590c] text-xl font-black text-white shadow-[0_5px_0_#a33c05] transition active:translate-y-1 active:shadow-[0_2px_0_#a33c05] disabled:opacity-50">
         <Send className="size-5" /> Abgeben
       </button>
     </form>
@@ -143,7 +149,7 @@ function Vote({ room, pub, priv, hero, isHero, sendAction }: { room: Props['room
             >
               <Sticky color={NOTE_COLORS[i % NOTE_COLORS.length]!} rotate={tilt(o.id, 1.5)} pin={false} className={`flex items-center gap-3 px-4 py-3 transition ${active ? 'ring-4 ring-[#e8590c]' : ''}`}>
                 <span className="grid size-9 shrink-0 place-items-center rounded-full bg-black/10 text-lg font-black">{LETTERS[i]}</span>
-                <span className="flex-1 font-hand text-3xl font-bold leading-tight">{o.text}</span>
+                <AnswerParts parts={o.parts} className="flex-1 font-hand text-3xl font-bold leading-tight" />
                 {own && <span className="text-xs font-black text-[#3b2a1a]/60">deine</span>}
                 {active && <Check className="size-6 text-[#e8590c]" strokeWidth={3} />}
               </Sticky>
@@ -166,7 +172,7 @@ function Result({ room, me, pub, hero }: { room: Props['room']; me: string; pub:
     <div className="flex flex-col items-center gap-4 pt-2 text-center">
       <div className="text-sm font-black uppercase tracking-[0.2em] text-white/85">Die echte Antwort</div>
       <Sticky color="#fff3a0" rotate={-2} className="w-full max-w-sm px-5 pb-5 pt-7 ring-4 ring-[#2b8a3e]">
-        <span className="font-hand text-4xl font-bold">{real?.text}</span>
+        <AnswerParts parts={real?.parts ?? []} className="font-hand text-4xl font-bold" />
       </Sticky>
       <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.4, type: 'spring' }} className={`rounded-full px-6 py-2 text-2xl font-black text-white shadow ${gained ? 'bg-[#2b8a3e]' : 'bg-black/30'}`}>
         {gained ? `+${gained} Punkte` : 'Diesmal keine Punkte'}

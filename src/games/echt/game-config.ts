@@ -25,6 +25,11 @@ export const echtMeta: GameMeta = {
 export const PLACEHOLDER = 'BLUBB';
 export const ANSWER_MAX = 60;
 
+/** Anzahl Lücken in einem Satz */
+export function blankCount(statement: string): number {
+  return Math.max(1, statement.split('___').length - 1);
+}
+
 export const STATEMENT_SETS = ['klassisch', 'familie', 'arbeit', 'wasware', 'party'] as const;
 export type StatementSet = (typeof STATEMENT_SETS)[number];
 export const SET_LABELS: Record<StatementSet, { label: string; hint: string }> = {

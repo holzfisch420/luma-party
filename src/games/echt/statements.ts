@@ -89,7 +89,7 @@ Das Peinlichste, das mir in der Schule passiert ist: ___.
 Eine Regel, die ich immer breche: ___.
 Mein Zimmer als Teenager war voll mit ___.
 Ich bin ein echter Profi im ___.
-Ohne ___ wäre der Sommer nur halb so schön.
+Meine Lieblingsjahreszeit ist ___, weil ___.
 Wenn ich drei Wünsche frei hätte, wäre einer davon ___.
 Das letzte, was ich gegoogelt habe, war ___.
 Für ___ würde ich mitten in der Nacht aufstehen.
@@ -142,17 +142,17 @@ Mein Lieblings___ ist der ___.
 Früher hatte ich Angst vor ___, heute liebe ich ___.
 Wenn ich ___ höre, will ich sofort ___.
 ___ am Morgen, ___ am Abend – mehr brauche ich nicht.
-Ein Tag ohne ___ ist ein verlorener Tag, aber zu viel ___ ist auch nicht gut.
+Ein Tag ohne ___ ist ein verlorener Tag, ein Tag mit ___ ist ein Geschenk.
 Meine Oma schwört auf ___, mein Opa kann ___ nicht ausstehen.
-Ich träume oft von ___ – letzte Nacht sogar von riesigem ___.
-Kein Fest ohne ___ – und kein ___ ohne Fest.
+Ich träume oft von ___ – letzte Nacht sogar von ___.
+Kein Fest ohne ___ – und kein Sonntag ohne ___.
 Ich schlafe mit ___ ein und wache mit ___ wieder auf.
-Bei mir zu Hause gibt es zu viel ___, und trotzdem kaufe ich immer mehr ___.
+Bei mir zu Hause gibt es zu viel ___, aber nie genug ___.
 Im Sommer ___, im Winter ___ – ich bin da konsequent.
 Wer mir ___ schenkt, hat mein Herz – wer mir ___ wegnimmt, hat ein Problem.
 Mein größter Traum hat mit ___ zu tun, mein größter Albtraum leider auch mit ___.
 Über ___ könnte ich stundenlang reden, aber über ___ schweige ich lieber.
-Ich habe einmal ___ gegessen und seitdem esse ich nie wieder ___.
+Ich habe einmal ___ gegessen – seitdem esse ich nur noch ___.
 `;
 
 const FAMILIE = `
@@ -219,7 +219,7 @@ Mein erstes selbst verdientes Geld habe ich für ___ ausgegeben.
 Bei Meetings denke ich meistens an ___.
 Mein Spickzettel war einmal auf ___ versteckt.
 Das Nervigste an Hausaufgaben war ___.
-Von meiner Klassenfahrt erinnere ich mich vor allem an ___.
+Meine Klassenfahrt ging nach ___ – und ich erinnere mich vor allem an ___.
 Wenn der Drucker streikt, ___ ich.
 Mein Arbeitsweg wäre perfekt mit ___.
 Eine Fähigkeit, die man in keiner Schule lernt: ___.

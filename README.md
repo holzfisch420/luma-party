@@ -132,8 +132,9 @@ und eigenem Look (Notizzettel auf einer Pinnwand, Handschrift).
   wie die Person, die dran ist +2.
 - **266 eigene Sätze** in fünf Sammlungen: Klassisch, Familie & Freunde, Schule & Arbeit, Was wäre wenn und Party
   (etwas frecher) – im Startbildschirm wählbar. Einstellungen: Runden, Sätze pro Person, Schreibzeit.
-- **Mehrere BLUBB pro Satz** möglich, auch mitten im Wort („Mein LieblingsBLUBB ist der BLUBB“): Man schreibt weiterhin
-  eine Antwort, sie steht dann an jeder Stelle („Mein Lieblingsmontag ist der Montag“).
+- **Mehrere BLUBB pro Satz** möglich, auch mitten im Wort („Mein LieblingsBLUBB ist der BLUBB“): Jede Lücke bekommt
+  ihre **eigene Antwort** (nummerierte Felder auf dem Handy, nummerierte Zeilen auf dem Zettel). Zwei Antworten gelten
+  nur als gleich, wenn alle Teile übereinstimmen.
 - **Eigene Sätze:** Im Startbildschirm unter „Eigene Sätze → Verwalten“ beliebig viele Sammlungen anlegen
   (eine Zeile pro Satz, BLUBB oder ___ markiert die Lücke, bis 600 Sätze). Sie werden privat gespeichert –
   mit Konto auf allen eigenen Geräten, sonst auf dem Gerät – und lassen sich mit den eingebauten Sammlungen mischen.
