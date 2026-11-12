@@ -532,3 +532,28 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .marquee::before { animation: none; }
 }
+
+/* „Kettenchaos“ – Tarnmuster und Warnstreifen */
+.camo {
+  background:
+    radial-gradient(ellipse 14% 9% at 12% 18%, #3f6b26 60%, transparent 62%),
+    radial-gradient(ellipse 10% 14% at 30% 70%, #2f5220 60%, transparent 62%),
+    radial-gradient(ellipse 16% 8% at 62% 30%, #6b8a3a 60%, transparent 62%),
+    radial-gradient(ellipse 9% 12% at 82% 72%, #3f6b26 60%, transparent 62%),
+    radial-gradient(ellipse 12% 10% at 48% 88%, #7a6a3f 60%, transparent 62%),
+    radial-gradient(ellipse 11% 8% at 90% 12%, #2f5220 60%, transparent 62%),
+    radial-gradient(ellipse 8% 11% at 6% 58%, #7a6a3f 60%, transparent 62%),
+    #557a32;
+  background-size: 520px 360px;
+}
+.hazard {
+  background: repeating-linear-gradient(-45deg, #f2c12e 0 18px, #1e1e1e 18px 36px);
+}
+.stencil {
+  font-family: var(--font-bangers);
+  letter-spacing: 0.08em;
+  color: #f2e6c4;
+  -webkit-text-stroke: 3px #1e1e1e;
+  paint-order: stroke fill;
+  text-shadow: 6px 6px 0 rgba(0, 0, 0, 0.35);
+}

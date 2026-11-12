@@ -68,7 +68,7 @@ export function HuhnHostView({ room, state }: HostViewProps<HuhnPublicState>) {
 
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden bg-[#1f2937] font-sans text-white">
-      <header className="flex h-16 shrink-0 items-center gap-5 bg-[#111827] px-6 shadow-lg">
+      <header className="flex h-16 shrink-0 items-center gap-5 bg-[#111827] pl-6 pr-48 shadow-lg">
         <div className="flex items-center gap-3">
           <ChickenIcon className="size-10" />
           <div>

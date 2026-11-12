@@ -26,14 +26,15 @@ export function HostGameScreen({ room, onMenu }: { room: RoomSnapshot; onMenu: (
         </div>
       )}
       {ready && View && <View room={room} state={game as never} />}
-      <QuitButton className="absolute right-12 top-1.5 z-30" onQuit={() => getSocket().emit('room:backToLauncher')} />
+      {/* klein in der Ecke, damit nichts vom Spiel verdeckt wird */}
+      <QuitButton size="sm" className="absolute right-10 top-1 z-30 opacity-60 transition hover:opacity-100 focus-within:opacity-100" onQuit={() => getSocket().emit('room:backToLauncher')} />
       <button
         onClick={onMenu}
         aria-label="Menü"
         title="Menü"
-        className="absolute right-2 top-1.5 z-30 grid size-9 place-items-center rounded-full bg-black/10 text-black/40 backdrop-blur transition hover:bg-black/20 hover:text-black/70"
+        className="absolute right-1 top-1 z-30 grid size-8 place-items-center rounded-full bg-black/25 text-white/80 opacity-60 backdrop-blur transition hover:opacity-100"
       >
-        <MoreHorizontal className="size-5" />
+        <MoreHorizontal className="size-4" />
       </button>
     </div>
   );

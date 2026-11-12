@@ -37,9 +37,13 @@ export function QuitButton({ onQuit, className = '', size = 'md', compact = fals
             onClick={() => setConfirm(true)}
             aria-label="Spiel beenden"
             title="Spiel beenden"
-            className={`flex items-center justify-center gap-1 rounded-full bg-black/25 font-extrabold text-white/90 backdrop-blur transition hover:bg-black/40 ${compact ? 'size-8 opacity-70' : `px-3 ${h}`}`}
+            className={
+              compact
+                ? 'flex h-5 w-12 items-center justify-center rounded-b-xl bg-black/35 text-white/90 backdrop-blur transition hover:bg-black/50'
+                : `flex items-center justify-center gap-1 rounded-full bg-black/25 px-3 font-extrabold text-white/90 backdrop-blur transition hover:bg-black/40 ${h}`
+            }
           >
-            <X className="size-4" strokeWidth={3} /> {!compact && 'Beenden'}
+            <X className={compact ? 'size-3' : 'size-4'} strokeWidth={3} /> {!compact && 'Beenden'}
           </motion.button>
         )}
       </AnimatePresence>

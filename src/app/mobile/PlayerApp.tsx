@@ -75,7 +75,7 @@ function PlayerGame({ room, me, canControl }: { room: RoomSnapshot; me: PublicPl
       {/* nur der Spielleiter darf das laufende Spiel beenden */}
       {canControl && (
         <div className="pointer-events-none fixed inset-x-0 top-0 z-[60] flex justify-center safe-pt">
-          <QuitButton size="sm" compact className="pointer-events-auto mt-1" onQuit={() => getSocket().emit('room:backToLauncher')} />
+          <QuitButton size="sm" compact className="pointer-events-auto" onQuit={() => getSocket().emit('room:backToLauncher')} />
         </div>
       )}
     </div>

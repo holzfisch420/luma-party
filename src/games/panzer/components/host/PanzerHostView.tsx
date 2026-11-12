@@ -61,7 +61,7 @@ export function PanzerHostView({ room, state }: HostViewProps<PanzerPublicState>
   return (
     <div className="flat relative flex h-dvh flex-col overflow-hidden" style={{ background: FIELD }}>
       {/* Kopfleiste im Stil der Google-Minispiele */}
-      <header className="flex h-16 shrink-0 items-center gap-6 px-6 shadow-[0_2px_6px_rgba(0,0,0,0.25)]" style={{ background: HEADER }}>
+      <header className="flex h-16 shrink-0 items-center gap-6 pl-6 pr-48 shadow-[0_2px_6px_rgba(0,0,0,0.25)]" style={{ background: HEADER }}>
         <div className="flex items-center gap-2 text-xl font-black">
           <span className="text-white/70">Runde</span> {Math.max(1, pub.round)}
         </div>
@@ -177,10 +177,14 @@ function ColorLobby({ pub, room }: { pub: PanzerPublicState; room: HostViewProps
   const sorted = [...pub.players].sort((a, b) => a.slot - b.slot);
   const remaining = useCountdown(pub.phaseEndsAt, 250);
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center gap-7 p-8" style={{ background: FIELD }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="camo absolute inset-0 flex flex-col items-center justify-center gap-7 p-8">
+      <div className="hazard absolute inset-x-0 top-0 h-4 opacity-90" />
+      <div className="hazard absolute inset-x-0 bottom-0 h-4 opacity-90" />
       <div className="text-center">
-        <div className="text-7xl font-black tracking-tight">Kettenchaos</div>
-        <div className="mt-2 text-xl font-bold text-white/85">Wählt eure Panzerfarbe auf dem Handy</div>
+        <motion.div initial={{ scale: 1.6, rotate: -6, opacity: 0 }} animate={{ scale: 1, rotate: -3, opacity: 1 }} transition={{ type: 'spring', stiffness: 220, damping: 12 }} className="stencil text-[9rem] leading-none">
+          KETTENCHAOS
+        </motion.div>
+        <div className="mx-auto mt-3 w-fit rounded bg-[#1e1e1e]/80 px-4 py-1 font-bangers text-2xl tracking-[0.15em] text-[#f2c12e]">Wählt eure Panzerfarbe auf dem Handy</div>
       </div>
       <div className="grid grid-cols-4 gap-4">
         {sorted.map((p) => {

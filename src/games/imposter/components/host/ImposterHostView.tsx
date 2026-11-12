@@ -34,7 +34,7 @@ export function ImposterHostView({ room, state }: HostViewProps<ImposterPublicSt
   return (
     <div className="mystery relative flex h-dvh flex-col overflow-hidden">
       <Fog />
-      <header className="relative z-10 flex items-center justify-between gap-6 px-[4vw] pt-6">
+      <header className="relative z-10 flex items-center justify-between gap-6 pl-[4vw] pr-[max(4vw,12rem)] pt-6">
         <div>
           <div className="font-mystery glow-violet text-4xl font-extrabold tracking-[0.25em] text-violet-100">IMPOSTER</div>
           <div className="mt-1 text-lg font-bold text-violet-200/70">

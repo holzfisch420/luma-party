@@ -106,7 +106,7 @@ export function RacerHostView({ room, state }: HostViewProps<RacerPublicState>) 
                 </div>
               )}
               {p && pub.view === 'split' && (
-                <div className={`absolute right-2 top-2 rounded-xl bg-black/55 px-3 py-1.5 text-right font-black ${small ? 'text-sm' : 'text-lg'}`}>
+                <div className={`absolute right-2 top-10 rounded-xl bg-black/55 px-3 py-1.5 text-right font-black ${small ? 'text-sm' : 'text-lg'}`}>
                   {track.closed ? `Runde ${p.lap}/${track.laps}` : `${Math.round(p.progress * 100)} %`}
                   <div className="text-xs font-bold text-white/70 tabular-nums">{p.finished ? formatTime(p.finishMs) : formatTime(raceMs)}</div>
                 </div>
@@ -148,7 +148,7 @@ export function RacerHostView({ room, state }: HostViewProps<RacerPublicState>) 
       <canvas ref={miniRef} className="pointer-events-none absolute bottom-3 right-3 size-[180px] rounded-2xl bg-black/30" />
 
       {/* Kopfinfo */}
-      <div className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-full bg-black/55 px-4 py-1 text-sm font-black">
+      <div className="pointer-events-none absolute bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/60 px-4 py-1 text-sm font-black">
         {track.name} · Rennen {pub.race}/{pub.totalRaces}
         {grace !== null && pub.phase === 'race' && <span className="ml-3 text-[#ffd43b]">Ziel schließt in {grace} s</span>}
       </div>

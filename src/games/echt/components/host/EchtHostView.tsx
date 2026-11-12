@@ -34,7 +34,7 @@ export function EchtHostView({ room, state }: HostViewProps<EchtPublicState>) {
   return (
     <div className="corkboard relative flex h-dvh flex-col overflow-hidden">
       {/* Kopf */}
-      <header className="flex items-center justify-between gap-6 px-[3vw] pt-5">
+      <header className="flex items-center justify-between gap-6 pl-[3vw] pr-[max(3vw,12rem)] pt-5">
         <div className="font-hand text-5xl font-bold text-white drop-shadow-[0_3px_0_rgba(80,40,10,0.45)]">Echt jetzt?</div>
         <div className="flex items-center gap-3">
           <span className="rounded-full bg-black/25 px-4 py-1.5 text-lg font-black text-white">
