@@ -15,6 +15,7 @@ import { racerModule } from './racer';
 import { ploppModule } from './plopp';
 import { wortModule } from './wort';
 import { klingenModule } from './klingen';
+import { vollmondModule } from './vollmond';
 
 const modules = new Map<string, ClientGameModule>();
 
@@ -32,6 +33,7 @@ registerClientGame(racerModule);
 registerClientGame(ploppModule);
 registerClientGame(wortModule);
 registerClientGame(klingenModule);
+registerClientGame(vollmondModule);
 
 export function getClientGame(id: string | null | undefined): ClientGameModule | undefined {
   return id ? modules.get(id) : undefined;

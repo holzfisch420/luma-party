@@ -172,6 +172,17 @@ Messer ins drehende Rad werfen – aber nie ein Messer treffen, das schon steckt
 - Neu dafür im Gerüst: `GameEngine.handleHostAction` – der Hauptbildschirm kann Aktionen an die Engine schicken.
 - Code: `src/games/klingen/` (Rad-Logik in `logic/wheel.ts`, ein Bot-Test prüft, dass Stufe 1–30 schaffbar sind).
 
+### Vollmond
+
+Werwolf-Gruppenspiel – das Spiel passiert im Gespräch, das Handy hütet nur die Geheimnisse (4–16 Spieler, am besten ab 6).
+
+- Rollen: Werwolf, Dorfbewohner, Seherin, Hexe (je ein Heil- und Gifttrank), Jäger (nimmt beim Tod jemanden mit), Leibwächter (schützt nachts, nie zweimal dieselbe Person). Werwölfe automatisch nach Spielerzahl oder fest; Sonderrollen abwählbar.
+- Die Rolle sieht man nur, solange man den Finger auf die Karte hält – niemand kann mitlesen.
+- Nachts tippen **alle** etwas an (wer keine Rolle hat, wählt zur Tarnung eine verdächtige Person), damit niemand an Bewegungen erkennt, wer handelt. Werwölfe sehen die Wahl der anderen Wölfe.
+- Tagsüber: Diskussion mit Zeitlimit (oder früher, wenn zwei Drittel bereit sind), dann offene Abstimmung auf dem Handy; Gleichstand = niemand wird verbannt.
+- Der Fernseher erzählt – auf Wunsch mit deutscher Sprachausgabe des Browsers. Am Ende werden alle Rollen aufgedeckt. Punkte: Sieg 3, überlebt +1.
+- Code: `src/games/vollmond/`.
+
 ### Imposter
 Bluff-Spiel für **3–12 Spieler** im mysteriösen Look (dunkel, violetter Nebel).
 

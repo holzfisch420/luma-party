@@ -13,8 +13,9 @@ import { racerMeta } from './racer/game-config';
 import { ploppMeta } from './plopp/game-config';
 import { wortMeta } from './wort/game-config';
 import { klingenMeta } from './klingen/game-config';
+import { vollmondMeta } from './vollmond/game-config';
 
-export const GAME_CATALOG: GameMeta[] = [montagsmalerMeta, imposterMeta, echtMeta, ploppMeta, wortMeta, klingenMeta, racerMeta, huhnMeta, panzerMeta, theaterMeta];
+export const GAME_CATALOG: GameMeta[] = [montagsmalerMeta, vollmondMeta, imposterMeta, echtMeta, ploppMeta, wortMeta, klingenMeta, racerMeta, huhnMeta, panzerMeta, theaterMeta];
 
 export const DEFAULT_GAME_ID = montagsmalerMeta.id;
 

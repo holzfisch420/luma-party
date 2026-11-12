@@ -393,3 +393,16 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .plopp-rays, .plopp-bubble { animation: none; }
 }
+
+/* „Vollmond“ – funkelnde Sterne */
+.vollmond-star {
+  opacity: 0.7;
+  animation: vollmond-twinkle 3.5s ease-in-out infinite;
+}
+@keyframes vollmond-twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vollmond-star { animation: none; }
+}
