@@ -98,18 +98,23 @@ export function WortController({ me, state, sendAction }: Props) {
   const tile = Math.min(58, Math.floor((Math.min(window.innerWidth, 440) - 56) / WORD_LENGTH));
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-[radial-gradient(ellipse_at_50%_0%,#2c4a7a_0%,#1b2a4a_55%,#111a30_100%)] text-white safe-pt safe-pb">
-      <header className="flex items-center justify-between px-4 pt-3">
-        <span className="text-2xl font-black tracking-tight">Wortknacker</span>
-        <span className="flex items-center gap-2 text-sm font-black">
-          Wort {pub.round}/{pub.rounds} · {pub.scores[me.id] ?? 0} P
-          {pub.phase === 'play' && <span className={`rounded-full px-2.5 py-0.5 tabular-nums ${secs <= 20 ? 'bg-[#e03131]' : 'bg-white/15'}`}>{secs}s</span>}
-        </span>
+    <div className="newsprint fixed inset-0 flex flex-col safe-pt safe-pb">
+      <header className="px-4 pt-3">
+        <div className="flex items-center justify-between font-typewriter text-sm">
+          <span>Ausgabe {pub.round}/{pub.rounds}</span>
+          <span className="flex items-center gap-2">
+            {pub.scores[me.id] ?? 0} P.
+            {pub.phase === 'play' && <span className={`rounded-full border-2 px-2 tabular-nums ${secs <= 20 ? 'border-[#b3261e] text-[#b3261e]' : 'border-[#2a241c]'}`}>{secs}s</span>}
+          </span>
+        </div>
+        <div className="news-rule mt-1" />
+        <div className="py-0.5 text-center font-stage text-3xl font-black leading-tight">Der Wortknacker</div>
+        <div className="news-rule" />
       </header>
 
       <div className="relative flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4">
         {errorText && (
-          <motion.div initial={{ y: -8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="absolute top-2 z-10 rounded-full bg-white px-4 py-1.5 text-sm font-black text-[#1b2a4a] shadow-lg">
+          <motion.div initial={{ y: -8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="absolute top-2 z-10 rotate-[-2deg] border-2 border-[#b3261e] bg-[#fbf6e9] px-4 py-1 font-typewriter text-base text-[#b3261e] shadow">
             {errorText}
           </motion.div>
         )}
@@ -118,22 +123,22 @@ export function WortController({ me, state, sendAction }: Props) {
         </motion.div>
         {pub.phase === 'reveal' && pub.reveal ? (
           <div className="flex flex-col items-center gap-2 text-center">
-            <div className="text-sm font-black uppercase tracking-[0.2em] text-white/70">Das Wort war</div>
+            <div className="font-stage text-lg font-bold italic">Das Wort lautete</div>
             <div className="flex gap-1.5">
               {[...pub.reveal.word].map((ch, i) => (
                 <Tile key={i} letter={ch} mark="g" size={40} flipDelay={i * 0.1} />
               ))}
             </div>
-            <div className="text-lg font-black">{pub.reveal.gained[me.id] ? `+${pub.reveal.gained[me.id]} Punkte` : 'Diesmal keine Punkte'}</div>
+            <div className="font-typewriter text-lg">{pub.reveal.gained[me.id] ? `+${pub.reveal.gained[me.id]} Punkte` : 'Diesmal keine Punkte'}</div>
           </div>
         ) : board?.solved ? (
-          <div className="rounded-full bg-[#2fb67c] px-5 py-2 text-lg font-black">Geknackt in {guesses.length}! {board.place === 1 ? '🥇 Als Erste/r!' : `Platz ${board.place}`}</div>
+          <div className="rotate-[-3deg] border-4 border-[#2f7d4f] px-4 py-1 font-typewriter text-xl text-[#2f7d4f]">GEKNACKT in {guesses.length}! {board.place === 1 ? '★ Erste/r' : `Platz ${board.place}`}</div>
         ) : board?.failed ? (
-          <div className="rounded-full bg-white/15 px-5 py-2 text-lg font-black">Keine Versuche mehr – warte auf die Auflösung</div>
+          <div className="font-typewriter text-base">Keine Versuche mehr – warte auf die Auflösung</div>
         ) : !board ? (
-          <div className="rounded-full bg-white/15 px-5 py-2 font-black">Nächste Runde machst du mit!</div>
+          <div className="font-typewriter text-base">Nächste Runde machst du mit!</div>
         ) : (
-          <div className="text-sm font-bold text-white/60">Versuch {Math.min(guesses.length + 1, MAX_GUESSES)} von {MAX_GUESSES}</div>
+          <div className="font-typewriter text-sm text-[#2a241c]/70">Versuch {Math.min(guesses.length + 1, MAX_GUESSES)} von {MAX_GUESSES}</div>
         )}
       </div>
 
@@ -163,8 +168,8 @@ function Key({ label, mark, wide, onPress, aria, accent }: { label: React.ReactN
         onPress();
       }}
       aria-label={aria ?? (typeof label === 'string' ? label : undefined)}
-      className={`grid h-13 place-items-center rounded-lg text-lg font-black shadow-[0_2px_0_rgba(0,0,0,0.35)] active:translate-y-px ${wide ? 'flex-[1.6]' : 'flex-1'} max-w-12`}
-      style={{ background: c ? c.bg : accent ? '#2fb67c' : 'rgba(255,255,255,0.16)', minWidth: 0, maxWidth: wide ? 72 : 44 }}
+      className={`grid aspect-square place-items-center rounded-full border-2 border-[#9a8f78] font-typewriter text-lg shadow-[0_3px_0_#2a241c,inset_0_2px_0_rgba(255,255,255,0.25)] active:translate-y-[2px] active:shadow-[0_1px_0_#2a241c] ${wide ? 'flex-[1.5] aspect-auto h-auto rounded-2xl' : 'flex-1'}`}
+      style={{ background: c ? c.bg : accent ? '#2f7d4f' : '#2f2a24', color: c ? c.text : '#f6efdc', minWidth: 0, maxWidth: wide ? 72 : 40, opacity: mark === 'x' ? 0.28 : 1 }}
     >
       {label}
     </button>

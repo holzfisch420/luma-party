@@ -1,4 +1,5 @@
 @import '@fontsource/nunito/latin-500.css';
+@import '@fontsource/special-elite/latin-400.css';
 @import '@fontsource/nunito/latin-700.css';
 @import '@fontsource/nunito/latin-800.css';
 @import '@fontsource/nunito/latin-900.css';
@@ -36,6 +37,7 @@
   --font-hand: 'Caveat', 'Comic Neue', cursive;
   /* Imposter */
   --font-mystery: 'Cinzel', Georgia, serif;
+  --font-typewriter: 'Special Elite', 'Courier New', monospace;
 
   /* Launcher-Farben (hell, Home-Menü-Stil) */
   --color-home-bg: #eef1f4;
@@ -479,4 +481,20 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .vollmond-star { animation: none; }
+}
+
+/* „Wortknacker“ – Zeitungspapier */
+.newsprint {
+  background-color: #f2e9d4;
+  background-image:
+    radial-gradient(rgba(90, 70, 40, 0.08) 1px, transparent 1.2px),
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.6), transparent 60%),
+    linear-gradient(90deg, transparent 49.6%, rgba(90, 70, 40, 0.06) 50%, transparent 50.4%);
+  background-size: 5px 5px, 100% 100%, 100% 100%;
+  color: #2a241c;
+}
+.news-rule {
+  border-top: 3px solid #2a241c;
+  border-bottom: 1px solid #2a241c;
+  height: 7px;
 }
