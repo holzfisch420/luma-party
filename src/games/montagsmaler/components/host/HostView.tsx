@@ -13,6 +13,13 @@ import { CanvasView } from '../CanvasView';
 import { DrawingSheet } from '../DrawingSheet';
 import { WordMask } from '../WordMask';
 import { BubbleStack, useChatBubbles } from './ChatBubbles';
+import { useCountUp, useLastSeconds, usePhaseSfx } from '../../../../app/audio/hooks';
+import { playSfx, preloadSfx } from '../../../../app/audio/sfx';
+import { useGameEvent } from '../../../../app/session/hooks';
+import { MM_EVENTS } from '../../types';
+
+preloadSfx(['draw-scribble', 'draw-correct', 'draw-round', 'page-flip', 'whoosh', 'applause', 'aww', 'reveal', 'clock-tick', 'draw-crumple']);
+let lastScribble = 0;
 
 const REASONS: Record<string, string> = {
   time: 'Zeit abgelaufen!',
@@ -28,6 +35,27 @@ export function MontagsmalerHostView({ room, state }: HostViewProps<Montagsmaler
   const drawer = room.players.find((p) => p.id === pub.drawerId);
   const guessers = room.players.filter((p) => p.id !== pub.drawerId && p.isConnected);
   const correctIds = new Set(pub.correctGuesses.map((c) => c.playerId));
+
+  // Geräusche
+  usePhaseSfx(pub.phase, pub.turn, {
+    choosing: () => playSfx('page-flip', { vol: 0.8 }),
+    drawing: () => playSfx('draw-round', { vol: 0.6 }),
+    reveal: () =>
+      pub.reveal?.reason === 'all-guessed'
+        ? playSfx('applause', { vol: 0.6 })
+        : pub.correctGuesses.length > 0
+          ? playSfx('reveal', { vol: 0.7 })
+          : playSfx('aww', { vol: 0.6 }),
+  });
+  useCountUp(pub.correctGuesses.length, () => playSfx('draw-correct', { vol: 0.8 }));
+  useLastSeconds(pub.phaseEndsAt, 5, () => playSfx('clock-tick', { vol: 0.6 }), pub.phase === 'drawing');
+  // Kritzeln, während gezeichnet wird
+  useGameEvent(MM_EVENTS.draw, () => {
+    const now = performance.now();
+    if (now - lastScribble < 650) return;
+    lastScribble = now;
+    playSfx('draw-scribble', { vol: 0.25, vary: 0.15 });
+  });
 
   const rows = pub.scores
     .map((s) => {

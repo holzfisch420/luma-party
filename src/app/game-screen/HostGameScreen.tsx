@@ -16,7 +16,7 @@ export function HostGameScreen({ room, onMenu }: { room: RoomSnapshot; onMenu: (
   const module = getClientGame(room.activeGameId);
   const ready = module && game && game.gameId === module.meta.id;
   const View = module?.HostView;
-  useMusic(module?.music ?? null);
+  useMusic(module?.music ?? null, 1, 0);
   return (
     <div className="relative h-dvh overflow-hidden">
       {!module && <div className="grid h-full place-items-center font-bold text-home-muted">Dieses Spiel kann hier nicht angezeigt werden.</div>}

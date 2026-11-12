@@ -8,12 +8,28 @@ import { TIMING } from '../../game-config';
 import type { ImposterPublicState } from '../../types';
 import { Fog } from '../Fog';
 import { Avatar, nameOf, TimerRing } from '../shared';
+import { useCountUp, useLastSeconds, usePhaseSfx } from '../../../../app/audio/hooks';
+import { playSfx, preloadSfx } from '../../../../app/audio/sfx';
+
+preloadSfx(['mystery', 'whoosh', 'heartbeat', 'suspense', 'drumroll', 'fanfare', 'dun', 'knock', 'clock-tick']);
 
 /** Fernseher: Nebel, wer ist dran, Abstimmung und die große Enthüllung. */
 export function ImposterHostView({ room, state }: HostViewProps<ImposterPublicState>) {
   const pub = state.public;
   const remaining = useCountdown(pub.phaseEndsAt, 200);
   const total = usePhaseTotal(pub);
+
+  // Geräusche
+  usePhaseSfx(pub.phase, `${pub.round}-${pub.clueRound}-${pub.turn}`, {
+    reveal: () => playSfx('mystery', { vol: 0.7 }),
+    clues: () => playSfx('whoosh', { vol: 0.5 }),
+    discuss: () => playSfx('heartbeat', { vol: 0.6 }),
+    vote: () => playSfx('suspense', { vol: 0.7 }),
+    guess: () => playSfx('drumroll', { vol: 0.6 }),
+    result: () => (pub.result?.caught && !pub.result.guessCorrect ? playSfx('fanfare', { vol: 0.7 }) : playSfx('dun', { vol: 0.8 })),
+  });
+  useCountUp(pub.voted.length, () => playSfx('knock', { vol: 0.45, vary: 0.1 }));
+  useLastSeconds(pub.phaseEndsAt, 5, () => playSfx('clock-tick', { vol: 0.5 }), pub.phase === 'discuss' || pub.phase === 'vote');
 
   return (
     <div className="mystery relative flex h-dvh flex-col overflow-hidden">

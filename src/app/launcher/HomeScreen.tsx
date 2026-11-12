@@ -38,7 +38,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
   const [starting, setStarting] = useState(false);
   const joinUrl = useJoinUrl(room.code);
   const connected = room.players.filter((p) => p.isConnected).length;
-  useMusic('menu');
+  useMusic('menu', 1, 0);
 
   // Klang, wenn jemand dazukommt oder geht
   const lastCount = useRef(connected);

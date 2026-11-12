@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { PlayerAvatar } from '../../../components/lobby/PlayerAvatar';
+import { duckMusic } from '../../../app/audio/music';
 import type { RoomSnapshot } from '../../../shared/types/room';
 
 export function nameOf(room: RoomSnapshot, id: string | null | undefined) {
@@ -46,6 +47,8 @@ export function useNarrator(narration: { id: number; text: string }, enabled: bo
       u.pitch = 0.9;
       const voice = synth.getVoices().find((v) => v.lang.startsWith('de'));
       if (voice) u.voice = voice;
+      // Musik leiser, solange erzählt wird
+      duckMusic(Math.min(14, 2 + narration.text.length / 14), 0.35);
       synth.speak(u);
     } catch {
       /* keine Sprachausgabe verfügbar */

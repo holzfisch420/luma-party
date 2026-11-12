@@ -5,6 +5,10 @@ import type { RoomSnapshot } from '../../../../shared/types/room';
 import type { HostViewProps } from '../../../game-types';
 import type { EchtPublicState } from '../../types';
 import { AnswerParts, Avatar, LETTERS, nameOf, NOTE_COLORS, Statement, Sticky, tilt } from '../shared';
+import { useCountUp, useLastSeconds, usePhaseSfx } from '../../../../app/audio/hooks';
+import { playSfx, preloadSfx } from '../../../../app/audio/sfx';
+
+preloadSfx(['page-flip', 'question', 'drumroll', 'stamp', 'sax-win', 'note-stick', 'ui-tap', 'clock-tick']);
 
 /** Fernseher: Pinnwand mit Satzkarte, Notizzetteln, Abstimmung und Auflösung. */
 export function EchtHostView({ room, state }: HostViewProps<EchtPublicState>) {
@@ -12,6 +16,20 @@ export function EchtHostView({ room, state }: HostViewProps<EchtPublicState>) {
   const remaining = useCountdown(pub.phaseEndsAt, 250);
   const secs = Math.ceil(remaining / 1000);
   const hero = nameOf(room, pub.heroId);
+
+  // Geräusche
+  usePhaseSfx(pub.phase, `${pub.turn}-${pub.step}`, {
+    write: () => playSfx('page-flip', { vol: 0.7 }),
+    vote: () => playSfx('question', { vol: 0.7 }),
+    reveal: () => {
+      playSfx('drumroll', { vol: 0.5 });
+      playSfx('stamp', { vol: 0.9, delay: 1.2 });
+      playSfx('sax-win', { vol: 0.6, delay: 1.6 });
+    },
+  });
+  useCountUp(pub.submitted.length, () => playSfx('note-stick', { vol: 0.7, vary: 0.1 }));
+  useCountUp(pub.voted.length, () => playSfx('ui-tap', { vol: 0.6 }));
+  useLastSeconds(pub.phaseEndsAt, 5, () => playSfx('clock-tick', { vol: 0.5 }), pub.phase !== 'reveal');
 
   return (
     <div className="corkboard relative flex h-dvh flex-col overflow-hidden">

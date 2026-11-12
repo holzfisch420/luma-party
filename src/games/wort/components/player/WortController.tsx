@@ -7,6 +7,7 @@ import type { PlayerViewProps } from '../../../game-types';
 import { KEYBOARD_ROWS, MAX_GUESSES, WORD_LENGTH } from '../../game-config';
 import type { Mark, WortPrivateState, WortPublicState } from '../../types';
 import { Board, MARK_COLORS, Tile } from '../shared';
+import { playSfx } from '../../../../app/audio/sfx';
 
 type Props = PlayerViewProps<WortPublicState, WortPrivateState>;
 
@@ -76,6 +77,7 @@ export function WortController({ me, state, sendAction }: Props) {
       return;
     }
     haptics.play('tick');
+    playSfx('key', { vol: 0.35, vary: 0.1 });
     if (key === 'DEL') setCurrent((c) => c.slice(0, -1));
     else setCurrent((c) => (c.length < WORD_LENGTH ? c + key : c));
   };

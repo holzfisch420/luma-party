@@ -5,11 +5,26 @@ import type { HostViewProps } from '../../../game-types';
 import { MAX_GUESSES } from '../../game-config';
 import type { WortPublicState } from '../../types';
 import { Avatar, Board, MARK_COLORS, nameOf, Tile } from '../shared';
+import { useCountUp, useLastSeconds, usePhaseSfx } from '../../../../app/audio/hooks';
+import { playSfx, preloadSfx } from '../../../../app/audio/sfx';
+
+preloadSfx(['key-enter', 'level-up', 'typewriter', 'success', 'fail', 'clock-tick']);
 
 /** Fernseher: alle Raster nebeneinander (nur Farben), danach Auflösung mit Buchstaben */
 export function WortHostView({ room, state }: HostViewProps<WortPublicState>) {
   const pub = state.public;
   const secs = Math.ceil(useCountdown(pub.phaseEndsAt, 250) / 1000);
+
+  // Geräusche: jeder Versuch klackt, jedes Knacken klingelt, Auflösung mit Tusch
+  const guessCount = Object.values(pub.boards).reduce((n, b) => n + b.marks.length, 0);
+  const solvedCount = Object.values(pub.boards).filter((b) => b.solved).length;
+  useCountUp(guessCount, () => playSfx('key-enter', { vol: 0.5, vary: 0.08 }));
+  useCountUp(solvedCount, () => playSfx('level-up', { vol: 0.7 }));
+  usePhaseSfx(pub.phase, pub.round, {
+    play: () => playSfx('typewriter', { vol: 0.6 }),
+    reveal: () => (solvedCount > 0 ? playSfx('success', { vol: 0.7 }) : playSfx('fail', { vol: 0.6 })),
+  });
+  useLastSeconds(pub.phaseEndsAt, 10, () => playSfx('clock-tick', { vol: 0.5 }), pub.phase === 'play');
   const ids = Object.keys(pub.boards).filter((id) => room.players.some((p) => p.id === id));
   const n = Math.max(1, ids.length);
   // Feldgröße so, dass alle Raster in 1–2 Reihen passen

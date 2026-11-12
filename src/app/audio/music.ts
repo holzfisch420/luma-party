@@ -29,7 +29,14 @@ interface Deck {
 }
 
 let current: Deck | null = null;
-const requests: { id: number; track: TrackId | null; vol: number }[] = [];
+const requests: { id: number; track: TrackId | null; vol: number; priority: number }[] = [];
+
+/** wichtigste Anforderung: höchste Priorität, bei Gleichstand die neueste */
+function top() {
+  let best: (typeof requests)[number] | undefined;
+  for (const r of requests) if (!best || r.priority >= best.priority) best = r;
+  return best;
+}
 let nextId = 1;
 let pendingStart = false;
 
@@ -57,7 +64,7 @@ function makeDeck(track: TrackId): Deck | null {
 }
 
 function apply() {
-  const want = requests.at(-1);
+  const want = top();
   const track = want?.track ?? null;
   const vol = want?.vol ?? 1;
   if (current && current.track === track) {
@@ -93,31 +100,34 @@ if (typeof window !== 'undefined') {
     if (!pendingStart || !current) return;
     pendingStart = false;
     const deck = current;
-    void deck.el.play().then(() => fadeTo(deck.gain, requests.at(-1)?.vol ?? 1, 1.2)).catch(() => (pendingStart = true));
+    void deck.el.play().then(() => fadeTo(deck.gain, top()?.vol ?? 1, 1.2)).catch(() => (pendingStart = true));
   };
   window.addEventListener('pointerdown', retry, { passive: true });
   window.addEventListener('keydown', retry);
 }
 
-/** Musik anfordern, solange die Komponente sichtbar ist (null = Stille) */
-export function useMusic(track: TrackId | null, vol = 1) {
+/**
+ * Musik anfordern, solange die Komponente sichtbar ist (null = Stille).
+ * priority: 0 = Grundmusik (Launcher, Spielmodul), 1 = Spielphase (überschreibt die Grundmusik)
+ */
+export function useMusic(track: TrackId | null, vol = 1, priority = 1) {
   useEffect(() => {
     const id = nextId++;
-    requests.push({ id, track, vol });
+    requests.push({ id, track, vol, priority });
     apply();
     return () => {
       const i = requests.findIndex((r) => r.id === id);
       if (i >= 0) requests.splice(i, 1);
       apply();
     };
-  }, [track, vol]);
+  }, [track, vol, priority]);
 }
 
 /** Musik kurz leiser (z. B. während einer Durchsage) */
 export function duckMusic(seconds = 1.5, to = 0.35) {
   if (!current) return;
   const deck = current;
-  const vol = requests.at(-1)?.vol ?? 1;
+  const vol = top()?.vol ?? 1;
   fadeTo(deck.gain, vol * to, 0.2);
   setTimeout(() => current === deck && fadeTo(deck.gain, vol, 0.8), seconds * 1000);
 }

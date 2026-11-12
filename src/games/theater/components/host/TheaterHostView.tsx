@@ -4,11 +4,22 @@ import type { HostViewProps } from '../../../game-types';
 import { HIDE_LABEL, sceneOf, speaks, windowAround } from '../../logic/view';
 import { useScript } from '../../script-cache';
 import type { ScriptLine, TheaterPublicState } from '../../types';
+import { useEffect, useRef } from 'react';
+import { useMusic } from '../../../../app/audio/music';
+import { playSfx } from '../../../../app/audio/sfx';
 
 /** Fernseher: Rolle und Text wie beim Karaoke – aktuelle Zeile im Scheinwerferlicht. */
 export function TheaterHostView({ room, state }: HostViewProps<TheaterPublicState>) {
   const pub = state.public;
   const script = useScript(pub.scriptId);
+  // leise Musik, damit man sich beim Textlernen noch hört
+  useMusic('theater', 0.3);
+  // Umblättern
+  const lastIndex = useRef(pub.index);
+  useEffect(() => {
+    if (pub.index !== lastIndex.current) playSfx('page-flip', { vol: 0.35, vary: 0.1 });
+    lastIndex.current = pub.index;
+  }, [pub.index]);
 
   if (!script) {
     return (

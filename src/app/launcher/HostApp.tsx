@@ -20,7 +20,7 @@ import { playSfx } from '../audio/sfx';
 
 /** Musik und Fanfare für die Rangliste */
 function ResultsSound() {
-  useMusic('results');
+  useMusic('results', 1, 0);
   useEffect(() => playSfx('fanfare'), []);
   return null;
 }

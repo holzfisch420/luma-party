@@ -7,6 +7,11 @@ import type { HostViewProps } from '../../../game-types';
 import { ROLE_INFO, ROLES } from '../../game-config';
 import type { VollmondPublicState } from '../../types';
 import { Avatar, nameOf, NightSky, useNarrator } from '../shared';
+import { useCountUp, usePhaseSfx } from '../../../../app/audio/hooks';
+import { useMusic } from '../../../../app/audio/music';
+import { playSfx, preloadSfx } from '../../../../app/audio/sfx';
+
+preloadSfx(['wind', 'ghost', 'birds', 'dun', 'gavel', 'knock', 'gunshot', 'fanfare', 'suspense', 'mystery', 'crickets']);
 
 const STORAGE_KEY = 'luma-vollmond-voice';
 
@@ -23,6 +28,29 @@ export function VollmondHostView({ room, state }: HostViewProps<VollmondPublicSt
   });
   useNarrator(pub.narration, voice);
   const night = pub.phase === 'night' || pub.phase === 'witch';
+  // Musik: nachts ruhig und unheimlich, tagsüber spannend
+  useMusic(night || pub.phase === 'roles' ? 'vollmond-night' : 'vollmond-day', night ? 0.8 : 0.7);
+
+  // Geräusche
+  usePhaseSfx(pub.phase, pub.day, {
+    roles: () => playSfx('mystery', { vol: 0.7 }),
+    night: () => {
+      playSfx('wind', { vol: 0.6 });
+      playSfx('ghost', { vol: 0.5, delay: 0.8 });
+    },
+    witch: () => playSfx('suspense', { vol: 0.6 }),
+    morning: () => (pub.news.length ? playSfx('dun', { vol: 0.8 }) : playSfx('birds', { vol: 0.7 })),
+    hunter: () => playSfx('suspense', { vol: 0.7 }),
+    day: () => playSfx('birds', { vol: 0.4 }),
+    vote: () => playSfx('gavel', { vol: 0.8 }),
+    verdict: () => {
+      playSfx('gavel', { vol: 0.9 });
+      if (pub.news.length) playSfx('dun', { vol: 0.8, delay: 0.5 });
+    },
+    end: () => (pub.winner === 'dorf' ? playSfx('fanfare', { vol: 0.8 }) : playSfx('dun', { vol: 0.9 })),
+  });
+  useCountUp(pub.graveyard.filter((d) => d.cause === 'jaeger').length, () => playSfx('gunshot', { vol: 0.8 }));
+  useCountUp(Object.keys(pub.votes).length, () => playSfx('knock', { vol: 0.5, vary: 0.1 }));
   const title = night ? `Nacht ${pub.day}` : pub.phase === 'roles' ? 'Die Rollen werden verteilt' : pub.phase === 'end' ? 'Das Spiel ist aus' : `Tag ${pub.day}`;
 
   return (
