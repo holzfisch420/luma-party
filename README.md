@@ -281,6 +281,13 @@ gesteuert wird Zeile für Zeile per Handy.
 - **Fernseher:** Bühne mit Vorhang, aktuelle Zeile im Scheinwerferlicht, zwei Zeilen davor und
   drei danach; ausgeblendete Zeilen zeigen nur die Rolle und Platzhalter.
 
+## Musik & Geräusche
+
+- Jedes Spiel und das Menü haben eigene Hintergrundmusik (FreePD / Kevin MacLeod, gemeinfrei/CC0), die beim Wechsel weich überblendet. Vollmond wechselt zwischen Nacht- und Tagmusik; während der Erzähler spricht, wird die Musik leiser.
+- Geräusche sind echte Aufnahmen (Kenney und „adbertiser-sfx“, CC0): Menü-Klicks, Fenster auf/zu, Beitreten, Start-Jingle, Fanfare bei der Rangliste und passende Effekte in jedem Spiel.
+- Lautstärke für Musik und Geräusche sowie „Ton aus“ im Einstellungsmenü (Zahnrad) – gilt pro Gerät.
+- Dateien liegen in `public/audio/` (Quellen und Lizenzen: `public/audio/CREDITS.md`), Code in `src/app/audio/` (`useMusic`, `playSfx`).
+
 ## Handy als Controller: Haptik & Home-Bildschirm
 
 - **Haptik** (`src/app/haptics.ts`, für alle Spiele nutzbar): Tasten und Spielereignisse
