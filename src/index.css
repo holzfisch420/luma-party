@@ -498,3 +498,37 @@ body {
   border-bottom: 1px solid #2a241c;
   height: 7px;
 }
+
+/* „Klingenrad“ – Zirkuszelt */
+.circus-bg {
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(20, 5, 5, 0.75) 100%),
+    radial-gradient(ellipse 55% 60% at 50% 45%, rgba(255, 236, 190, 0.35), transparent 70%),
+    radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.65), transparent 60%),
+    repeating-conic-gradient(from -90deg at 50% -30%, #a3161f 0deg 6deg, #f3e3c3 6deg 12deg);
+  color: #fff7e6;
+}
+
+/* Titel mit Glühbirnen-Rahmen */
+.marquee {
+  position: relative;
+  padding: 0.35em 1em;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #4a0d12, #2b0609);
+  box-shadow: 0 0 0 4px #e8b84a, 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+.marquee::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 13px;
+  border: 5px dotted #ffe9a8;
+  filter: drop-shadow(0 0 6px #ffd56b);
+  animation: marquee-blink 0.9s steps(2) infinite;
+}
+@keyframes marquee-blink {
+  50% { border-color: #e8b84a; filter: drop-shadow(0 0 2px #e8b84a); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee::before { animation: none; }
+}

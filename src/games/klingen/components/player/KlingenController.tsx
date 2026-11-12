@@ -13,7 +13,7 @@ type Props = PlayerViewProps<KlingenPublicState, KlingenPrivateState>;
 export function KlingenController(props: Props) {
   const { state } = props;
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[radial-gradient(ellipse_at_50%_20%,#4a2a18_0%,#2a160c_60%,#160b05_100%)] text-white safe-pt safe-pb">
+    <div className="circus-bg fixed inset-0 overflow-hidden safe-pt safe-pb">
       {state.public.mode === 'solo' ? <Solo {...props} /> : <Shared {...props} />}
     </div>
   );
@@ -31,7 +31,7 @@ function Solo({ me, state, sendAction }: Props) {
   return (
     <>
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 pt-3 safe-pt">
-        <span className="text-xl font-black">Klingenrad</span>
+        <span className="font-stage text-2xl font-black text-[#ffe9a8] [text-shadow:0_2px_0_#4a0d12]">Klingenrad</span>
         <span className={`rounded-full px-3 py-0.5 text-sm font-black tabular-nums ${secs <= 20 ? 'bg-[#e03131]' : 'bg-black/30'}`}>
           {Math.floor(secs / 60)}:{String(secs % 60).padStart(2, '0')} · {row.cleared} geschafft
         </span>

@@ -23,9 +23,9 @@ export function KlingenHostView({ room, state }: HostViewProps<KlingenPublicStat
   const secs = Math.ceil(useCountdown(pub.phaseEndsAt, 250) / 1000);
   const [muted, setMuted] = useState(klingenSounds.isMuted());
   return (
-    <div className="relative flex h-dvh flex-col overflow-hidden bg-[radial-gradient(ellipse_at_50%_30%,#4a2a18_0%,#2a160c_60%,#160b05_100%)] text-white">
-      <header className="relative z-10 flex items-center gap-4 px-[3vw] pt-4">
-        <span className="text-5xl font-black tracking-tight">Klingenrad</span>
+    <div className="circus-bg relative flex h-dvh flex-col overflow-hidden">
+      <header className="relative z-10 flex items-center gap-4 px-[3vw] pt-5">
+        <span className="marquee font-stage text-5xl font-black tracking-tight text-[#ffe9a8] [text-shadow:0_0_14px_rgba(255,213,107,0.7)]">Klingenrad</span>
         <span className="rounded-full bg-white/10 px-4 py-1.5 text-lg font-black">{pub.mode === 'solo' ? 'Einzeln – wer schafft die meisten Stufen?' : `Gemeinsames Rad · Runde ${pub.round}`}</span>
         {pub.mode === 'solo' && pub.phase === 'play' && (
           <span className={`rounded-full px-4 py-1.5 text-2xl font-black tabular-nums ${secs <= 20 ? 'bg-[#e03131]' : 'bg-[#e8590c]'}`}>
@@ -185,7 +185,7 @@ function SharedWheel({ room, pub, secs }: { room: RoomSnapshot; pub: KlingenPubl
       const cx = w / 2;
       const cy = h * 0.47;
       const len = r * 0.8;
-      const startY = h - len * 0.25;
+      const startY = h - len - 12;
       const impactY = cy + r * 0.72;
       const now = performance.now();
 

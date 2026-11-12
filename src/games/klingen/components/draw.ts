@@ -96,13 +96,36 @@ export function drawWheel(
     }
     ctx.strokeStyle = '#d99a2b';
   } else {
-    // Jahresringe
-    ctx.strokeStyle = 'rgba(70,35,12,0.35)';
-    ctx.lineWidth = Math.max(1, r * 0.018);
-    for (let i = 1; i <= 5; i++) {
+    // bemalte Zielscheibe eines Messerwerfers: rot-weiße Ringe auf Holz
+    const rings = ['#b3161f', '#f3e3c3', '#b3161f', '#f3e3c3', '#b3161f'];
+    rings.forEach((col, i) => {
+      ctx.fillStyle = col;
       ctx.beginPath();
-      ctx.arc(r * 0.02 * i, 0, r * (0.16 * i), 0, Math.PI * 2);
+      ctx.arc(0, 0, r * (0.88 - i * 0.17), 0, Math.PI * 2);
+      ctx.fill();
+    });
+    // Holzmaserung durchscheinen lassen (nur innerhalb der Scheibe)
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, r * 0.95, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(70,35,12,0.18)';
+    ctx.lineWidth = Math.max(1, r * 0.012);
+    for (let i = 0; i < 9; i++) {
+      ctx.beginPath();
+      ctx.moveTo(-r, -r + i * r * 0.25);
+      ctx.bezierCurveTo(-r * 0.3, -r + i * r * 0.25 + r * 0.06, r * 0.3, -r + i * r * 0.25 - r * 0.06, r, -r + i * r * 0.25);
       ctx.stroke();
+    }
+    ctx.restore();
+    // Sterne zwischen den Ringen
+    ctx.fillStyle = '#e8b84a';
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      const d = r * 0.795;
+      ctx.beginPath();
+      ctx.arc(Math.cos(a) * d, Math.sin(a) * d, r * 0.028, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.strokeStyle = '#5e2f12';
   }
@@ -111,10 +134,13 @@ export function drawWheel(
   ctx.arc(0, 0, r * 0.97, 0, Math.PI * 2);
   ctx.stroke();
   // Markierung, damit man die Drehung sieht
-  ctx.fillStyle = opts.boss ? '#d99a2b' : '#5e2f12';
+  ctx.fillStyle = opts.boss ? '#d99a2b' : '#e8b84a';
   ctx.beginPath();
   ctx.arc(0, 0, r * 0.1, 0, Math.PI * 2);
   ctx.fill();
+  ctx.strokeStyle = opts.boss ? '#a8741c' : '#5e2f12';
+  ctx.lineWidth = r * 0.025;
+  ctx.stroke();
   if (opts.flash) {
     ctx.fillStyle = `rgba(255,255,255,${opts.flash})`;
     ctx.beginPath();

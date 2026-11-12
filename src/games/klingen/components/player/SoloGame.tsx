@@ -72,10 +72,11 @@ export function SoloGame({ seed, startStage, lives, maxLives, active, color, onP
       const now = performance.now();
       const r = Math.min(w * 0.3, h * 0.22);
       const cx = w / 2;
-      const cy = h * 0.34;
+      const cy = h * 0.32;
       const len = r * 0.95;
       const angle = g.mode === 'play' || g.mode === 'fail' ? angleAt(g.stage.spin, (now - g.startedAt) / 1000) : angleAt(g.stage.spin, (g.modeAt - g.startedAt) / 1000);
-      const startY = h - len * 0.4 - 24;
+      // Messer liegt unten bereit – ganz sichtbar (Griff endet über dem unteren Rand)
+      const startY = h - len - 34;
       const impactY = cy + r * 0.72;
 
       // Messer kommt an?
@@ -144,7 +145,7 @@ export function SoloGame({ seed, startStage, lives, maxLives, active, color, onP
       }
       // übrige Messer links unten
       for (let i = 0; i < g.left - (g.flying !== null ? 1 : 0) - 1 && g.mode === 'play'; i++) {
-        drawKnife(ctx, 22, h - 30 - i * 16, 0, 34, 'rgba(255,255,255,0.75)');
+        drawKnife(ctx, 20 + i * 13, h - 76, -Math.PI / 2, 44, 'rgba(255,247,230,0.8)');
       }
     };
     raf = requestAnimationFrame(loop);

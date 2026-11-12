@@ -32,7 +32,7 @@ export function KlingenCover({ focused }: CoverProps) {
     return () => cancelAnimationFrame(raf);
   }, [focused]);
   return (
-    <div className="relative size-full bg-[radial-gradient(ellipse_at_50%_30%,#6b3a1f_0%,#2a160c_75%)]">
+    <div className="circus-bg relative size-full">
       <canvas ref={ref} className="absolute inset-0 size-full" role="img" aria-label="Klingenrad" />
     </div>
   );
