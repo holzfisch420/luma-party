@@ -14,6 +14,11 @@ export function KlingenCover({ focused }: CoverProps) {
       const c = ref.current;
       if (!c) return;
       const { w, h, dpr } = fitCanvas(c);
+      // Größe noch unbekannt (Kachel wird gerade aufgebaut) – nächstes Bild nochmal
+      if (w === 0 || h === 0) {
+        raf = requestAnimationFrame(draw);
+        return;
+      }
       const ctx = c.getContext('2d')!;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);

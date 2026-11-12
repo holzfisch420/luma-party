@@ -40,13 +40,15 @@ export function HomeTile({ label, art, focused, actionLabel, showBubble = true, 
         )}
       </AnimatePresence>
 
+      {/* drehender Lichtrahmen hinter der ausgewählten Kachel */}
+      {focused && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="tile-glow" />}
       <motion.button
         type="button"
         onClick={onClick}
         aria-label={label}
         aria-current={focused}
         tabIndex={-1}
-        animate={{ scale: focused ? 1.06 : 1 }}
+        animate={{ scale: focused ? 1.08 : 1, y: focused ? -4 : 0 }}
         whileTap={{ scale: focused ? 1.02 : 0.96 }}
         transition={{ type: 'spring', stiffness: 420, damping: 26 }}
         className={`absolute inset-0 rounded-[24%] p-[6%] outline-none ${
@@ -59,6 +61,7 @@ export function HomeTile({ label, art, focused, actionLabel, showBubble = true, 
           {art}
           {/* Glanz */}
           <div className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent" />
+          {focused && <div className="tile-sheen" />}
         </div>
         <AnimatePresence>
           {focused && actionLabel && (

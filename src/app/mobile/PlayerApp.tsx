@@ -91,10 +91,10 @@ function PlayerResults({ room, meId, canControl, onLeave, onError }: { room: Roo
     return <ResultsView room={room} results={results} device="player" meId={meId} canControl={canControl} onRestart={restart} onBack={back} />;
   }
   return (
-    <div className="home-bg min-h-dvh px-5 py-8 safe-pt">
+    <div className="relative min-h-dvh safe-pt">
       <GameResults compact meId={meId} results={results} gameName={getGameMeta(results.gameId)?.name ?? 'Spiel'} canControl={canControl} onRestart={restart} onBack={back} />
-      <Button variant="ghost" className="mx-auto mt-6 flex" icon={<LogOut className="size-4" />} onClick={onLeave}>
-        Raum verlassen
+      <Button variant="ghost" size="sm" className="absolute right-3 top-3 z-10 bg-white/80" icon={<LogOut className="size-4" />} onClick={onLeave}>
+        Verlassen
       </Button>
     </div>
   );

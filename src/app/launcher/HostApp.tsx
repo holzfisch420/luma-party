@@ -75,7 +75,7 @@ export function HostApp() {
             ResultsView ? (
               <ResultsView room={room} results={results} device="host" canControl onRestart={restart} onBack={back} />
             ) : (
-              <div className="home-bg flex min-h-dvh items-start justify-center overflow-y-auto px-8 py-10">
+              <div className="h-dvh overflow-y-auto">
                 <GameResults results={results} gameName={getGameMeta(results.gameId)?.name ?? 'Spiel'} canControl onRestart={restart} onBack={back} />
               </div>
             )

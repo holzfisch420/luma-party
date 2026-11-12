@@ -61,24 +61,46 @@ export function LaunchPanel({ meta, room, canEdit = true, connectedPlayers, canS
     <AnimatePresence>
       {meta && (
         <motion.div className="fixed inset-0 z-40 flex items-end justify-center font-sans sm:items-center sm:p-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <motion.div className="absolute inset-0 bg-[#dfe5ea]/70 backdrop-blur-md" onClick={onClose} />
+          {/* Hintergrund in den Farben des Spiels */}
+          <motion.div
+            className="absolute inset-0 backdrop-blur-xl"
+            style={{ background: `radial-gradient(80% 70% at 30% 40%, color-mix(in srgb, ${meta.theme.from} 55%, transparent), transparent 70%), radial-gradient(70% 60% at 80% 70%, color-mix(in srgb, ${meta.theme.to} 50%, transparent), transparent 70%), rgba(223,229,234,0.55)` }}
+            onClick={onClose}
+          />
           <motion.div
             initial={{ y: 50, scale: 0.94, opacity: 0 }}
             animate={{ y: 0, scale: 1, opacity: 1 }}
             exit={{ y: 30, scale: 0.96, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 340, damping: 30 }}
-            className="relative flex max-h-[94dvh] w-full max-w-5xl flex-col gap-6 overflow-y-auto rounded-t-[36px] border border-white bg-gradient-to-b from-white to-[#eef2f5] p-6 text-home-text shadow-[0_40px_100px_-30px_rgba(40,50,70,0.55)] sm:flex-row sm:gap-10 sm:rounded-[36px] sm:p-10"
+            className="relative flex max-h-[94dvh] w-full max-w-6xl flex-col overflow-y-auto rounded-t-[36px] border border-white bg-white text-home-text shadow-[0_40px_100px_-30px_rgba(40,50,70,0.65)] sm:flex-row sm:rounded-[40px]"
           >
-            <div className="mx-auto w-32 shrink-0 sm:w-[38%]">
-              <div className="home-tile relative aspect-square rounded-[24%] p-[6%]">
-                <div className="relative size-full overflow-hidden rounded-[19%]">
-                  <TileArt meta={meta} focused />
+            {/* linke Seite: Titelbild auf Spielfarben */}
+            <div
+              className="relative flex shrink-0 items-center justify-center overflow-hidden p-8 sm:w-[42%] sm:p-12"
+              style={{ background: `linear-gradient(150deg, ${meta.theme.from}, ${meta.theme.via ?? meta.theme.from} 55%, ${meta.theme.to})` }}
+            >
+              <div className="absolute -left-1/4 -top-1/4 size-[80%] rounded-full bg-white/15 blur-2xl" />
+              <div className="absolute -bottom-1/3 -right-1/4 size-[90%] rounded-full bg-black/15 blur-2xl" />
+              <motion.div
+                initial={{ rotate: -8, scale: 0.8 }}
+                animate={{ rotate: 0, scale: 1 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 14, delay: 0.05 }}
+                className="relative w-32 sm:w-full"
+              >
+                <div className="tile-glow" />
+                <div className="relative aspect-square rounded-[24%] bg-white/90 p-[5%] shadow-[0_30px_60px_-20px_rgba(0,0,0,0.55)]">
+                  <div className="relative size-full overflow-hidden rounded-[20%]">
+                    <TileArt meta={meta} focused />
+                    <div className="tile-sheen" />
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
-            <div className="flex min-w-0 flex-1 flex-col justify-center gap-4">
+            <div className="flex min-w-0 flex-1 flex-col justify-center gap-4 p-6 sm:p-10">
               <div>
-                <h2 className="text-4xl font-black tracking-tight sm:text-6xl">{meta.name}</h2>
+                <h2 className="text-4xl font-black tracking-tight sm:text-7xl" style={{ backgroundImage: `linear-gradient(120deg, ${meta.theme.from}, ${meta.theme.accent})`, WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
+                  {meta.name}
+                </h2>
                 <p className="mt-1 text-lg font-extrabold sm:text-2xl" style={{ color: meta.theme.accent }}>
                   {meta.tagline}
                 </p>
@@ -87,7 +109,15 @@ export function LaunchPanel({ meta, room, canEdit = true, connectedPlayers, canS
               <GameMetaChips meta={meta} />
               {module?.QuickSettings && <QuickSettingsBox room={room} gameId={meta.id} disabled={!canEdit} />}
               <div className="mt-2 flex flex-wrap gap-3">
-                <Button variant="primary" size="xl" icon={<Play className="size-6 fill-current" />} disabled={!available || !enough || !canStart} loading={starting} onClick={onStart}>
+                <Button
+                  variant="primary"
+                  size="xl"
+                  className={available && enough && canStart ? 'pulse-glow' : ''}
+                  icon={<Play className="size-6 fill-current" />}
+                  disabled={!available || !enough || !canStart}
+                  loading={starting}
+                  onClick={onStart}
+                >
                   {available ? 'Start' : 'Bald verfügbar'}
                 </Button>
                 {module?.SettingsPanel && (

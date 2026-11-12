@@ -133,6 +133,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
   );
   const statusCorner = (
     <div className="flex flex-col items-end gap-1">
+      <Clock />
       {status !== 'connected' && <ConnectionStatusBadge status={status} />}
       {controllerName && <div className="text-xs font-bold text-home-muted">{controllerName} wählt per Handy</div>}
     </div>
@@ -206,6 +207,21 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
           </div>
         ))}
       </Modal>
+    </div>
+  );
+}
+
+/** Uhr und Datum oben rechts (wie in einem Konsolen-Menü) */
+function Clock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 15_000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div className="text-right leading-none text-home-text">
+      <div className="text-[clamp(1.6rem,2.4vw,2.6rem)] font-black tabular-nums tracking-tight">{now.toLocaleTimeString('de-CH', { hour: '2-digit', minute: '2-digit' })}</div>
+      <div className="mt-1 text-[clamp(0.7rem,0.9vw,0.95rem)] font-extrabold uppercase tracking-[0.18em] text-home-muted">{now.toLocaleDateString('de-CH', { weekday: 'short', day: 'numeric', month: 'long' })}</div>
     </div>
   );
 }
