@@ -79,6 +79,8 @@ export interface GameEngine<Pub = unknown, Priv = unknown> {
   getPrivateState(playerId: PlayerId): Priv | null;
   /** Event-Handling – jede Aktion wird hier serverseitig validiert */
   handleAction(playerId: PlayerId, type: string, payload: unknown): void;
+  /** Aktionen vom Hauptbildschirm (optional, z. B. wenn der Fernseher Treffer berechnet) */
+  handleHostAction?(type: string, payload: unknown): void;
   onPlayerJoined?(player: GamePlayer): void;
   onPlayerLeft?(player: GamePlayer): void;
   onPlayerDisconnected?(player: GamePlayer): void;

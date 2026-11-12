@@ -128,6 +128,10 @@ export class GameSession {
     this.safely(() => this.engine.onViewerSync?.(viewer));
   }
 
+  handleHostAction(type: string, payload: unknown): void {
+    this.safely(() => this.engine.handleHostAction?.(type, payload));
+  }
+
   handleAction(playerId: PlayerId, type: string, payload: unknown): void {
     this.safely(() => this.engine.handleAction(playerId, type, payload));
   }

@@ -388,8 +388,13 @@ export class Room implements SessionHost {
   }
 
   handleGameAction(socket: TypedSocket, type: unknown, payload: unknown): void {
-    if (!this.session || socket.data.role !== 'player' || !socket.data.playerId) return;
-    if (typeof type !== 'string' || type.length > 40) return;
+    if (!this.session || typeof type !== 'string' || type.length > 40) return;
+    // Aktionen vom Hauptbildschirm (z. B. Treffer, die der Fernseher berechnet)
+    if (socket.data.role === 'host') {
+      if (this.isHost(socket)) this.session.handleHostAction(type, payload);
+      return;
+    }
+    if (socket.data.role !== 'player' || !socket.data.playerId) return;
     const record = this.players.get(socket.data.playerId);
     if (!record || record.socketId !== socket.id) return;
     this.session.handleAction(record.id, type, payload);

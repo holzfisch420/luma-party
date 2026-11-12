@@ -12,6 +12,7 @@ import { echtServerModule } from '../../games/echt/game-engine';
 import { racerServerModule } from '../../games/racer/game-engine';
 import { ploppServerModule } from '../../games/plopp/game-engine';
 import { wortServerModule } from '../../games/wort/game-engine';
+import { klingenServerModule } from '../../games/klingen/game-engine';
 
 const modules = new Map<string, ServerGameModule<any>>();
 
@@ -37,3 +38,4 @@ registerServerGame(echtServerModule);
 registerServerGame(racerServerModule);
 registerServerGame(ploppServerModule);
 registerServerGame(wortServerModule);
+registerServerGame(klingenServerModule);
