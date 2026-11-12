@@ -153,6 +153,16 @@ Antwort tippen, Kugelfisch weitergeben – bevor er platzt (2–12 Spieler).
 - Über 60 Kategorien mit zusammen über 7000 Antworten in 8 Paketen (Alltag, Essen, Länder & Orte, Tiere & Natur, Film/Serien/Games, Musik & Rap, Sport, Geeker & Party) plus automatisch erzeugte Buchstaben-Aufgaben – keine KI nötig.
 - Code: `src/games/plopp/` (Aufgaben in `prompts-*.ts`, Prüfung in `logic/answers.ts`).
 
+### Wortknacker
+
+Geheimes Wort mit 5 Buchstaben in 6 Versuchen erraten – alle gleichzeitig (1–12 Spieler).
+
+- Jede Person rät auf dem Handy mit eigener Tastatur (QWERTZ mit Ä, Ö, Ü). Grün = richtig an dieser Stelle, Gelb = kommt vor, aber woanders, Grau = kommt nicht vor; doppelte Buchstaben werden korrekt behandelt.
+- Der Fernseher zeigt alle Raster nebeneinander – nur die Farben, die Buchstaben erst bei der Auflösung.
+- Nur echte Wörter zählen als Versuch: knapp 12 000 deutsche Wörter mit 5 Buchstaben (aus den MIT-lizenzierten npm-Paketen „all-the-german-words“ und „an-array-of-german-words“). Lösungswörter sind knapp 500 bekannte Grundformen.
+- Punkte: im 1. Versuch 6, im 6. Versuch 1, dazu +2/+1 für die zwei Schnellsten. Einstellbar: Anzahl Wörter und Zeit pro Wort.
+- Code: `src/games/wort/`.
+
 ### Imposter
 Bluff-Spiel für **3–12 Spieler** im mysteriösen Look (dunkel, violetter Nebel).
 

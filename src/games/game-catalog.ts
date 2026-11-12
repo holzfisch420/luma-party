@@ -11,8 +11,9 @@ import { huhnMeta } from './huhn/game-config';
 import { echtMeta } from './echt/game-config';
 import { racerMeta } from './racer/game-config';
 import { ploppMeta } from './plopp/game-config';
+import { wortMeta } from './wort/game-config';
 
-export const GAME_CATALOG: GameMeta[] = [montagsmalerMeta, imposterMeta, echtMeta, ploppMeta, racerMeta, huhnMeta, panzerMeta, theaterMeta];
+export const GAME_CATALOG: GameMeta[] = [montagsmalerMeta, imposterMeta, echtMeta, ploppMeta, wortMeta, racerMeta, huhnMeta, panzerMeta, theaterMeta];
 
 export const DEFAULT_GAME_ID = montagsmalerMeta.id;
 
