@@ -53,6 +53,9 @@ describe('Wortknacker', () => {
     expect(isAllowed('KATZE')).toBe(true);
     expect(isAllowed('HAUSE')).toBe(true);
     expect(isAllowed('QXZVB')).toBe(false);
+    // keine Namen, Orte oder obskuren Einträge
+    for (const w of ['ABECE', 'PETER', 'OBAMA', 'HORST', 'PARIS', 'JAMIE', 'GUIDO', 'WOODS']) expect(isAllowed(w), w).toBe(false);
+    for (const w of ['BIRKE', 'AMSEL', 'TRAUM', 'LEISE', 'MÄUSE']) expect(isAllowed(w), w).toBe(true);
     expect(normalizeWord('äpfel')).toBe('ÄPFEL');
   });
 
