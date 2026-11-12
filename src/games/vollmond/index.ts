@@ -11,6 +11,7 @@ import type { VollmondPrivateState, VollmondPublicState } from './types';
 
 export const vollmondModule: ClientGameModule<VollmondPublicState, VollmondPrivateState, VollmondSettings> = {
   meta: vollmondMeta,
+  music: 'vollmond-night',
   Cover: VollmondCover,
   HostView: VollmondHostView,
   PlayerView: VollmondController,

@@ -14,6 +14,16 @@ import { useSession } from '../session/session-store';
 import { emitWithAck, getSocket } from '../session/socket';
 import { HomeScreen } from './HomeScreen';
 import { HostMenu } from './HostMenu';
+import { useEffect } from 'react';
+import { useMusic } from '../audio/music';
+import { playSfx } from '../audio/sfx';
+
+/** Musik und Fanfare für die Rangliste */
+function ResultsSound() {
+  useMusic('results');
+  useEffect(() => playSfx('fanfare'), []);
+  return null;
+}
 
 /** Hauptbildschirm (TV / Beamer / Desktop). */
 export function HostApp() {
@@ -60,6 +70,7 @@ export function HostApp() {
         >
           {room.phase === 'lobby' && <HomeScreen room={room} status={status} onOpenMenu={() => setMenuOpen(true)} menuOpen={menuOpen} />}
           {room.phase === 'playing' && <HostGameScreen room={room} onMenu={() => setMenuOpen(true)} />}
+          {room.phase === 'results' && <ResultsSound />}
           {room.phase === 'results' && results && (
             ResultsView ? (
               <ResultsView room={room} results={results} device="host" canControl onRestart={restart} onBack={back} />

@@ -11,6 +11,7 @@ import type { WortPrivateState, WortPublicState } from './types';
 
 export const wortModule: ClientGameModule<WortPublicState, WortPrivateState, WortSettings> = {
   meta: wortMeta,
+  music: 'wort',
   Cover: WortCover,
   HostView: WortHostView,
   PlayerView: WortController,

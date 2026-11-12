@@ -11,6 +11,7 @@ import type { EchtPrivateState, EchtPublicState } from './types';
 
 export const echtModule: ClientGameModule<EchtPublicState, EchtPrivateState, EchtSettings> = {
   meta: echtMeta,
+  music: 'echt',
   Cover: EchtCover,
   HostView: EchtHostView,
   PlayerView: EchtController,

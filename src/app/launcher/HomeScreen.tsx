@@ -1,5 +1,5 @@
 import { BookOpen, HelpCircle, Maximize, QrCode as QrIcon, Settings, Users } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppTileArt } from '../../components/launcher/AppTileArt';
 import { GameSettingsSheet } from '../../components/launcher/GameSettingsSheet';
 import { HomeDock, type DockItem } from '../../components/launcher/HomeDock';
@@ -17,6 +17,8 @@ import { getClientGame, listLauncherGames } from '../../games/game-registry';
 import type { RoomSnapshot } from '../../shared/types/room';
 import type { ConnectionStatus } from '../session/session-store';
 import { emitWithAck, getSocket } from '../session/socket';
+import { useMusic } from '../audio/music';
+import { playSfx } from '../audio/sfx';
 
 const GAMES = listLauncherGames();
 const APP_WORDS = 'app:words';
@@ -36,6 +38,15 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
   const [starting, setStarting] = useState(false);
   const joinUrl = useJoinUrl(room.code);
   const connected = room.players.filter((p) => p.isConnected).length;
+  useMusic('menu');
+
+  // Klang, wenn jemand dazukommt oder geht
+  const lastCount = useRef(connected);
+  useEffect(() => {
+    if (connected > lastCount.current) playSfx('join');
+    else if (connected < lastCount.current) playSfx('leave', { vol: 0.6 });
+    lastCount.current = connected;
+  }, [connected]);
 
   // Auswahl vom Smartphone übernehmen
   useEffect(() => {
@@ -76,6 +87,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
 
   const start = async () => {
     setStarting(true);
+    playSfx('start');
     try {
       await emitWithAck('room:startGame');
       setLaunchId(null);

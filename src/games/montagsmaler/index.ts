@@ -14,6 +14,7 @@ import type { MontagsmalerPrivateState, MontagsmalerPublicState } from './types'
 
 export const montagsmalerModule: ClientGameModule<MontagsmalerPublicState, MontagsmalerPrivateState, MontagsmalerSettings> = {
   meta: montagsmalerMeta,
+  music: 'montagsmaler',
   Cover: MontagsmalerCover,
   HostView: MontagsmalerHostView,
   PlayerView: MontagsmalerPlayerView,

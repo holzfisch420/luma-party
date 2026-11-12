@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { EmptyTile, HomeTile } from './HomeTile';
+import { ui } from '../../app/audio/sfx';
 
 export interface GridItem {
   id: string;
@@ -76,6 +77,7 @@ export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, r
     if (next === page) return;
     setDirection(next > page ? 1 : -1);
     setPage(next);
+    ui.page();
     const first = items[next * perPage];
     if (first) onFocus(first.id);
   };
@@ -94,11 +96,17 @@ export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, r
       else if (e.key === 'ArrowUp') next = samePage(i - columns) ? i - columns : null;
       else if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        if (items[i]) onActivate(items[i].id);
+        if (items[i]) {
+          ui.select();
+          onActivate(items[i].id);
+        }
         return;
       } else return;
       e.preventDefault();
-      if (next !== null && next >= 0 && next < items.length) onFocus(items[next]!.id);
+      if (next !== null && next >= 0 && next < items.length) {
+        ui.move();
+        onFocus(items[next]!.id);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -153,7 +161,15 @@ export function HomeGrid({ items, focusedId, onFocus, onActivate, columns = 5, r
                   focused={item.id === focusedId}
                   actionLabel={item.actionLabel}
                   fill={fill}
-                  onClick={() => (item.id === focusedId ? onActivate(item.id) : onFocus(item.id))}
+                  onClick={() => {
+                    if (item.id === focusedId) {
+                      ui.select();
+                      onActivate(item.id);
+                    } else {
+                      ui.move();
+                      onFocus(item.id);
+                    }
+                  }}
                 />
               ) : (
                 <EmptyTile key={`empty-${k}`} fill={fill} />

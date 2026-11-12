@@ -12,6 +12,7 @@ import type { ImposterPrivateState, ImposterPublicState } from './types';
 
 export const imposterModule: ClientGameModule<ImposterPublicState, ImposterPrivateState, ImposterSettings> = {
   meta: imposterMeta,
+  music: 'imposter',
   Cover: ImposterCover,
   HostView: ImposterHostView,
   PlayerView: ImposterController,

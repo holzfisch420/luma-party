@@ -11,6 +11,7 @@ import type { KlingenPrivateState, KlingenPublicState } from './types';
 
 export const klingenModule: ClientGameModule<KlingenPublicState, KlingenPrivateState, KlingenSettings> = {
   meta: klingenMeta,
+  music: 'klingen',
   Cover: KlingenCover,
   HostView: KlingenHostView,
   PlayerView: KlingenController,

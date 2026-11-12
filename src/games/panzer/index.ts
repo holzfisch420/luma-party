@@ -12,6 +12,7 @@ import type { PanzerPrivateState, PanzerPublicState } from './types';
 
 export const panzerModule: ClientGameModule<PanzerPublicState, PanzerPrivateState, PanzerSettings> = {
   meta: panzerMeta,
+  music: 'panzer',
   Cover: PanzerCover,
   HostView: PanzerHostView,
   PlayerView: PanzerController,

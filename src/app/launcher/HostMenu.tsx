@@ -4,6 +4,7 @@ import type { RoomSnapshot } from '../../shared/types/room';
 import { Button } from '../../components/ui/Button';
 import { SettingRow, Toggle } from '../../components/ui/Controls';
 import { Modal } from '../../components/ui/Modal';
+import { AudioSettingsRows } from '../../components/ui/AudioSettings';
 import { getSocket } from '../session/socket';
 
 export function HostMenu({ room, open, onClose, onNewRoom }: { room: RoomSnapshot; open: boolean; onClose: () => void; onNewRoom: () => void }) {
@@ -12,6 +13,7 @@ export function HostMenu({ room, open, onClose, onNewRoom }: { room: RoomSnapsho
   return (
     <Modal open={open} onClose={onClose} title="Einstellungen" subtitle={`Raum ${room.code}`}>
       <div className="divide-y divide-home-line/70">
+        <AudioSettingsRows />
         <SettingRow label="Spielauswahl nur am Bildschirm" hint="Sperrt die Auswahl über das Handy der ersten Person">
           <Toggle checked={room.hostHasControl} onChange={(enabled) => socket.emit('room:setHostControl', { enabled })} label="Host-Steuerung" />
         </SettingRow>

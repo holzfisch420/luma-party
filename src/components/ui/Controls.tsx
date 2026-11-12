@@ -2,6 +2,7 @@
 import { motion } from 'framer-motion';
 import { Minus, Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { ui } from '../../app/audio/sfx';
 
 export function Toggle({ checked, onChange, disabled, label }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean; label?: string }) {
   return (
@@ -11,7 +12,10 @@ export function Toggle({ checked, onChange, disabled, label }: { checked: boolea
       aria-checked={checked}
       aria-label={label}
       disabled={disabled}
-      onClick={() => onChange(!checked)}
+      onClick={() => {
+        ui.toggle();
+        onChange(!checked);
+      }}
       className={`relative h-8 w-14 shrink-0 rounded-full border transition-colors duration-300 disabled:opacity-40 ${checked ? 'border-cyan-dark bg-cyan' : 'border-home-line bg-[#dfe4e9]'}`}
     >
       <motion.span
@@ -43,7 +47,10 @@ export function Segmented<T extends string | number>({
           key={String(o.value)}
           type="button"
           disabled={disabled}
-          onClick={() => onChange(o.value)}
+          onClick={() => {
+            ui.toggle();
+            onChange(o.value);
+          }}
           className={`relative flex-1 rounded-full px-3 py-2 text-sm font-extrabold transition-colors ${value === o.value ? 'text-white' : 'text-home-muted hover:text-home-text'}`}
         >
           {value === o.value && (
@@ -62,11 +69,17 @@ export function Stepper({ value, min, max, step = 1, onChange, disabled, format 
   const btn = 'grid size-9 place-items-center rounded-full bg-white text-home-text shadow-sm border border-home-line hover:text-cyan disabled:opacity-30';
   return (
     <div className={`flex items-center gap-1 rounded-full border border-home-line bg-[#e9edf1] p-1 ${disabled ? 'opacity-50' : ''}`}>
-      <button type="button" aria-label="Weniger" disabled={disabled || value <= min} onClick={() => onChange(Math.max(min, value - step))} className={btn}>
+      <button type="button" aria-label="Weniger" disabled={disabled || value <= min} onClick={() => {
+        ui.tap();
+        onChange(Math.max(min, value - step));
+      }} className={btn}>
         <Minus className="size-4" />
       </button>
       <span className="min-w-[4.5rem] text-center text-sm font-black tabular-nums">{format ? format(value) : value}</span>
-      <button type="button" aria-label="Mehr" disabled={disabled || value >= max} onClick={() => onChange(Math.min(max, value + step))} className={btn}>
+      <button type="button" aria-label="Mehr" disabled={disabled || value >= max} onClick={() => {
+        ui.tap();
+        onChange(Math.min(max, value + step));
+      }} className={btn}>
         <Plus className="size-4" />
       </button>
     </div>
@@ -78,7 +91,10 @@ export function Chip({ active, onClick, children, disabled }: { active: boolean;
     <button
       type="button"
       disabled={disabled}
-      onClick={onClick}
+      onClick={() => {
+        ui.toggle();
+        onClick();
+      }}
       aria-pressed={active}
       className={`rounded-full border-2 px-3.5 py-1.5 text-sm font-bold transition-all disabled:opacity-40 ${
         active ? 'border-cyan bg-cyan text-white shadow' : 'border-home-line bg-white text-home-muted hover:border-cyan/60 hover:text-home-text'

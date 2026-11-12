@@ -18,6 +18,7 @@ function RacerHost(props: HostViewProps<RacerPublicState>) {
 
 export const racerModule: ClientGameModule<RacerPublicState, RacerPrivateState, RacerSettings> = {
   meta: racerMeta,
+  music: 'racer',
   Cover: RacerCover,
   HostView: RacerHost,
   PlayerView: RacerController,

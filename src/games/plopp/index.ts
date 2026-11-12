@@ -11,6 +11,7 @@ import type { PloppPrivateState, PloppPublicState } from './types';
 
 export const ploppModule: ClientGameModule<PloppPublicState, PloppPrivateState, PloppSettings> = {
   meta: ploppMeta,
+  music: 'plopp',
   Cover: PloppCover,
   HostView: PloppHostView,
   PlayerView: PloppController,

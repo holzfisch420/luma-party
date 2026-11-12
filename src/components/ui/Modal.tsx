@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
+import { ui } from '../../app/audio/sfx';
 import { createPortal } from 'react-dom';
 
 interface ModalProps {
@@ -20,6 +21,7 @@ const openStack: symbol[] = [];
 export function Modal({ open, onClose, title, subtitle, children, footer, width = 'max-w-2xl' }: ModalProps) {
   useEffect(() => {
     if (!open) return;
+    ui.open();
     const id = Symbol('modal');
     openStack.push(id);
     const onKey = (e: KeyboardEvent) => {
@@ -31,6 +33,7 @@ export function Modal({ open, onClose, title, subtitle, children, footer, width 
     return () => {
       window.removeEventListener('keydown', onKey);
       openStack.splice(openStack.indexOf(id), 1);
+      ui.close();
     };
   }, [open, onClose]);
 

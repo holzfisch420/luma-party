@@ -12,6 +12,7 @@ import type { TheaterPublicState } from './types';
 
 export const theaterModule: ClientGameModule<TheaterPublicState, null, TheaterSettings> = {
   meta: theaterMeta,
+  music: 'theater',
   Cover: TheaterCover,
   HostView: TheaterHostView,
   PlayerView: TheaterController,

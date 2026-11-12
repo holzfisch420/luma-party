@@ -12,6 +12,7 @@ import type { HuhnPrivateState, HuhnPublicState } from './types';
 
 export const huhnModule: ClientGameModule<HuhnPublicState, HuhnPrivateState, HuhnSettings> = {
   meta: huhnMeta,
+  music: 'huhn',
   Cover: HuhnCover,
   HostView: HuhnHostView,
   PlayerView: HuhnController,

@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, Play, SlidersHorizontal } from 'lucide-react';
 import { useEffect } from 'react';
+import { ui } from '../../app/audio/sfx';
 import { createPortal } from 'react-dom';
 import { getClientGame } from '../../games/game-registry';
 import type { GameMeta } from '../../shared/types/game';
@@ -31,6 +32,11 @@ export function LaunchPanel({ meta, room, canEdit = true, connectedPlayers, canS
   const available = !!meta && meta.status !== 'coming-soon' && !!module;
   const enough = !!meta && connectedPlayers >= meta.minPlayers;
 
+  // Klang beim Öffnen
+  useEffect(() => {
+    if (meta) ui.open();
+  }, [meta?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (!meta || !keyboard) return;
     const onKey = (e: KeyboardEvent) => {
@@ -39,6 +45,7 @@ export function LaunchPanel({ meta, room, canEdit = true, connectedPlayers, canS
       if (e.key === 'Escape' || e.key === 'Backspace') {
         e.preventDefault();
         e.stopImmediatePropagation();
+        ui.back();
         onClose();
       } else if (e.key === 'Enter' && available && enough && canStart) {
         e.preventDefault();

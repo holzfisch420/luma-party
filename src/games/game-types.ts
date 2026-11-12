@@ -6,6 +6,7 @@
  * Das Server-Gegenstück ist `ServerGameModule` in `src/server/game-engine/types.ts`.
  */
 import type { ComponentType } from 'react';
+import type { TrackId } from '../app/audio/music';
 import type { GameMeta, GameResults } from '../shared/types/game';
 import type { GameStatePayload, PublicPlayer, RoomSnapshot } from '../shared/types/room';
 
@@ -61,4 +62,6 @@ export interface ClientGameModule<Pub = any, Priv = any, S = any> {
   ResultsView?: ComponentType<ResultsViewProps>;
   /** kurze Spielregeln für den Launcher */
   rules?: string[];
+  /** Hintergrundmusik auf dem Hauptbildschirm (Phasen können sie mit useMusic überschreiben) */
+  music?: TrackId;
 }
