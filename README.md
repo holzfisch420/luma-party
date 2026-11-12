@@ -142,6 +142,17 @@ und eigenem Look (Notizzettel auf einer Pinnwand, Handschrift).
   (eine Zeile pro Satz, BLUBB oder ___ markiert die Lücke, bis 600 Sätze). Sie werden privat gespeichert –
   mit Konto auf allen eigenen Geräten, sonst auf dem Gerät – und lassen sich mit den eingebauten Sammlungen mischen.
 
+### Plopp!
+
+Antwort tippen, Kugelfisch weitergeben – bevor er platzt (2–12 Spieler).
+
+- Alle sehen dieselbe Aufgabe („Ein Tier“, „Eine Stadt mit Z“, „Ein Deutschrapper“ …). Wer den Fisch hat, tippt eine passende Antwort aufs Handy. Gilt sie, wandert der Fisch zur nächsten Person; jede Antwort zählt nur einmal pro Runde.
+- Eine versteckte Zündschnur (je nach Einstellung 6–18, 10–30 oder 20–45 Sekunden) läuft über alle Weitergaben hinweg. Wer den Fisch hält, wenn er platzt, verliert ein Leben. Die letzte Person im Wasser gewinnt.
+- **Autokorrektur:** Eingaben werden normalisiert (Groß/klein, Umlaute, Artikel, Satzzeichen) und mit Mehrzahl-Endungen und Tippfehler-Toleranz verglichen – „Tigger“ → „Tiger“, „Elefannt“ → „Elefant“, „Katzen“ → „Katze“, „Schwiz“ → „Schweiz“. Schreibvarianten (Rüebli/Karotte, Velo/Fahrrad) sind hinterlegt.
+- Kennt das Spiel eine Antwort nicht, stimmen die anderen per Daumen ab (die Zündschnur hält so lange an). Abschaltbar; pro Runde und Person gibt es nur einen Einspruch.
+- Über 60 Kategorien mit zusammen über 7000 Antworten in 8 Paketen (Alltag, Essen, Länder & Orte, Tiere & Natur, Film/Serien/Games, Musik & Rap, Sport, Geeker & Party) plus automatisch erzeugte Buchstaben-Aufgaben – keine KI nötig.
+- Code: `src/games/plopp/` (Aufgaben in `prompts-*.ts`, Prüfung in `logic/answers.ts`).
+
 ### Imposter
 Bluff-Spiel für **3–12 Spieler** im mysteriösen Look (dunkel, violetter Nebel).
 

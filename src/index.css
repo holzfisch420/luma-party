@@ -370,3 +370,26 @@ body {
   background-image: repeating-linear-gradient(180deg, transparent 0 31px, rgba(80, 140, 220, 0.18) 31px 32px);
   box-shadow: 0 2px 3px rgba(0, 0, 0, 0.12), 0 18px 30px -12px rgba(60, 30, 10, 0.6);
 }
+
+/* „Plopp!“ – Unterwasser */
+.plopp-rays {
+  background: repeating-linear-gradient(100deg, rgba(255, 255, 255, 0.07) 0 40px, transparent 40px 130px);
+  mask-image: linear-gradient(to bottom, black, transparent 70%);
+  animation: plopp-rays 14s ease-in-out infinite alternate;
+}
+@keyframes plopp-rays {
+  from { transform: translateX(-3%) skewX(-4deg); }
+  to { transform: translateX(3%) skewX(4deg); }
+}
+.plopp-bubble {
+  animation: plopp-bubble linear infinite;
+}
+@keyframes plopp-bubble {
+  0% { transform: translate(0, 0); opacity: 0; }
+  10% { opacity: 0.8; }
+  50% { transform: translate(14px, -55vh); }
+  100% { transform: translate(-8px, -115vh); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plopp-rays, .plopp-bubble { animation: none; }
+}
