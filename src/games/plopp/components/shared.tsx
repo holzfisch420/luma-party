@@ -25,14 +25,21 @@ export function useTension(fuse: PloppPublicState['fuse']): number {
       setT(0);
       return;
     }
-    let raf = 0;
+    // nur in kleinen Stufen aktualisieren (≈ 6× pro Sekunde) – sonst rechnet die ganze Ansicht jedes Bild neu
+    let timer: ReturnType<typeof setTimeout>;
+    let last = -1;
     const loop = () => {
       const now = fuse.pausedAt ?? Date.now() + offset;
-      setT(Math.min(1, Math.max(0, (now - fuse.startedAt - fuse.pausedMs) / fuse.max)));
-      if (fuse.pausedAt === null) raf = requestAnimationFrame(loop);
+      const v = Math.min(1, Math.max(0, (now - fuse.startedAt - fuse.pausedMs) / fuse.max));
+      const q = Math.round(v * 120) / 120;
+      if (q !== last) {
+        last = q;
+        setT(q);
+      }
+      if (fuse.pausedAt === null) timer = setTimeout(loop, 160);
     };
     loop();
-    return () => cancelAnimationFrame(raf);
+    return () => clearTimeout(timer);
   }, [fuse, offset]);
   return t;
 }

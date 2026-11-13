@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Smartphone, Volume2, VolumeX } from 'lucide-react';
 import { useState } from 'react';
-import { useCountdown } from '../../../../app/session/hooks';
+import { useSecondsLeft } from '../../../../app/session/hooks';
 import type { RoomSnapshot } from '../../../../shared/types/room';
 import type { HostViewProps } from '../../../game-types';
 import { ROLE_INFO, ROLES } from '../../game-config';
@@ -18,7 +18,7 @@ const STORAGE_KEY = 'luma-vollmond-voice';
 /** Fernseher: Erzähler, Dorf mit allen Personen, Tote, Abstimmung, Auflösung. */
 export function VollmondHostView({ room, state }: HostViewProps<VollmondPublicState>) {
   const pub = state.public;
-  const secs = Math.ceil(useCountdown(pub.phaseEndsAt, 500) / 1000);
+  const secs = useSecondsLeft(pub.phaseEndsAt);
   const [voice, setVoice] = useState(() => {
     try {
       return localStorage.getItem(STORAGE_KEY) !== 'off';
@@ -133,7 +133,6 @@ function Village({ room, pub }: { room: RoomSnapshot; pub: VollmondPublicState }
         return (
           <motion.div
             key={id}
-            layout
             animate={fresh ? { scale: [1, 1.15, 1], rotate: [0, -4, 4, 0] } : { scale: 1 }}
             transition={{ duration: 0.8 }}
             className={`flex w-32 flex-col items-center gap-1.5 rounded-3xl px-2 py-3 ${fresh ? 'bg-[#c0392b]/40 ring-2 ring-[#ff8a8a]' : alive ? 'bg-white/10' : 'bg-black/30'}`}

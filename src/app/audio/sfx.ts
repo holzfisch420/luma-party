@@ -120,10 +120,30 @@ function load(key: SfxKey): Promise<AudioBuffer | null> {
 /** nur der Hauptbildschirm lädt alle Effekte vorab – Handys laden bei Bedarf */
 const isHost = typeof location !== 'undefined' && !location.pathname.startsWith('/play');
 
+const queue: SfxKey[] = [];
+let pumping = false;
+
+/** lädt die Warteschlange nacheinander in ruhigen Momenten – nie alles auf einmal */
+function pump() {
+  if (pumping) return;
+  const next = queue.shift();
+  if (!next) return;
+  pumping = true;
+  const idle = (cb: () => void) =>
+    'requestIdleCallback' in window ? (window as unknown as { requestIdleCallback: (f: () => void, o?: object) => void }).requestIdleCallback(cb, { timeout: 1500 }) : setTimeout(cb, 60);
+  idle(() => {
+    void load(next).finally(() => {
+      pumping = false;
+      pump();
+    });
+  });
+}
+
 /** Effekte vorab laden (z. B. beim Start eines Spiels) */
 export function preloadSfx(keys: SfxKey[]) {
   if (!isHost) return;
-  for (const k of keys) void load(k);
+  for (const k of keys) if (!buffers.has(k) && !loading.has(k) && !queue.includes(k)) queue.push(k);
+  pump();
 }
 
 export interface PlayOpts {

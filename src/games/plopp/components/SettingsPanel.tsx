@@ -1,11 +1,10 @@
 import { Chip, SectionTitle, Segmented, SettingRow, Stepper, Toggle } from '../../../components/ui/Controls';
 import type { SettingsPanelProps } from '../../game-types';
 import { FUSE_RANGES, FUSES, type PloppSettings } from '../game-config';
-import { allPrompts } from '../logic/answers';
+import { PROMPT_COUNTS } from '../prompt-counts';
 import { PACK_LABELS, PROMPT_PACKS, type PromptPack } from '../prompt-types';
 
-const COUNTS: Record<string, number> = {};
-for (const p of allPrompts()) COUNTS[p.pack] = (COUNTS[p.pack] ?? 0) + 1;
+const COUNTS: Record<string, number> = PROMPT_COUNTS;
 
 /** Kategorien + Leben – auch im Startbildschirm */
 export function PloppQuickSettings({ settings, onChange, disabled }: SettingsPanelProps<PloppSettings>) {

@@ -1,4 +1,5 @@
 import { LogOut, MonitorX } from 'lucide-react';
+import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { GameResults } from '../../components/game/GameResults';
 import { QuitButton } from '../../components/game/QuitButton';
@@ -24,6 +25,12 @@ export function PlayerApp() {
   const ended = useSession((s) => s.ended);
   const toast = useToast();
   useNoticeToasts();
+
+  // Handy-Ansicht des gewählten Spiels schon vorab laden
+  const selected = room?.selectedGameId;
+  useEffect(() => {
+    (getClientGame(selected)?.PlayerView as { preload?: () => unknown } | undefined)?.preload?.();
+  }, [selected]);
 
   if (ended && !room) {
     return (
@@ -71,7 +78,9 @@ function PlayerGame({ room, me, canControl }: { room: RoomSnapshot; me: PublicPl
   const View = module.PlayerView;
   return (
     <div className="min-h-dvh">
-      <View room={room} me={me} state={game as never} sendAction={sendGameAction} />
+      <Suspense fallback={<LoadingScreen label="Spiel wird geladen …" />}>
+        <View room={room} me={me} state={game as never} sendAction={sendGameAction} />
+      </Suspense>
       {/* nur der Spielleiter darf das laufende Spiel beenden */}
       {canControl && (
         <div className="pointer-events-none fixed inset-x-0 top-0 z-[60] flex justify-center safe-pt">

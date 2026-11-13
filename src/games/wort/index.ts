@@ -2,12 +2,14 @@
  * „Wortknacker“ – Client-Modul.
  */
 import type { ClientGameModule } from '../game-types';
+import { lazyView } from '../lazy-view';
 import { WortCover } from './components/Cover';
-import { WortHostView } from './components/host/WortHostView';
-import { WortController } from './components/player/WortController';
 import { WortQuickSettings } from './components/SettingsPanel';
 import { wortMeta, type WortSettings } from './game-config';
 import type { WortPrivateState, WortPublicState } from './types';
+
+const WortHostView = lazyView(() => import('./components/host/WortHostView'), 'WortHostView');
+const WortController = lazyView(() => import('./components/player/WortController'), 'WortController');
 
 export const wortModule: ClientGameModule<WortPublicState, WortPrivateState, WortSettings> = {
   meta: wortMeta,

@@ -2,12 +2,14 @@
  * „Klingenrad“ – Client-Modul.
  */
 import type { ClientGameModule } from '../game-types';
+import { lazyView } from '../lazy-view';
 import { KlingenCover } from './components/Cover';
-import { KlingenHostView } from './components/host/KlingenHostView';
-import { KlingenController } from './components/player/KlingenController';
 import { KlingenQuickSettings } from './components/SettingsPanel';
 import { klingenMeta, type KlingenSettings } from './game-config';
 import type { KlingenPrivateState, KlingenPublicState } from './types';
+
+const KlingenHostView = lazyView(() => import('./components/host/KlingenHostView'), 'KlingenHostView');
+const KlingenController = lazyView(() => import('./components/player/KlingenController'), 'KlingenController');
 
 export const klingenModule: ClientGameModule<KlingenPublicState, KlingenPrivateState, KlingenSettings> = {
   meta: klingenMeta,

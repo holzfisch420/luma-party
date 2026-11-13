@@ -2,7 +2,7 @@ import { motion, useAnimationControls } from 'framer-motion';
 import { Delete, CornerDownLeft } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { haptics } from '../../../../app/haptics';
-import { useCountdown } from '../../../../app/session/hooks';
+import { useSecondsLeft } from '../../../../app/session/hooks';
 import type { PlayerViewProps } from '../../../game-types';
 import { KEYBOARD_ROWS, MAX_GUESSES, WORD_LENGTH } from '../../game-config';
 import type { Mark, WortPrivateState, WortPublicState } from '../../types';
@@ -22,7 +22,7 @@ export function WortController({ me, state, sendAction }: Props) {
   const playing = pub.phase === 'play' && !!board && !done;
   const [current, setCurrent] = useState('');
   const shake = useAnimationControls();
-  const secs = Math.ceil(useCountdown(pub.phaseEndsAt, 250) / 1000);
+  const secs = useSecondsLeft(pub.phaseEndsAt);
 
   // neue Runde / angenommener Versuch: Eingabe leeren
   useEffect(() => setCurrent(''), [pub.round, guesses.length]);

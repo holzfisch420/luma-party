@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Send, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { haptics } from '../../../../app/haptics';
-import { useCountdown } from '../../../../app/session/hooks';
+import { useSecondsLeft } from '../../../../app/session/hooks';
 import type { PlayerViewProps } from '../../../game-types';
 import { ANSWER_MAX } from '../../game-config';
 import type { PloppPrivateState, PloppPublicState } from '../../types';
@@ -177,7 +177,7 @@ function Feedback({ priv }: { priv: PloppPrivateState | null }) {
 
 function Vote({ room, pub, priv, meId, sendAction }: { room: Props['room']; pub: PloppPublicState; priv: PloppPrivateState | null; meId: string; sendAction: Props['sendAction'] }) {
   const v = pub.vote!;
-  const secs = Math.ceil(useCountdown(pub.phaseEndsAt, 200) / 1000);
+  const secs = useSecondsLeft(pub.phaseEndsAt);
   const mine = v.playerId === meId;
   return (
     <div className="flex flex-col items-center gap-3 rounded-3xl bg-black/25 px-4 py-4 text-center">

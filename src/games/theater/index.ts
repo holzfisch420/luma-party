@@ -2,13 +2,15 @@
  * Textprobe – Client-Modul (Kachel-Grafik, Bühnen-Ansicht, Handy-Steuerung, Skript-Upload).
  */
 import type { ClientGameModule } from '../game-types';
+import { lazyView } from '../lazy-view';
 import { theaterMeta, type TheaterSettings } from './game-config';
 import { TheaterCover } from './components/Cover';
-import { TheaterHostView } from './components/host/TheaterHostView';
-import { TheaterController } from './components/player/TheaterController';
 import { TheaterSettingsPanel } from './components/SettingsPanel';
 import './script-cache';
 import type { TheaterPublicState } from './types';
+
+const TheaterHostView = lazyView(() => import('./components/host/TheaterHostView'), 'TheaterHostView');
+const TheaterController = lazyView(() => import('./components/player/TheaterController'), 'TheaterController');
 
 export const theaterModule: ClientGameModule<TheaterPublicState, null, TheaterSettings> = {
   meta: theaterMeta,

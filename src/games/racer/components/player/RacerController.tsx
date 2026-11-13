@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { Crosshair, Gamepad2, RotateCcw, Smartphone, Undo2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { haptics } from '../../../../app/haptics';
-import { useCountdown } from '../../../../app/session/hooks';
+import { useSecondsLeft } from '../../../../app/session/hooks';
 import type { PlayerViewProps } from '../../../game-types';
 import { CAR_COLORS } from '../../game-config';
 import { getTrack } from '../../tracks';
@@ -144,7 +144,7 @@ export function RacerController({ me, state, sendAction }: PlayerViewProps<Racer
   useEffect(() => {
     if (priv?.falling) haptics.play('error');
   }, [priv?.falling]);
-  const cd = Math.ceil(useCountdown(pub.phase === 'countdown' ? pub.phaseEndsAt : null, 200) / 1000);
+  const cd = useSecondsLeft(pub.phase === 'countdown' ? pub.phaseEndsAt : null);
   useEffect(() => {
     if (pub.phase === 'countdown' && cd > 0 && cd <= 3) haptics.play('tick');
     if (pub.phase === 'race') haptics.play('medium');

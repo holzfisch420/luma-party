@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, PenLine, Smartphone } from 'lucide-react';
-import { useCountdown } from '../../../../app/session/hooks';
+import { useSecondsLeft } from '../../../../app/session/hooks';
 import type { RoomSnapshot } from '../../../../shared/types/room';
 import type { HostViewProps } from '../../../game-types';
 import type { EchtPublicState } from '../../types';
@@ -13,8 +13,7 @@ preloadSfx(['page-flip', 'question', 'drumroll', 'stamp', 'sax-win', 'note-stick
 /** Fernseher: Pinnwand mit Satzkarte, Notizzetteln, Abstimmung und Auflösung. */
 export function EchtHostView({ room, state }: HostViewProps<EchtPublicState>) {
   const pub = state.public;
-  const remaining = useCountdown(pub.phaseEndsAt, 250);
-  const secs = Math.ceil(remaining / 1000);
+  const secs = useSecondsLeft(pub.phaseEndsAt);
   const hero = nameOf(room, pub.heroId);
 
   // Geräusche

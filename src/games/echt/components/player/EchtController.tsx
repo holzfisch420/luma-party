@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Pencil, Send } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { haptics } from '../../../../app/haptics';
-import { useCountdown } from '../../../../app/session/hooks';
+import { useSecondsLeft } from '../../../../app/session/hooks';
 import type { PlayerViewProps } from '../../../game-types';
 import { ANSWER_MAX, blankCount } from '../../game-config';
 import type { EchtPrivateState, EchtPublicState } from '../../types';
@@ -14,8 +14,7 @@ type Props = PlayerViewProps<EchtPublicState, EchtPrivateState>;
 export function EchtController({ room, me, state, sendAction }: Props) {
   const pub = state.public;
   const priv = state.private;
-  const remaining = useCountdown(pub.phaseEndsAt, 250);
-  const secs = Math.ceil(remaining / 1000);
+  const secs = useSecondsLeft(pub.phaseEndsAt);
   const hero = nameOf(room, pub.heroId);
   const isHero = !!priv?.isHero;
 

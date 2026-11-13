@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Smartphone, Volume2, VolumeX } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { sendGameAction, useCountdown, useGameEvent } from '../../../../app/session/hooks';
+import { sendGameAction, useGameEvent, useSecondsLeft } from '../../../../app/session/hooks';
 import { useSession } from '../../../../app/session/session-store';
 import { PlayerAvatar } from '../../../../components/lobby/PlayerAvatar';
 import type { RoomSnapshot } from '../../../../shared/types/room';
@@ -20,7 +20,7 @@ const nameOf = (room: RoomSnapshot, id: string | null) => room.players.find((p) 
 
 export function KlingenHostView({ room, state }: HostViewProps<KlingenPublicState>) {
   const pub = state.public;
-  const secs = Math.ceil(useCountdown(pub.phaseEndsAt, 250) / 1000);
+  const secs = useSecondsLeft(pub.phaseEndsAt);
   const [muted, setMuted] = useState(klingenSounds.isMuted());
   return (
     <div className="circus-bg relative flex h-dvh flex-col overflow-hidden">

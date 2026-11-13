@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Hand } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { haptics } from '../../../../app/haptics';
-import { useCountdown } from '../../../../app/session/hooks';
+import { useSecondsLeft } from '../../../../app/session/hooks';
 import type { RoomSnapshot } from '../../../../shared/types/room';
 import type { PlayerViewProps } from '../../../game-types';
 import { ROLE_INFO } from '../../game-config';
@@ -15,7 +15,7 @@ type Props = PlayerViewProps<VollmondPublicState, VollmondPrivateState>;
 export function VollmondController({ room, me, state, sendAction }: Props) {
   const pub = state.public;
   const priv = state.private;
-  const secs = Math.ceil(useCountdown(pub.phaseEndsAt, 500) / 1000);
+  const secs = useSecondsLeft(pub.phaseEndsAt);
   const night = pub.phase === 'night' || pub.phase === 'witch';
 
   // kurz vibrieren, wenn man etwas tun muss

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 import { haptics } from '../../../../app/haptics';
-import { useCountdown } from '../../../../app/session/hooks';
+import { useSecondsLeft } from '../../../../app/session/hooks';
 import type { PlayerViewProps } from '../../../game-types';
 import type { KlingenPrivateState, KlingenPublicState } from '../../types';
 import { drawKnife } from '../draw';
@@ -22,7 +22,7 @@ export function KlingenController(props: Props) {
 function Solo({ me, state, sendAction }: Props) {
   const pub = state.public;
   const row = pub.solo[me.id];
-  const secs = Math.ceil(useCountdown(pub.phaseEndsAt, 250) / 1000);
+  const secs = useSecondsLeft(pub.phaseEndsAt);
   if (!row) return <Center title="Gleich geht’s los" text="Du steigst beim nächsten Spiel ein." />;
   if (pub.phase === 'countdown')
     return <Center title={String(Math.max(1, secs))} text="Tippe irgendwo, um ein Messer zu werfen. Triff kein anderes Messer!" big />;
@@ -54,7 +54,7 @@ function Solo({ me, state, sendAction }: Props) {
 function Shared({ me, state, sendAction }: Props) {
   const pub = state.public;
   const row = pub.shared[me.id];
-  const secs = Math.ceil(useCountdown(pub.phaseEndsAt, 250) / 1000);
+  const secs = useSecondsLeft(pub.phaseEndsAt);
   const lastResult = state.private?.lastResult;
   const seen = useRef<number | null>(null);
   useEffect(() => {

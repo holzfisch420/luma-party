@@ -1,4 +1,5 @@
 /** Zeichnen von Rad und Messern (Canvas 2D) – gemeinsam für Handy und Fernseher. */
+import { canvasDpr } from '../../../app/canvas-dpr';
 
 export interface StuckKnife {
   /** Position im Rad (Bogenmaß) */
@@ -8,8 +9,8 @@ export interface StuckKnife {
   fixed?: boolean;
 }
 
-/** Messer, Spitze bei (x, y), zeigt in Richtung `dir` (Bogenmaß, 0 = rechts) */
-export function drawKnife(ctx: CanvasRenderingContext2D, x: number, y: number, dir: number, len: number, color: string, alpha = 1) {
+/** malt ein Messer direkt (teuer – wird nur für vorgezeichnete Bilder benutzt) */
+function paintKnife(ctx: CanvasRenderingContext2D, x: number, y: number, dir: number, len: number, color: string, alpha = 1) {
   ctx.save();
   ctx.globalAlpha = alpha;
   ctx.translate(x, y);
@@ -48,25 +49,9 @@ export function drawKnife(ctx: CanvasRenderingContext2D, x: number, y: number, d
 }
 
 /** Rad mit steckenden Messern; `boss` zeigt einen Käselaib statt Holz */
-export function drawWheel(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  r: number,
-  angle: number,
-  knives: readonly StuckKnife[],
-  opts: { boss?: boolean; flash?: number; knifeLen?: number } = {},
-) {
-  const len = opts.knifeLen ?? r * 0.95;
-  // Messer zuerst (hinter dem Rad hervorstehend)
-  for (const k of knives) {
-    const wa = k.a + angle;
-    const tipR = r * 0.72;
-    drawKnife(ctx, cx + Math.cos(wa) * tipR, cy + Math.sin(wa) * tipR, wa + Math.PI, len, k.fixed ? '#5b6170' : k.color);
-  }
+/** malt den Radkörper um den Ursprung (teuer – wird einmal vorgezeichnet) */
+function paintWheelBody(ctx: CanvasRenderingContext2D, r: number, opts: { boss?: boolean }) {
   ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(angle);
   // Schatten
   ctx.shadowColor = 'rgba(0,0,0,0.35)';
   ctx.shadowBlur = r * 0.12;
@@ -141,6 +126,71 @@ export function drawWheel(
   ctx.strokeStyle = opts.boss ? '#a8741c' : '#5e2f12';
   ctx.lineWidth = r * 0.025;
   ctx.stroke();
+  ctx.restore();
+}
+
+// ------------------------------------------------------------------ vorgezeichnete Bilder (schnell)
+
+const sprites = new Map<string, HTMLCanvasElement>();
+function sprite(key: string, w: number, h: number, scale: number, paint: (c: CanvasRenderingContext2D) => void): HTMLCanvasElement {
+  let c = sprites.get(key);
+  if (c) return c;
+  if (sprites.size > 60) sprites.clear();
+  c = document.createElement('canvas');
+  c.width = Math.max(1, Math.ceil(w * scale));
+  c.height = Math.max(1, Math.ceil(h * scale));
+  const g = c.getContext('2d')!;
+  g.scale(scale, scale);
+  paint(g);
+  sprites.set(key, c);
+  return c;
+}
+
+/** aktuelle Pixeldichte des Zeichenkontexts */
+const scaleOf = (ctx: CanvasRenderingContext2D) => Math.max(1, Math.min(3, Math.abs(ctx.getTransform().a)));
+
+/** Messer, Spitze bei (x, y), zeigt in Richtung `dir` (Bogenmaß, 0 = rechts) */
+export function drawKnife(ctx: CanvasRenderingContext2D, x: number, y: number, dir: number, len: number, color: string, alpha = 1) {
+  const s = scaleOf(ctx);
+  const pad = 2;
+  const w = len + pad * 2;
+  const h = len * 0.3;
+  const img = sprite(`k|${Math.round(len)}|${color}|${s}`, w, h, s, (g) => paintKnife(g, pad, h / 2, -Math.PI, len, color));
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x, y);
+  ctx.rotate(dir + Math.PI);
+  ctx.drawImage(img, -pad, -h / 2, w, h);
+  ctx.restore();
+}
+
+/** Rad mit steckenden Messern; `boss` zeigt einen Käselaib statt Holz */
+export function drawWheel(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  r: number,
+  angle: number,
+  knives: readonly StuckKnife[],
+  opts: { boss?: boolean; flash?: number; knifeLen?: number } = {},
+) {
+  const len = opts.knifeLen ?? r * 0.95;
+  // Messer zuerst (hinter dem Rad hervorstehend)
+  for (const k of knives) {
+    const wa = k.a + angle;
+    const tipR = r * 0.72;
+    drawKnife(ctx, cx + Math.cos(wa) * tipR, cy + Math.sin(wa) * tipR, wa + Math.PI, len, k.fixed ? '#5b6170' : k.color);
+  }
+  const s = scaleOf(ctx);
+  const R = r * 1.25; // Platz für den Schatten
+  const body = sprite(`w|${Math.round(r)}|${opts.boss ? 1 : 0}|${s}`, R * 2, R * 2, s, (g) => {
+    g.translate(R, R);
+    paintWheelBody(g, r, opts);
+  });
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(angle);
+  ctx.drawImage(body, -R, -R, R * 2, R * 2);
   if (opts.flash) {
     ctx.fillStyle = `rgba(255,255,255,${opts.flash})`;
     ctx.beginPath();
@@ -152,9 +202,9 @@ export function drawWheel(
 
 /** Canvas auf Gerätepixel einstellen */
 export function fitCanvas(canvas: HTMLCanvasElement): { w: number; h: number; dpr: number } {
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
+  const dpr = canvasDpr(w, h);
   if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);

@@ -1,4 +1,5 @@
 import { MoreHorizontal } from 'lucide-react';
+import { Suspense } from 'react';
 import { getClientGame } from '../../games/game-registry';
 import type { RoomSnapshot } from '../../shared/types/room';
 import { Spinner } from '../../components/ui/Feedback';
@@ -25,7 +26,11 @@ export function HostGameScreen({ room, onMenu }: { room: RoomSnapshot; onMenu: (
           <Spinner className="size-8" />
         </div>
       )}
-      {ready && View && <View room={room} state={game as never} />}
+      {ready && View && (
+        <Suspense fallback={<div className="grid h-full place-items-center"><Spinner className="size-8" /></div>}>
+          <View room={room} state={game as never} />
+        </Suspense>
+      )}
       {/* klein in der Ecke, damit nichts vom Spiel verdeckt wird */}
       <QuitButton size="sm" className="absolute right-10 top-1 z-30 opacity-60 transition hover:opacity-100 focus-within:opacity-100" onQuit={() => getSocket().emit('room:backToLauncher')} />
       <button

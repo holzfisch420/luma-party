@@ -8,6 +8,7 @@ import { getMap, type HuhnMap } from '../../maps';
 import type { HuhnFrame } from '../../types';
 import { drawCage, drawChicken, drawCop, drawFar, drawNear, POLICE } from './draw';
 import { huhnSounds } from './sounds';
+import { canvasDpr } from '../../../../app/canvas-dpr';
 
 interface Feather {
   wx: number;
@@ -145,9 +146,9 @@ export class ChaseRenderer {
   }
 
   private draw() {
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
     const cw = this.canvas.clientWidth;
     const ch = this.canvas.clientHeight;
+    const dpr = canvasDpr(cw, ch);
     if (this.canvas.width !== Math.round(cw * dpr) || this.canvas.height !== Math.round(ch * dpr)) {
       this.canvas.width = Math.round(cw * dpr);
       this.canvas.height = Math.round(ch * dpr);

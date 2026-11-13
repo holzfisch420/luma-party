@@ -2,13 +2,15 @@
  * Kettenchaos – Client-Modul (Kachel-Grafik, TV-Arena, Handy-Gamepad, Einstellungen, Rangliste).
  */
 import type { ClientGameModule } from '../game-types';
+import { lazyView } from '../lazy-view';
 import { panzerMeta, type PanzerSettings } from './game-config';
 import { PanzerCover } from './components/Cover';
-import { PanzerHostView } from './components/host/PanzerHostView';
-import { PanzerController } from './components/player/PanzerController';
 import { PanzerResultsView } from './components/ResultsView';
 import { PanzerSettingsPanel } from './components/SettingsPanel';
 import type { PanzerPrivateState, PanzerPublicState } from './types';
+
+const PanzerHostView = lazyView(() => import('./components/host/PanzerHostView'), 'PanzerHostView');
+const PanzerController = lazyView(() => import('./components/player/PanzerController'), 'PanzerController');
 
 export const panzerModule: ClientGameModule<PanzerPublicState, PanzerPrivateState, PanzerSettings> = {
   meta: panzerMeta,

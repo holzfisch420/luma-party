@@ -8,6 +8,7 @@ import { POWER_IDS, POWERUPS, TANK_COLORS } from '../../game-config';
 import { MAP_H, MAP_W, type ArenaMap } from '../../maps';
 import { BULLET_KIND, TANK_FLAG, type Fx, type PanzerFrame } from '../../types';
 import { panzerSounds } from './sounds';
+import { canvasDpr } from '../../../../app/canvas-dpr';
 
 const INTERP_DELAY = 110; // ms Puffer für flüssige Bewegung
 export const FRAME_GREEN = '#578a34';
@@ -157,7 +158,7 @@ export class ArenaRenderer {
 
   resize(force = false) {
     const rect = this.canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = canvasDpr(rect.width, rect.height);
     const w = Math.round(rect.width * dpr);
     const h = Math.round(rect.height * dpr);
     if (!force && w === this.canvas.width && h === this.canvas.height) return;

@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Smartphone, Volume2, VolumeX } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { useCountdown } from '../../../../app/session/hooks';
+import { useSecondsLeft } from '../../../../app/session/hooks';
 import type { RoomSnapshot } from '../../../../shared/types/room';
 import type { HostViewProps } from '../../../game-types';
 import { PACK_LABELS } from '../../prompt-types';
@@ -207,7 +207,7 @@ function UsedList({ room, pub }: { room: RoomSnapshot; pub: PloppPublicState }) 
               layout
               initial={{ opacity: 0, x: 40, scale: 0.8 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
-              className="flex items-center gap-2 rounded-2xl bg-white/15 py-1 pl-1 pr-3 backdrop-blur-sm"
+              className="flex items-center gap-2 rounded-2xl bg-white/15 py-1 pl-1 pr-3"
             >
               <Avatar room={room} id={u.by} size="xs" />
               <span className="min-w-0 flex-1 truncate text-lg font-black">{u.text}</span>
@@ -224,7 +224,7 @@ function UsedList({ room, pub }: { room: RoomSnapshot; pub: PloppPublicState }) 
 
 function VoteOverlay({ room, pub }: { room: RoomSnapshot; pub: PloppPublicState }) {
   const v = pub.vote!;
-  const secs = Math.ceil(useCountdown(pub.phaseEndsAt, 200) / 1000);
+  const secs = useSecondsLeft(pub.phaseEndsAt);
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-30 grid place-items-center bg-[#071f3a]/70 backdrop-blur-sm">
       <motion.div initial={{ scale: 0.7, y: 40 }} animate={{ scale: 1, y: 0 }} className="flex max-w-3xl flex-col items-center gap-4 rounded-[32px] bg-white px-12 py-8 text-center text-[#0b3d6b] shadow-2xl">

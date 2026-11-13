@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { haptics } from '../../../../app/haptics';
 import { Check, Crosshair, Maximize, Play, RotateCcw, RotateCw, Settings2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useCountdown } from '../../../../app/session/hooks';
+import { useCountdown, useSecondsLeft } from '../../../../app/session/hooks';
 import { useSession } from '../../../../app/session/session-store';
 import type { PlayerViewProps } from '../../../game-types';
 import { BTN, POWERUPS, TAP_MS, TANK_COLORS } from '../../game-config';
@@ -212,7 +212,7 @@ function Gamepad({
     if (prevShield.current > Date.now() + offset && priv.shieldUntil === 0 && priv.alive) haptics.play('heavy');
     prevShield.current = priv.shieldUntil;
   }, [priv.shieldUntil, priv.alive, offset]);
-  const cdSecs = Math.ceil(useCountdown(pub.phase === 'countdown' ? pub.phaseEndsAt : null, 200) / 1000);
+  const cdSecs = useSecondsLeft(pub.phase === 'countdown' ? pub.phaseEndsAt : null);
   useEffect(() => {
     if (pub.phase === 'countdown' && cdSecs > 0) haptics.play('tick');
     if (pub.phase === 'battle') haptics.play('medium');

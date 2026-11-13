@@ -4,12 +4,13 @@
 import { createElement, lazy, Suspense } from 'react';
 import type { ClientGameModule, HostViewProps } from '../game-types';
 import { RacerCover } from './components/Cover';
-import { RacerController } from './components/player/RacerController';
+import { lazyView } from '../lazy-view';
 import { RacerSettingsPanel } from './components/SettingsPanel';
 import { RacerQuickSettings } from './components/TrackPicker';
 import { racerMeta, type RacerSettings } from './game-config';
 import type { RacerPrivateState, RacerPublicState } from './types';
 
+const RacerController = lazyView(() => import('./components/player/RacerController'), 'RacerController');
 const LazyHost = lazy(() => import('./components/host/RacerHostView').then((m) => ({ default: m.RacerHostView })));
 
 function RacerHost(props: HostViewProps<RacerPublicState>) {

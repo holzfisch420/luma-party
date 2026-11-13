@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PloppEngine } from '../src/games/plopp/game-engine';
 import { DEFAULT_PLOPP_SETTINGS, FUSE_RANGES, TIMING } from '../src/games/plopp/game-config';
 import { allPrompts, getPrompt, matchAnswer, normalizeAnswer, PROMPT_SOURCES } from '../src/games/plopp/logic/answers';
+import { PROMPT_COUNTS } from '../src/games/plopp/prompt-counts';
 import type { GameContext, GamePlayer } from '../src/server/game-engine/types';
 
 function setup(n = 3, overrides = {}) {
@@ -55,6 +56,12 @@ describe('Plopp! – Antworten & Autokorrektur', () => {
     expect(allPrompts().length).toBeGreaterThanOrEqual(100);
     for (const s of PROMPT_SOURCES) expect(getPrompt(s.id)!.answers.length, s.id).toBeGreaterThanOrEqual(50);
     expect(new Set(PROMPT_SOURCES.map((s) => s.id)).size).toBe(PROMPT_SOURCES.length);
+  });
+
+  it('Anzahl Aufgaben je Kategorie (für die Einstellungen) ist aktuell', () => {
+    const counts: Record<string, number> = {};
+    for (const p of allPrompts()) counts[p.pack] = (counts[p.pack] ?? 0) + 1;
+    expect(PROMPT_COUNTS).toEqual(counts);
   });
 
   it('korrigiert Tippfehler, Mehrzahl, Artikel und Umlaute', () => {

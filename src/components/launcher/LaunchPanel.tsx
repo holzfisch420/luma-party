@@ -34,7 +34,10 @@ export function LaunchPanel({ meta, room, canEdit = true, connectedPlayers, canS
 
   // Klang beim Öffnen
   useEffect(() => {
-    if (meta) ui.open();
+    if (!meta) return;
+    ui.open();
+    // Spielansicht schon mal laden, damit der Start sofort klappt
+    (getClientGame(meta.id)?.HostView as { preload?: () => unknown } | undefined)?.preload?.();
   }, [meta?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

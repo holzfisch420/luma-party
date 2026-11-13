@@ -6,7 +6,7 @@ import { Spinner } from '../../../components/ui/Feedback';
 import { useToast } from '../../../components/ui/Toast';
 import type { SettingsPanelProps } from '../../game-types';
 import type { TheaterSettings } from '../game-config';
-import { parseDocx, type ParseResult } from '../logic/docx-parser';
+import type { ParseResult } from '../logic/docx-parser';
 import { scriptApi } from '../script-api';
 import type { ScriptSummary } from '../types';
 
@@ -30,6 +30,8 @@ export function TheaterSettingsPanel({ settings, onChange, disabled }: SettingsP
 
   const onFile = async (file: File) => {
     try {
+      // Word-Leser erst laden, wenn wirklich eine Datei kommt
+      const { parseDocx } = await import('../logic/docx-parser');
       const result = parseDocx(new Uint8Array(await file.arrayBuffer()), file.name);
       if (result.lines.length === 0) throw new Error('In dieser Datei wurden keine Szenen oder Dialoge gefunden.');
       setPreview(result);

@@ -2,12 +2,14 @@
  * „Echt jetzt?“ – Client-Modul.
  */
 import type { ClientGameModule } from '../game-types';
+import { lazyView } from '../lazy-view';
 import { EchtCover } from './components/Cover';
-import { EchtHostView } from './components/host/EchtHostView';
-import { EchtController } from './components/player/EchtController';
 import { EchtQuickSettings, EchtSettingsPanel } from './components/SettingsPanel';
 import { echtMeta, type EchtSettings } from './game-config';
 import type { EchtPrivateState, EchtPublicState } from './types';
+
+const EchtHostView = lazyView(() => import('./components/host/EchtHostView'), 'EchtHostView');
+const EchtController = lazyView(() => import('./components/player/EchtController'), 'EchtController');
 
 export const echtModule: ClientGameModule<EchtPublicState, EchtPrivateState, EchtSettings> = {
   meta: echtMeta,

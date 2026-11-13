@@ -3,12 +3,14 @@
  */
 import { CategoryPicker } from '../../components/words/CategoryPicker';
 import type { ClientGameModule } from '../game-types';
+import { lazyView } from '../lazy-view';
 import { ImposterCover } from './components/Cover';
-import { ImposterHostView } from './components/host/ImposterHostView';
-import { ImposterController } from './components/player/ImposterController';
 import { ImposterSettingsPanel } from './components/SettingsPanel';
 import { imposterMeta, type ImposterSettings } from './game-config';
 import type { ImposterPrivateState, ImposterPublicState } from './types';
+
+const ImposterHostView = lazyView(() => import('./components/host/ImposterHostView'), 'ImposterHostView');
+const ImposterController = lazyView(() => import('./components/player/ImposterController'), 'ImposterController');
 
 export const imposterModule: ClientGameModule<ImposterPublicState, ImposterPrivateState, ImposterSettings> = {
   meta: imposterMeta,

@@ -2,12 +2,14 @@
  * „Vollmond“ – Client-Modul.
  */
 import type { ClientGameModule } from '../game-types';
+import { lazyView } from '../lazy-view';
 import { VollmondCover } from './components/Cover';
-import { VollmondHostView } from './components/host/VollmondHostView';
-import { VollmondController } from './components/player/VollmondController';
 import { VollmondQuickSettings } from './components/SettingsPanel';
 import { vollmondMeta, type VollmondSettings } from './game-config';
 import type { VollmondPrivateState, VollmondPublicState } from './types';
+
+const VollmondHostView = lazyView(() => import('./components/host/VollmondHostView'), 'VollmondHostView');
+const VollmondController = lazyView(() => import('./components/player/VollmondController'), 'VollmondController');
 
 export const vollmondModule: ClientGameModule<VollmondPublicState, VollmondPrivateState, VollmondSettings> = {
   meta: vollmondMeta,

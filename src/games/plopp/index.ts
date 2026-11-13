@@ -2,12 +2,14 @@
  * „Plopp!“ – Client-Modul.
  */
 import type { ClientGameModule } from '../game-types';
+import { lazyView } from '../lazy-view';
 import { PloppCover } from './components/Cover';
-import { PloppHostView } from './components/host/PloppHostView';
-import { PloppController } from './components/player/PloppController';
 import { PloppQuickSettings, PloppSettingsPanel } from './components/SettingsPanel';
 import { ploppMeta, type PloppSettings } from './game-config';
 import type { PloppPrivateState, PloppPublicState } from './types';
+
+const PloppHostView = lazyView(() => import('./components/host/PloppHostView'), 'PloppHostView');
+const PloppController = lazyView(() => import('./components/player/PloppController'), 'PloppController');
 
 export const ploppModule: ClientGameModule<PloppPublicState, PloppPrivateState, PloppSettings> = {
   meta: ploppMeta,

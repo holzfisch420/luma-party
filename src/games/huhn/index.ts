@@ -2,13 +2,15 @@
  * Hühnerjagd – Client-Modul.
  */
 import type { ClientGameModule } from '../game-types';
+import { lazyView } from '../lazy-view';
 import { HuhnCover } from './components/Cover';
-import { HuhnHostView } from './components/host/HuhnHostView';
 import { HuhnMapPicker } from './components/MapPicker';
-import { HuhnController } from './components/player/HuhnController';
 import { HuhnSettingsPanel } from './components/SettingsPanel';
 import { huhnMeta, type HuhnSettings } from './game-config';
 import type { HuhnPrivateState, HuhnPublicState } from './types';
+
+const HuhnHostView = lazyView(() => import('./components/host/HuhnHostView'), 'HuhnHostView');
+const HuhnController = lazyView(() => import('./components/player/HuhnController'), 'HuhnController');
 
 export const huhnModule: ClientGameModule<HuhnPublicState, HuhnPrivateState, HuhnSettings> = {
   meta: huhnMeta,

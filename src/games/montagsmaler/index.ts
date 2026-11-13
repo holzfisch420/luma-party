@@ -3,14 +3,16 @@
  * Registriert Kachel-Grafik, TV-Ansicht, Smartphone-Ansicht, Einstellungen und Rangliste beim Launcher.
  */
 import type { ClientGameModule } from '../game-types';
+import { lazyView } from '../lazy-view';
 import { montagsmalerMeta, type MontagsmalerSettings } from './game-config';
 import { MontagsmalerCover } from './components/Cover';
-import { MontagsmalerHostView } from './components/host/HostView';
-import { MontagsmalerPlayerView } from './components/player/PlayerView';
 import { MontagsmalerSettingsPanel } from './components/SettingsPanel';
 import { MontagsmalerQuickSettings } from './components/QuickSettings';
 import { MontagsmalerResultsView } from './components/ResultsView';
 import type { MontagsmalerPrivateState, MontagsmalerPublicState } from './types';
+
+const MontagsmalerHostView = lazyView(() => import('./components/host/HostView'), 'MontagsmalerHostView');
+const MontagsmalerPlayerView = lazyView(() => import('./components/player/PlayerView'), 'MontagsmalerPlayerView');
 
 export const montagsmalerModule: ClientGameModule<MontagsmalerPublicState, MontagsmalerPrivateState, MontagsmalerSettings> = {
   meta: montagsmalerMeta,

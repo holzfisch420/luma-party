@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Smartphone } from 'lucide-react';
-import { useCountdown } from '../../../../app/session/hooks';
+import { useSecondsLeft } from '../../../../app/session/hooks';
 import type { HostViewProps } from '../../../game-types';
 import { MAX_GUESSES } from '../../game-config';
 import type { WortPublicState } from '../../types';
@@ -13,7 +13,7 @@ preloadSfx(['key-enter', 'level-up', 'typewriter', 'success', 'fail', 'clock-tic
 /** Fernseher: alle Raster nebeneinander (nur Farben), danach Auflösung mit Buchstaben */
 export function WortHostView({ room, state }: HostViewProps<WortPublicState>) {
   const pub = state.public;
-  const secs = Math.ceil(useCountdown(pub.phaseEndsAt, 250) / 1000);
+  const secs = useSecondsLeft(pub.phaseEndsAt);
 
   // Geräusche: jeder Versuch klackt, jedes Knacken klingelt, Auflösung mit Tusch
   const guessCount = Object.values(pub.boards).reduce((n, b) => n + b.marks.length, 0);
@@ -95,7 +95,6 @@ export function WortHostView({ room, state }: HostViewProps<WortPublicState>) {
           return (
             <motion.div
               key={id}
-              layout
               style={{ rotate: ((i * 5) % 3) - 1 }}
               className={`relative flex flex-col items-center gap-2 border-2 bg-[#fbf6e9] p-3 shadow-[3px_4px_0_rgba(42,36,28,0.25)] ${b.solved ? 'border-[#2f7d4f]' : 'border-[#2a241c]/60'}`}
             >

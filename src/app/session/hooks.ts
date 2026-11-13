@@ -25,6 +25,33 @@ export function useCountdown(endsAt: number | null | undefined, intervalMs = 200
   return remaining;
 }
 
+/**
+ * Restzeit in ganzen Sekunden – rendert nur, wenn sich die Sekunde ändert
+ * (günstiger als useCountdown für reine Zahlenanzeigen).
+ */
+export function useSecondsLeft(endsAt: number | null | undefined): number {
+  const offset = useSession((s) => s.clockOffset);
+  const calc = () => (endsAt ? Math.max(0, Math.ceil((endsAt - (Date.now() + offset)) / 1000)) : 0);
+  const [secs, setSecs] = useState(calc);
+  useEffect(() => {
+    setSecs(calc());
+    if (!endsAt) return;
+    let t: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      const v = calc();
+      setSecs(v);
+      if (v <= 0) return;
+      // bis kurz nach dem nächsten Sekundenwechsel warten
+      const msToNext = ((endsAt - (Date.now() + offset)) % 1000) + 15;
+      t = setTimeout(tick, Math.max(30, msToNext));
+    };
+    tick();
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endsAt, offset]);
+  return secs;
+}
+
 /** Zeigt Server-Hinweise als Toast an. */
 export function useNoticeToasts() {
   const toast = useToast();
