@@ -10,6 +10,10 @@ export interface SoloRow {
   stuck: number;
   lives: number;
   done: boolean;
+  /** eingesammelte Bonus-Sterne */
+  stars: number;
+  /** besiegte Bosse */
+  bosses: number;
 }
 
 export interface SharedRow {

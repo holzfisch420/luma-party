@@ -9,6 +9,7 @@
 import type { GameContext, GameEngine, GamePlayer, ServerGameModule, TimerHandle } from '../../server/game-engine/types';
 import type { PlayerId } from '../../shared/types/room';
 import { DEFAULT_KLINGEN_SETTINGS, klingenMeta, parseKlingenSettings, TIMING, type KlingenSettings } from './game-config';
+import { BOSS_EVERY, makeStage } from './logic/wheel';
 import type { KlingenPrivateState, KlingenPublicState, SharedRow, SoloRow, ThrowEvent } from './types';
 
 export class KlingenEngine implements GameEngine<KlingenPublicState, KlingenPrivateState> {
@@ -35,7 +36,7 @@ export class KlingenEngine implements GameEngine<KlingenPublicState, KlingenPriv
   start(): void {
     const players = this.ctx.getPlayers().filter((p) => p.isConnected);
     for (const p of players) {
-      if (this.settings.mode === 'solo') this.solo.set(p.id, { stage: 1, cleared: 0, stuck: 0, lives: this.settings.lives, done: false });
+      if (this.settings.mode === 'solo') this.solo.set(p.id, { stage: 1, cleared: 0, stuck: 0, lives: this.settings.lives, done: false, stars: 0, bosses: 0 });
       else this.shared.set(p.id, { alive: true, left: 0, stuckTotal: 0, outRound: null });
     }
     if (this.settings.mode === 'solo') {
@@ -94,12 +95,15 @@ export class KlingenEngine implements GameEngine<KlingenPublicState, KlingenPriv
     if (type === 'progress') {
       row.stuck = Math.max(0, Math.min(20, Math.floor(Number(data.stuck) || 0)));
     } else if (type === 'clear') {
+      if (row.stage % BOSS_EVERY === 0) row.bosses++;
       row.cleared++;
       row.stage++;
       row.stuck = 0;
+      // höchstens so viele Sterne, wie die Stufe hat
+      row.stars += Math.max(0, Math.min(makeStage(this.seed, stage).stars.length, Math.floor(Number(data.stars) || 0)));
     } else if (type === 'fail') {
+      // Leben weg – die Stufe läuft aber weiter (steckende Messer bleiben)
       row.lives--;
-      row.stuck = 0;
       if (row.lives <= 0) row.done = true;
       if (this.allSoloDone()) {
         this.finish();
@@ -187,7 +191,7 @@ export class KlingenEngine implements GameEngine<KlingenPublicState, KlingenPriv
   onPlayerJoined(p: GamePlayer): void {
     // Einzeln: wer später kommt, steigt direkt ein
     if (this.settings.mode === 'solo' && !this.solo.has(p.id) && this.phase !== 'done')
-      this.solo.set(p.id, { stage: 1, cleared: 0, stuck: 0, lives: this.settings.lives, done: false });
+      this.solo.set(p.id, { stage: 1, cleared: 0, stuck: 0, lives: this.settings.lives, done: false, stars: 0, bosses: 0 });
     this.ctx.publishState();
   }
 
@@ -222,7 +226,11 @@ export class KlingenEngine implements GameEngine<KlingenPublicState, KlingenPriv
     this.phase = 'done';
     const scores: Record<PlayerId, number> = {};
     for (const p of this.ctx.getPlayers()) {
-      if (this.settings.mode === 'solo') scores[p.id] = this.solo.get(p.id)?.cleared ?? 0;
+      if (this.settings.mode === 'solo') {
+        const r = this.solo.get(p.id);
+        // Stufen zählen am meisten, Sterne entscheiden bei Gleichstand
+        scores[p.id] = r ? r.cleared * 10 + r.stars : 0;
+      }
       else {
         const r = this.shared.get(p.id);
         // überstandene Runden zählen zuerst, dann steckende Messer
@@ -231,7 +239,7 @@ export class KlingenEngine implements GameEngine<KlingenPublicState, KlingenPriv
     }
     this.ctx.endGame({
       scores,
-      summary: this.settings.mode === 'solo' ? 'Punkte = geschaffte Stufen' : `${this.round} Runden am gemeinsamen Rad · Punkte = Runden × 100 + Messer`,
+      summary: this.settings.mode === 'solo' ? 'Punkte: 10 je geschaffte Stufe, 1 je Bonus-Stern' : `${this.round} Runden am gemeinsamen Rad · Punkte = Runden × 100 + Messer`,
     });
   }
 }

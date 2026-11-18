@@ -21,7 +21,8 @@ export const klingenModule: ClientGameModule<KlingenPublicState, KlingenPrivateS
   QuickSettings: KlingenQuickSettings,
   rules: [
     'Ein Rad dreht sich. Tippe, um ein Messer zu werfen – triffst du ein Messer, das schon steckt, klirrt es.',
-    'Einzeln: Alle spielen auf dem Handy dieselben Stufen. Jede Stufe braucht eine bestimmte Anzahl Messer, alle 5 Stufen kommt ein Käse-Boss. Wer in der Zeit die meisten Stufen schafft, gewinnt.',
+    'Einzeln: Alle spielen auf dem Handy dieselben Stufen. Jede dritte Stufe ist ein Boss – 15 verschiedene, jeder mit eigenem Trick (Schilde, Monde, Fangarm, Dunkelheit, Zeitbombe …). Wer in der Zeit die meisten Stufen schafft, gewinnt.',
+    'Triffst du ein Messer, verlierst du ein Leben – die Stufe läuft aber weiter. Goldene Sterne im Rad treffen gibt Bonuspunkte.',
     'Ein Rad: Alle werfen per Handy ins große Rad auf dem Fernseher. Runde 1 hat jede Person 1 Messer, Runde 2 zwei und so weiter. Wer ein Messer trifft, ist raus – die letzte Person gewinnt.',
   ],
 };

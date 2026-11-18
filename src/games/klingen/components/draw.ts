@@ -1,5 +1,8 @@
 /** Zeichnen von Rad und Messern (Canvas 2D) – gemeinsam für Handy und Fernseher. */
 import { canvasDpr } from '../../../app/canvas-dpr';
+import type { BossId } from '../logic/bosses';
+import type { WheelSim } from '../logic/sim';
+import { BOSS_ART } from './bosses-draw';
 
 export interface StuckKnife {
   /** Position im Rad (Bogenmaß) */
@@ -164,17 +167,37 @@ export function drawKnife(ctx: CanvasRenderingContext2D, x: number, y: number, d
   ctx.restore();
 }
 
-/** Rad mit steckenden Messern; `boss` zeigt einen Käselaib statt Holz */
-export function drawWheel(
-  ctx: CanvasRenderingContext2D,
-  cx: number,
-  cy: number,
-  r: number,
-  angle: number,
-  knives: readonly StuckKnife[],
-  opts: { boss?: boolean; flash?: number; knifeLen?: number } = {},
-) {
+function starPath(g: CanvasRenderingContext2D, x: number, y: number, r: number) {
+  g.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    const rr = i % 2 ? r * 0.45 : r;
+    g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+  }
+  g.closePath();
+}
+
+export interface WheelOpts {
+  /** Boss-Aussehen (sonst bemalte Zielscheibe) */
+  bossId?: BossId | null;
+  /** Simulation für Boss-Animationen und Mechaniken */
+  sim?: WheelSim;
+  /** nur das Aussehen, ohne Schilde/Monde/Fangarm (gemeinsames Rad) */
+  visualOnly?: boolean;
+  /** Bonus-Sterne (Position im Rad) */
+  stars?: readonly number[];
+  flash?: number;
+  knifeLen?: number;
+  /** Deckkraft des Rads (Geist) */
+  alpha?: number;
+  /** Zeit für Animationen ohne Simulation (Sekunden) */
+  t?: number;
+}
+
+/** Rad mit steckenden Messern, Boss-Aussehen und Bonus-Sternen */
+export function drawWheel(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, angle: number, knives: readonly StuckKnife[], opts: WheelOpts = {}) {
   const len = opts.knifeLen ?? r * 0.95;
+  const art = opts.bossId ? BOSS_ART[opts.bossId] : null;
   // Messer zuerst (hinter dem Rad hervorstehend)
   for (const k of knives) {
     const wa = k.a + angle;
@@ -183,14 +206,35 @@ export function drawWheel(
   }
   const s = scaleOf(ctx);
   const R = r * 1.25; // Platz für den Schatten
-  const body = sprite(`w|${Math.round(r)}|${opts.boss ? 1 : 0}|${s}`, R * 2, R * 2, s, (g) => {
+  const body = sprite(`w|${Math.round(r)}|${opts.bossId ?? '-'}|${s}`, R * 2, R * 2, s, (g) => {
     g.translate(R, R);
-    paintWheelBody(g, r, opts);
+    if (art) {
+      g.shadowColor = 'rgba(0,0,0,0.4)';
+      g.shadowBlur = r * 0.12;
+      g.shadowOffsetY = r * 0.05;
+      art.body(g, r);
+    } else paintWheelBody(g, r, {});
   });
   ctx.save();
+  ctx.globalAlpha *= opts.alpha ?? 1;
   ctx.translate(cx, cy);
   ctx.rotate(angle);
   ctx.drawImage(body, -R, -R, R * 2, R * 2);
+  if (art?.overlay && opts.sim) art.overlay(ctx, r, opts.sim);
+  // Bonus-Sterne funkeln auf dem Rad
+  if (opts.stars?.length) {
+    const tw = 1 + 0.12 * Math.sin((opts.sim?.t ?? opts.t ?? 0) * 6);
+    for (const a of opts.stars) {
+      const x = Math.cos(a) * r * 0.8;
+      const y = Math.sin(a) * r * 0.8;
+      ctx.fillStyle = '#ffd23f';
+      ctx.strokeStyle = '#7a4a00';
+      ctx.lineWidth = r * 0.02;
+      starPath(ctx, x, y, r * 0.11 * tw);
+      ctx.fill();
+      ctx.stroke();
+    }
+  }
   if (opts.flash) {
     ctx.fillStyle = `rgba(255,255,255,${opts.flash})`;
     ctx.beginPath();
@@ -198,6 +242,8 @@ export function drawWheel(
     ctx.fill();
   }
   ctx.restore();
+  // Teile in Bildschirmrichtung (Schilde, Monde, Fangarm, Dunkelheit …)
+  if (art?.front && opts.sim && !opts.visualOnly) art.front(ctx, cx, cy, r, opts.sim);
 }
 
 /** Canvas auf Gerätepixel einstellen */

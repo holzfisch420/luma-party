@@ -1,7 +1,36 @@
 import { describe, expect, it } from 'vitest';
 import { KlingenEngine } from '../src/games/klingen/game-engine';
 import { DEFAULT_KLINGEN_SETTINGS, TIMING } from '../src/games/klingen/game-config';
-import { angleAt, angleDist, collides, localImpact, makeStage, MIN_GAP } from '../src/games/klingen/logic/wheel';
+import { angleAt, angleDist, BOSS_EVERY, bossOrder, collides, localImpact, makeStage, MIN_GAP } from '../src/games/klingen/logic/wheel';
+import { BOSS_IDS, BOSSES } from '../src/games/klingen/logic/bosses';
+import { stepFor, WheelSim } from '../src/games/klingen/logic/sim';
+
+/** Bot: wirft, sobald die Vorschau ein Steckenbleiben mit Sicherheitsabstand zeigt */
+function botPlays(seed: number, n: number): { left: number; time: number } {
+  const st = makeStage(seed, n);
+  const sim = new WheelSim(st);
+  let left = st.knives;
+  const limit = st.boss ? (BOSSES[st.boss].timeLimit ?? 60) : 60;
+  while (left > 0 && sim.t < limit) {
+    const probe = sim.clone();
+    const ok = probe.predict() === 'stick';
+    // Sicherheitsabstand zu anderen Messern
+    const future = sim.clone();
+    stepFor(future, 0.13);
+    const local = future.impactLocal();
+    const safe = ok && !future.knives.some((k) => angleDist(k.a, local) < MIN_GAP * 1.35);
+    if (safe) {
+      stepFor(sim, 0.065);
+      const mid = sim.clone();
+      stepFor(sim, 0.065);
+      if (sim.outcome(mid) !== 'stick') return { left, time: sim.t };
+      sim.stick('#fff');
+      left--;
+      stepFor(sim, 0.05);
+    } else stepFor(sim, 1 / 120);
+  }
+  return { left, time: sim.t };
+}
 import type { GameContext, GamePlayer } from '../src/server/game-engine/types';
 
 function setup(n = 3, overrides = {}) {
@@ -75,6 +104,31 @@ describe('Klingenrad – Rad', () => {
   });
 });
 
+describe('Klingenrad – Bosse', () => {
+  it('15 verschiedene Bosse, jede dritte Stufe, alle kommen in einem Durchlauf vor', () => {
+    expect(BOSS_IDS).toHaveLength(15);
+    const order = bossOrder(7);
+    expect(new Set(order).size).toBe(15);
+    expect(order.at(-1)).toBe('drache');
+    const seen = new Set<string>();
+    for (let n = 1; n <= 45; n++) {
+      const st = makeStage(7, n);
+      expect(!!st.boss, `Stufe ${n}`).toBe(n % BOSS_EVERY === 0);
+      if (st.boss) seen.add(st.boss);
+    }
+    expect(seen.size).toBe(15);
+  });
+
+  it('jeder Boss ist schaffbar (auch im zweiten Durchlauf)', () => {
+    for (const seed of [3, 11]) {
+      for (const n of [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 63, 90]) {
+        const r = botPlays(seed, n);
+        expect(r.left, `Seed ${seed} Stufe ${n} (${makeStage(seed, n).boss})`).toBe(0);
+      }
+    }
+  });
+});
+
 describe('Klingenrad – Einzeln', () => {
   it('zählt geschaffte Stufen, Leben und endet nach Ablauf der Zeit', () => {
     const s = setup(2, { mode: 'solo', lives: 1, minutes: 2 });
@@ -89,7 +143,21 @@ describe('Klingenrad – Einzeln', () => {
     s.engine.handleAction('p1', 'fail', { stage: 1 });
     expect(s.pub().solo.p1.done).toBe(true);
     s.advance(2 * 60_000);
-    expect(s.ended().scores).toEqual({ p0: 2, p1: 0 });
+    expect(s.ended().scores).toEqual({ p0: 20, p1: 0 });
+  });
+});
+
+describe('Klingenrad – Leben und Sterne', () => {
+  it('ein Fehlwurf kostet ein Leben, die Stufe läuft aber weiter; Sterne zählen mit', () => {
+    const s = setup(1, { mode: 'solo', lives: 3 });
+    s.engine.start();
+    s.advance(TIMING.countdownMs);
+    s.engine.handleAction('p0', 'progress', { stage: 1, stuck: 3 });
+    s.engine.handleAction('p0', 'fail', { stage: 1 });
+    expect(s.pub().solo.p0).toMatchObject({ stage: 1, stuck: 3, lives: 2, done: false });
+    // Stufe 2 hat Sterne; mehr als vorhanden zählen nicht
+    s.engine.handleAction('p0', 'clear', { stage: 1, stars: 5 });
+    expect(s.pub().solo.p0.stars).toBe(makeStage(s.pub().seed, 1).stars.length);
   });
 });
 

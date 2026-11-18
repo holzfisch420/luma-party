@@ -7,7 +7,9 @@ import { PlayerAvatar } from '../../../../components/lobby/PlayerAvatar';
 import type { RoomSnapshot } from '../../../../shared/types/room';
 import type { HostViewProps } from '../../../game-types';
 import { TIMING } from '../../game-config';
-import { angleAt, collides, localImpact, makeStage, sharedSpin } from '../../logic/wheel';
+import { angleAt, collides, localImpact, makeStage, sharedBoss, sharedSpin } from '../../logic/wheel';
+import { BOSSES } from '../../logic/bosses';
+import { WheelSim } from '../../logic/sim';
 import type { KlingenPublicState, ThrowEvent } from '../../types';
 import { drawKnife, drawWheel, fitCanvas, type StuckKnife } from '../draw';
 import { klingenSounds } from '../sounds';
@@ -45,7 +47,7 @@ export function KlingenHostView({ room, state }: HostViewProps<KlingenPublicStat
       </header>
       {pub.mode === 'solo' ? <SoloBoard room={room} pub={pub} secs={secs} /> : <SharedWheel room={room} pub={pub} secs={secs} />}
       <footer className="relative z-10 flex items-center justify-between gap-4 bg-black/30 px-[3vw] py-2.5 text-sm font-bold text-white/80">
-        <span>{pub.mode === 'solo' ? 'Jede Person spielt auf dem eigenen Handy – tippen zum Werfen. Alle 5 Stufen ein Käse-Boss.' : 'Auf dem Handy „Werfen“ tippen. Wer ein Messer trifft, ist raus. Jede Runde ein Messer mehr pro Person.'}</span>
+        <span>{pub.mode === 'solo' ? 'Jede Person spielt auf dem eigenen Handy – tippen zum Werfen. Jede 3. Stufe ein Boss (15 verschiedene), Sterne treffen gibt Bonuspunkte.' : 'Auf dem Handy „Werfen“ tippen. Wer ein Messer trifft, ist raus. Jede Runde ein Messer mehr pro Person.'}</span>
         <span className="flex shrink-0 items-center gap-2">
           <Smartphone className="size-4" /> Code <span className="tracking-[0.2em] text-[#f2c14e]">{room.code}</span>
         </span>
@@ -59,7 +61,7 @@ export function KlingenHostView({ room, state }: HostViewProps<KlingenPublicStat
 function SoloBoard({ room, pub, secs }: { room: RoomSnapshot; pub: KlingenPublicState; secs: number }) {
   const rows = Object.entries(pub.solo)
     .filter(([id]) => room.players.some((p) => p.id === id))
-    .sort((a, b) => b[1].cleared - a[1].cleared || b[1].stuck - a[1].stuck);
+    .sort((a, b) => b[1].cleared - a[1].cleared || (b[1].stars ?? 0) - (a[1].stars ?? 0) || b[1].stuck - a[1].stuck);
   if (pub.phase === 'countdown')
     return (
       <main className="relative z-10 grid flex-1 place-items-center">
@@ -78,7 +80,7 @@ function SoloBoard({ room, pub, secs }: { room: RoomSnapshot; pub: KlingenPublic
         {rows.map(([id, r], i) => {
           const st = makeStage(pub.seed, r.stage);
           return (
-            <motion.div key={id} layout className={`flex items-center gap-4 rounded-2xl px-4 py-2.5 ${r.done ? 'bg-white/5 opacity-60' : 'bg-white/10'}`}>
+            <motion.div key={id} layout className={`flex items-center gap-4 rounded-2xl border-2 border-[#e8b84a]/40 px-4 py-2.5 shadow-lg ${r.done ? 'bg-[#2b0609]/70 opacity-60' : 'bg-[#2b0609]/88'}`}>
               <span className="w-8 text-2xl font-black text-white/60">{i + 1}.</span>
               <Avatar room={room} id={id} size="md" />
               <span className="w-40 truncate text-2xl font-black">{nameOf(room, id)}</span>
@@ -88,13 +90,21 @@ function SoloBoard({ room, pub, secs }: { room: RoomSnapshot; pub: KlingenPublic
                   <span className="text-lg font-black text-white/70">fertig</span>
                 ) : (
                   <>
-                    <span className="mr-2 text-sm font-black text-white/60">Stufe {r.stage}{st.boss ? ' 🧀' : ''}</span>
+                    {st.boss ? (
+                      <span className="mr-2 rounded-full bg-[#e8b84a] px-2.5 py-0.5 text-sm font-black text-[#2b0609]">
+                        {BOSSES[st.boss].emoji} {BOSSES[st.boss].name}
+                      </span>
+                    ) : (
+                      <span className="mr-2 text-sm font-black text-white/60">Stufe {r.stage}</span>
+                    )}
                     {Array.from({ length: st.knives }).map((_, k) => (
                       <span key={k} className={`h-5 w-2 rounded-full ${k < r.stuck ? 'bg-[#f2c14e]' : 'bg-white/15'}`} />
                     ))}
                   </>
                 )}
               </div>
+              {(r.stars ?? 0) > 0 && <span className="text-lg font-black text-[#ffd23f]">★ {r.stars}</span>}
+              {(r.bosses ?? 0) > 0 && <span className="text-lg font-black text-[#ffe9a8]">👑 {r.bosses}</span>}
               <span className="text-xl">
                 {Array.from({ length: pub.maxLives }).map((_, k) => (
                   <span key={k} className={k < r.lives ? '' : 'opacity-20 grayscale'}>
@@ -115,9 +125,8 @@ function DecoWheel({ seed, stage }: { seed: number; stage: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     let raf = 0;
-    const st = makeStage(seed, stage);
-    const t0 = performance.now();
-    const knives: StuckKnife[] = st.obstacles.map((a) => ({ a, color: '#5b6170', fixed: true }));
+    const sim = new WheelSim(makeStage(seed, stage));
+    let last = performance.now();
     const loop = () => {
       raf = requestAnimationFrame(loop);
       const c = ref.current;
@@ -126,8 +135,11 @@ function DecoWheel({ seed, stage }: { seed: number; stage: number }) {
       const ctx = c.getContext('2d')!;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
-      const r = Math.min(w, h) * 0.3;
-      drawWheel(ctx, w / 2, h / 2, r, angleAt(st.spin, (performance.now() - t0) / 1000), knives, { boss: st.boss });
+      const now = performance.now();
+      sim.step(Math.min(0.05, (now - last) / 1000));
+      last = now;
+      const r = Math.min(w, h) * 0.27 * sim.radiusScale();
+      drawWheel(ctx, w / 2, h / 2, r, sim.angle, sim.knives, { bossId: sim.def?.id, sim, stars: sim.stars, alpha: Math.max(0.25, sim.alpha()) });
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
@@ -147,7 +159,7 @@ interface Flying {
 function SharedWheel({ room, pub, secs }: { room: RoomSnapshot; pub: KlingenPublicState; secs: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const offset = useSession((s) => s.clockOffset);
-  const sim = useRef({ round: 0, knives: [] as (StuckKnife & { pid: string })[], flying: [] as Flying[], bouncing: [] as (Flying & { a: number; t: number })[], flash: 0 });
+  const sim = useRef({ look: null as WheelSim | null, round: 0, knives: [] as (StuckKnife & { pid: string })[], flying: [] as Flying[], bouncing: [] as (Flying & { a: number; t: number })[], flash: 0 });
   const live = useRef({ pub, room, offset });
   live.current = { pub, room, offset };
   const [lastHit, setLastHit] = useState<{ id: number; playerId: string; ok: boolean } | null>(null);
@@ -207,7 +219,12 @@ function SharedWheel({ room, pub, secs }: { room: RoomSnapshot; pub: KlingenPubl
         return false;
       });
 
-      drawWheel(ctx, cx, cy, r, angle, s.knives, { knifeLen: len, flash: Math.max(0, 0.5 - (now - s.flash) / 600) });
+      // Boss-Look (nur Aussehen): eigene kleine Simulation für Augen & Co.
+      const look = sharedBoss(p.seed, p.round);
+      if (look && s.look?.def?.id !== look) s.look = new WheelSim({ ...makeStage(p.seed, 3), boss: look, obstacles: [], stars: [] });
+      if (!look) s.look = null;
+      s.look?.step(1 / 60);
+      drawWheel(ctx, cx, cy, r, angle, s.knives, { knifeLen: len, flash: Math.max(0, 0.5 - (now - s.flash) / 600), bossId: look, sim: s.look ?? undefined, visualOnly: true });
       for (const f of s.flying) {
         const k = Math.min(1, (now - f.at) / TIMING.flightMs);
         drawKnife(ctx, cx, startY + (impactY - startY) * k, -Math.PI / 2, len, f.color);
@@ -249,6 +266,11 @@ function SharedWheel({ room, pub, secs }: { room: RoomSnapshot; pub: KlingenPubl
         {pub.phase === 'countdown' && (
           <motion.div key={`r${pub.round}`} initial={{ scale: 1.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="rounded-3xl bg-[#e8590c] px-8 py-3 text-center shadow-2xl">
             <div className="text-4xl font-black">Runde {pub.round}</div>
+            {sharedBoss(pub.seed, pub.round) && (
+              <div className="text-xl font-black text-[#ffe9a8]">
+                Im Look von {BOSSES[sharedBoss(pub.seed, pub.round)!].emoji} {BOSSES[sharedBoss(pub.seed, pub.round)!].name}
+              </div>
+            )}
             <div className="text-xl font-bold">
               Jede Person hat {pub.round} {pub.round === 1 ? 'Messer' : 'Messer'} · los in {Math.max(1, secs)}
             </div>

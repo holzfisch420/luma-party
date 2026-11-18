@@ -3,6 +3,8 @@
  * Alles deterministisch aus einem Startwert – so bekommen alle dieselben Stufen.
  */
 
+import { BOSS_IDS, BOSSES, type BossId } from './bosses';
+
 /** Mindestabstand zweier Messer im Rad (Bogenmaß) */
 export const MIN_GAP = 0.19;
 const TAU = Math.PI * 2;
@@ -55,27 +57,72 @@ export interface Stage {
   knives: number;
   /** schon steckende Messer (Hindernisse) */
   obstacles: number[];
+  /** Bonus-Sterne im Rad (Position im Rad) */
+  stars: number[];
   spin: Spin;
-  boss: boolean;
+  /** Boss dieser Stufe (jede dritte Stufe) */
+  boss: BossId | null;
+  /** Tempo-Faktor für Boss-Mechaniken (steigt mit der Stufe) */
+  power: number;
+  /** Startwert für zufällige Abläufe (z. B. Richtungswechsel) */
+  seed: number;
+}
+
+/** jede dritte Stufe ist ein Boss */
+export const BOSS_EVERY = 3;
+
+/** Reihenfolge der Bosse – pro Spiel gemischt, aber für alle gleich */
+export function bossOrder(seed: number): BossId[] {
+  const rnd = mulberry32(seed * 13 + 7);
+  const list = [...BOSS_IDS];
+  for (let i = list.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [list[i], list[j]] = [list[j]!, list[i]!];
+  }
+  // der Drache bleibt der große Endgegner jeder Runde durch alle Bosse
+  const d = list.indexOf('drache');
+  list.splice(d, 1);
+  list.push('drache');
+  return list;
+}
+
+function placeFree(rnd: () => number, count: number, taken: number[], gap: number): number[] {
+  const out: number[] = [];
+  for (let tries = 0; out.length < count && tries < 300; tries++) {
+    const a = rnd() * TAU;
+    if (![...taken, ...out].some((o) => angleDist(o, a) < gap)) out.push(a);
+  }
+  return out;
 }
 
 /** Stufe n (ab 1) – für alle gleich bei gleichem Startwert */
 export function makeStage(seed: number, n: number): Stage {
   const rnd = mulberry32(seed * 1000 + n * 7919);
-  const boss = n % 5 === 0;
-  const knives = Math.min(12, 5 + Math.floor(n * 0.6) + (boss ? 2 : 0));
-  const obstacleCount = n < 2 ? 0 : Math.min(6, 1 + Math.floor(n / 3));
-  const obstacles: number[] = [];
-  for (let tries = 0; obstacles.length < obstacleCount && tries < 200; tries++) {
-    const a = rnd() * TAU;
-    if (!obstacles.some((o) => angleDist(o, a) < MIN_GAP * 2.2)) obstacles.push(a);
+  const isBoss = n % BOSS_EVERY === 0;
+  const bossNo = n / BOSS_EVERY - 1;
+  const boss = isBoss ? bossOrder(seed)[bossNo % BOSS_IDS.length]! : null;
+  // beim zweiten Durchlauf durch alle Bosse wird es härter
+  const lap = isBoss ? Math.floor(bossNo / BOSS_IDS.length) : 0;
+  const power = 1 + Math.min(0.6, n * 0.012) + lap * 0.15;
+  if (boss) {
+    const def = BOSSES[boss];
+    const obstacles = placeFree(rnd, def.obstacles + lap, [], MIN_GAP * 2.1);
+    const stars = placeFree(rnd, 2, obstacles, MIN_GAP * 1.6);
+    const dir = rnd() < 0.5 ? -1 : 1;
+    const base = dir * def.speed * power;
+    const spin: Spin = { base, amp: Math.abs(base) * (def.wave ?? 0), freq: 0.8 + rnd() * 0.7, phase: rnd() * TAU };
+    return { n, knives: def.knives + lap, obstacles, stars, spin, boss, power, seed: seed * 31 + n };
   }
+  const knives = Math.min(11, 5 + Math.floor(n * 0.45));
+  const obstacleCount = n < 2 ? 0 : Math.min(6, 1 + Math.floor(n / 3));
+  const obstacles = placeFree(rnd, obstacleCount, [], MIN_GAP * 2.2);
+  const stars = n < 2 ? [] : placeFree(rnd, rnd() < 0.5 ? 1 : 2, obstacles, MIN_GAP * 1.6);
   const dir = rnd() < 0.5 ? -1 : 1;
-  const base = dir * Math.min(3.4, 1.5 + n * 0.11);
-  // ab Stufe 3 schwankt die Geschwindigkeit, Boss-Stufen kehren die Richtung um
-  const amp = n < 3 ? 0 : boss ? Math.abs(base) * 1.6 : Math.min(2.6, 0.5 + n * 0.12) * (rnd() < 0.5 ? 1 : 0.6);
+  const base = dir * Math.min(3.2, 1.5 + n * 0.1);
+  // ab Stufe 4 schwankt die Geschwindigkeit
+  const amp = n < 4 ? 0 : Math.min(2.4, 0.5 + n * 0.1) * (rnd() < 0.5 ? 1 : 0.6);
   const spin: Spin = { base, amp, freq: 0.8 + rnd() * 1.1, phase: rnd() * TAU };
-  return { n, knives, obstacles, spin, boss };
+  return { n, knives, obstacles, stars, spin, boss: null, power, seed: seed * 31 + n };
 }
 
 /** Drehung des gemeinsamen Rads in Runde r */
@@ -84,4 +131,10 @@ export function sharedSpin(seed: number, round: number): Spin {
   const dir = rnd() < 0.5 ? -1 : 1;
   const base = dir * Math.min(3, 1.3 + round * 0.18);
   return { base, amp: round < 2 ? 0 : Math.min(2.4, 0.6 + round * 0.25), freq: 0.7 + rnd() * 0.9, phase: rnd() * TAU };
+}
+
+/** gemeinsames Rad: ab Runde 3 jede zweite Runde im Look eines Bosses (nur Aussehen) */
+export function sharedBoss(seed: number, round: number): BossId | null {
+  if (round < 3 || round % 2 === 0) return null;
+  return bossOrder(seed)[Math.floor((round - 3) / 2) % BOSS_IDS.length]!;
 }

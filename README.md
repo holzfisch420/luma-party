@@ -167,10 +167,10 @@ Geheimes Wort mit 5 Buchstaben in 6 Versuchen erraten – alle gleichzeitig (1�
 
 Messer ins drehende Rad werfen – aber nie ein Messer treffen, das schon steckt (1–12 Spieler).
 
-- **Einzeln:** Alle spielen auf dem eigenen Handy dieselben Stufen (gleicher Startwert). Die ganze Spiellogik läuft auf dem Handy – keine Verzögerung; das Handy meldet nur Fortschritt. Stufen werden schneller, bekommen Hindernis-Messer und wechselnde Drehrichtungen, alle 5 Stufen ein Käse-Boss. Wer in der Spielzeit (1–8 min) die meisten Stufen schafft, gewinnt. Leben 1–3.
+- **Einzeln:** Alle spielen auf dem eigenen Handy dieselben Stufen (gleicher Startwert). Die ganze Spiellogik läuft auf dem Handy – keine Verzögerung; das Handy meldet nur Fortschritt. Stufen werden schneller, bekommen Hindernis-Messer, Bonus-Sterne und wechselnde Drehrichtungen. Jede 3. Stufe ist ein Boss – 15 verschiedene mit eigenem Look und eigener Mechanik (Schilde, Monde, Fangarm, Geist, Dunkelheit, Zeitbombe, wandernde Messer …), der Feuerdrache kommt zuletzt. Ein Fehlwurf kostet ein Leben, die Stufe läuft aber weiter. Wer in der Spielzeit (1–8 min) die meisten Stufen schafft, gewinnt. Leben 1–3.
 - **Ein Rad:** Alle werfen per Handy ins große Rad auf dem Fernseher. Runde 1: jede Person 1 Messer, Runde 2: 2 Messer usw. – das Rad wird immer voller. Wer ein Messer trifft, ist raus; die letzte Person gewinnt. Die Treffer berechnet der Fernseher (er zeigt das Rad), der Server zählt nur.
 - Neu dafür im Gerüst: `GameEngine.handleHostAction` – der Hauptbildschirm kann Aktionen an die Engine schicken.
-- Code: `src/games/klingen/` (Rad-Logik in `logic/wheel.ts`, ein Bot-Test prüft, dass Stufe 1–30 schaffbar sind).
+- Code: `src/games/klingen/` (Rad-Logik in `logic/wheel.ts`, Bosse in `logic/bosses.ts`, Simulation in `logic/sim.ts`; ein Bot-Test prüft, dass alle Stufen und Bosse schaffbar sind).
 
 ### Vollmond
 

@@ -44,7 +44,7 @@ function Solo({ me, state, sendAction }: Props) {
         active={pub.phase === 'play'}
         color={me.avatarColor}
         onProgress={(stage, stuck) => sendAction('progress', { stage, stuck })}
-        onClear={(stage) => sendAction('clear', { stage })}
+        onClear={(stage, stars) => sendAction('clear', { stage, stars })}
         onFail={(stage) => sendAction('fail', { stage })}
       />
     </>
