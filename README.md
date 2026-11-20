@@ -100,6 +100,7 @@ Der Server liefert dann das gebaute Frontend aus und gibt die LAN-Adressen für 
    - **am TV** mit Maus, Tastatur oder Fernbedienung (`←` `→` wählen, `Enter` starten, `E` Einstellungen), oder
    - **per Smartphone**: Die zuerst beigetretene Person sieht die Spielauswahl auf dem Handy (Badge „Wahl“).
      Der Host kann die Auswahl jederzeit übernehmen (Menü → „Spielauswahl am Bildschirm“).
+   - **Warten mit Minispiel**: Wer nicht wählt, kann in der Lobby auf dem Handy *Flatterflug*, *Schlange* oder *Minensuche* spielen (Rekorde bleiben auf dem Handy). Die wählende Person schaltet oben zwischen „Spiel wählen“ und „Minispiel“ um.
 4. **Montagsmaler**: Wer dran ist, wählt ein Wort und zeichnet auf dem Handy. Die Zeichnung erscheint live auf dem TV,
    die anderen raten über ihr Handy. Vermutungen erscheinen als Chat-Bubbles links oder rechts unten.
 5. Nach der letzten Runde: Rangliste mit Siegertreppchen, „Nochmal spielen“ oder „Zurück zum Launcher“.

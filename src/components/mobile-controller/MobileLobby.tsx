@@ -1,4 +1,6 @@
-import { BookOpen, Gamepad2, LogOut, MonitorOff, Tv, UserRound } from 'lucide-react';
+import { BookOpen, Gamepad2, Joystick, LayoutGrid, LogOut, MonitorOff, Tv, UserRound } from 'lucide-react';
+import { ui } from '../../app/audio/sfx';
+import { WaitingArcade } from './arcade/WaitingArcade';
 import { getAuthToken } from '../../app/account/account-store';
 import { AccountPanel } from '../avatar/AccountPanel';
 import { useEffect, useState } from 'react';
@@ -29,6 +31,8 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
   const [launchOpen, setLaunchOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [starting, setStarting] = useState(false);
+  /** Spielleitung: zwischen Spielauswahl und Minispiel umschalten */
+  const [view, setView] = useState<'select' | 'arcade'>('select');
   const canSelect = room.controllerId === me.id && !room.hostHasControl;
   const controller = room.players.find((p) => p.id === room.controllerId);
   const selected = GAMES.find((g) => g.id === room.selectedGameId) ?? GAMES[0]!;
@@ -84,7 +88,28 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
       )}
 
       <section className="mt-8">
-        {canSelect ? (
+        {canSelect && (
+          <div className="mb-6 flex rounded-2xl bg-black/[0.06] p-1">
+            {(
+              [
+                ['select', 'Spiel wählen', <LayoutGrid key="i" className="size-4" />],
+                ['arcade', 'Minispiel', <Joystick key="i" className="size-4" />],
+              ] as const
+            ).map(([id, label, icon]) => (
+              <button
+                key={id}
+                onClick={() => {
+                  if (view !== id) ui.toggle();
+                  setView(id);
+                }}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-black transition-colors ${view === id ? 'bg-white text-cyan-dark shadow' : 'text-home-muted'}`}
+              >
+                {icon} {label}
+              </button>
+            ))}
+          </div>
+        )}
+        {canSelect && view === 'select' ? (
           <>
             <div className="mb-10 flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-amber-600">
               <Gamepad2 className="size-4" /> Du wählst das Spiel – tippen, dann nochmal tippen
@@ -109,12 +134,21 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
               <div className="text-xl font-black">{selected.name}</div>
               <div className="mt-1 flex items-start gap-2 text-sm font-bold text-home-muted">
                 <Tv className="mt-0.5 size-4 shrink-0" />
-                {room.hostHasControl || !controller ? 'Das Spiel wird am Fernseher gewählt.' : `${controller.name} wählt das Spiel aus …`}
+                {canSelect ? 'Du wählst das Spiel – oben auf „Spiel wählen“ tippen.' : room.hostHasControl || !controller ? 'Das Spiel wird am Fernseher gewählt.' : `${controller.name} wählt das Spiel aus …`}
               </div>
             </div>
           </div>
         )}
       </section>
+
+      {(!canSelect || view === 'arcade') && (
+        <section className="mt-6">
+          <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-home-muted">
+            <Joystick className="size-4" /> Zeitvertreib bis es losgeht
+          </div>
+          <WaitingArcade />
+        </section>
+      )}
 
       <section className="mt-8">
         <div className="mb-3 text-xs font-black uppercase tracking-[0.14em] text-home-muted">{room.players.length} im Raum</div>
