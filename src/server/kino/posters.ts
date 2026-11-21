@@ -16,6 +16,29 @@ export const IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
 type Fetch = typeof fetch;
 
+/** Titel, die TMDB unter anderem Namen führt (deutsche Suche findet sie nicht) */
+export const SEARCH_ALIASES: Record<string, string> = {
+  'Der Herr der Ringe: Die Rückkehr des Königs': 'The Lord of the Rings: The Return of the King',
+  'Mrs. Doubtfire – Das stachelige Kindermädchen': 'Mrs. Doubtfire',
+  'Der große Lebowski': 'The Big Lebowski',
+  'Die Minions': 'Minions',
+  'Sing – Die Show deines Lebens': 'Sing',
+};
+
+interface Hit {
+  poster_path?: string | null;
+  release_date?: string;
+  first_air_date?: string;
+}
+
+/** Treffer mit Cover und dem Jahr, das am besten passt */
+function bestHit(results: Hit[], year: number): Hit | undefined {
+  const withPoster = results.filter((r) => r.poster_path);
+  const y = (r: Hit) => Number((r.release_date ?? r.first_air_date ?? '').slice(0, 4)) || 0;
+  // bei gleichem Abstand gewinnt TMDBs eigene Reihenfolge (Beliebtheit)
+  return withPoster.reduce<Hit | undefined>((best, r) => (!best || Math.abs(y(r) - year) < Math.abs(y(best) - year) ? r : best), undefined);
+}
+
 export class PosterService {
   private cache = new Map<string, string | null>();
   private pending = new Map<string, Promise<string | null>>();
@@ -32,7 +55,7 @@ export class PosterService {
     return !!this.key || Object.keys(this.precomputed).length > 0;
   }
 
-  private async search(path: string, params: Record<string, string>): Promise<{ poster_path?: string | null }[]> {
+  private async search(path: string, params: Record<string, string>): Promise<Hit[]> {
     const key = this.key!;
     // langer Lesezugriffstoken (JWT) → Header, kurzer Schlüssel → Parameter
     const bearer = key.length > 40;
@@ -42,19 +65,20 @@ export class PosterService {
       signal: AbortSignal.timeout(6000),
     });
     if (!res.ok) throw new Error(`TMDB ${res.status}`);
-    const data = (await res.json()) as { results?: { poster_path?: string | null }[] };
+    const data = (await res.json()) as { results?: Hit[] };
     return data.results ?? [];
   }
 
   private async lookup(m: Media): Promise<string | null> {
-    const query = m.title.replace(/\s*\((Neuverfilmung|Extended)\)\s*$/i, '');
+    const plain = m.title.replace(/\s*\((Neuverfilmung|Extended)\)\s*$/i, '');
+    const query = SEARCH_ALIASES[plain] ?? plain;
     const isFilm = m.type === 'film';
     const path = isFilm ? '/search/movie' : '/search/tv';
     const yearKey = isFilm ? 'year' : 'first_air_date_year';
     let results = await this.search(path, { query, [yearKey]: String(m.year) });
     // Jahr manchmal leicht verschieden (Festival vs. Kinostart) → ohne Jahr nochmal
     if (!results.some((r) => r.poster_path)) results = await this.search(path, { query });
-    const hit = results.find((r) => r.poster_path);
+    const hit = bestHit(results, m.year);
     return hit?.poster_path ? `${IMAGE_BASE}${hit.poster_path}` : null;
   }
 
