@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import os from 'node:os';
 import path from 'node:path';
 import { connect, emitAck, sleep, type TestClient } from './helpers';
+import { DEFAULT_AVATAR } from '../src/shared/avatar';
 
 process.env.LUMA_DATA_DIR = path.join(os.tmpdir(), `luma-test-${process.pid}`);
 delete process.env.DATABASE_URL;
@@ -84,6 +85,28 @@ describe('Lobby', () => {
     expect(res.ok && res.data.playerId).toBe(players[0]!.id);
     await host.waitFor(() => host.room!.players.find((p) => p.name === 'Anna')?.isConnected === true);
     [host, again, ...players].forEach((c) => c.close());
+  });
+});
+
+describe('Gast-Avatar', () => {
+  it('Gäste bringen beim Beitreten einen Avatar mit und können ihn ändern', async () => {
+    const { host, code, players } = await setupRoom(['Anna']);
+    expect(host.room!.players[0]!.avatar).toBeNull();
+    const avatar = { ...DEFAULT_AVATAR, shape: 3, color: 2, extra: 5 };
+    const c = await connect(server.port);
+    const res = await emitAck<{ playerId: string }>(c, 'player:join', { code, name: 'Ben', avatar });
+    expect(res.ok).toBe(true);
+    await host.waitFor(() => host.room!.players.length === 2);
+    expect(host.room!.players.find((p) => p.name === 'Ben')!.avatar).toEqual(avatar);
+    // ungültiger Avatar wird ignoriert
+    const bad = await connect(server.port);
+    await emitAck(bad, 'player:join', { code, name: 'Cleo', avatar: { v: 2, shape: 99 } });
+    await host.waitFor(() => host.room!.players.length === 3);
+    expect(host.room!.players.find((p) => p.name === 'Cleo')!.avatar).toBeNull();
+    // in der Lobby ändern
+    players[0]!.socket.emit('player:setAvatar', { avatar: { ...avatar, mouth: 4 } });
+    await host.waitFor(() => host.room!.players.find((p) => p.name === 'Anna')!.avatar?.mouth === 4);
+    [host, c, bad, ...players].forEach((x) => x.close());
   });
 });
 

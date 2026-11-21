@@ -1,3 +1,4 @@
+import type { AvatarConfig } from '../../shared/avatar';
 import { useCallback, useEffect, useState } from 'react';
 import { STORAGE_KEYS } from '../../shared/constants';
 import type { PlayerSessionData } from '../../shared/events';
@@ -57,8 +58,8 @@ export function usePlayerConnection() {
     };
   }, []);
 
-  const join = useCallback(async (code: string, name: string, authToken?: string | null) => {
-    const data = await emitWithAck<PlayerSessionData>('player:join', { code, name, authToken: authToken ?? null });
+  const join = useCallback(async (code: string, name: string, authToken?: string | null, avatar?: AvatarConfig | null) => {
+    const data = await emitWithAck<PlayerSessionData>('player:join', { code, name, authToken: authToken ?? null, avatar: avatar ?? null });
     writeSession(data);
     try {
       localStorage.setItem(STORAGE_KEYS.playerName, name);

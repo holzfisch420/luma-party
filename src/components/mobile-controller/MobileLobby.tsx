@@ -3,6 +3,8 @@ import { ui } from '../../app/audio/sfx';
 import { WaitingArcade } from './arcade/WaitingArcade';
 import { getAuthToken } from '../../app/account/account-store';
 import { AccountPanel } from '../avatar/AccountPanel';
+import { AvatarEditor } from '../avatar/AvatarEditor';
+import { getGuestAvatar, saveGuestAvatar } from '../../app/account/guest-avatar';
 import { useEffect, useState } from 'react';
 import type { ConnectionStatus } from '../../app/session/session-store';
 import { emitWithAck, getSocket } from '../../app/session/socket';
@@ -28,6 +30,9 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
   const toast = useToast();
   const [wordsOpen, setWordsOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  /** Gast: eigenen Avatar bauen (ohne Konto) */
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const editAvatar = () => (me.hasAccount ? setAccountOpen(true) : setAvatarOpen(true));
   const [launchOpen, setLaunchOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [starting, setStarting] = useState(false);
@@ -66,7 +71,7 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
       </header>
 
       <div className="mt-3 flex items-center gap-4">
-        <button onClick={() => setAccountOpen(true)} aria-label="Avatar bearbeiten" className="relative">
+        <button onClick={editAvatar} aria-label="Avatar bearbeiten" className="relative">
           <PlayerAvatar name={me.name} color={me.avatarColor} avatar={me.avatar} size="xl" />
           <span className="absolute -bottom-1 -right-1 grid size-8 place-items-center rounded-full border-2 border-white bg-cyan text-white shadow">
             <UserRound className="size-4" />
@@ -75,8 +80,8 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
         <div className="min-w-0">
           <div className="text-sm font-extrabold text-home-muted">Du bist dabei!</div>
           <div className="truncate text-3xl font-black tracking-tight">{me.name}</div>
-          <button onClick={() => setAccountOpen(true)} className="mt-1 text-sm font-extrabold text-cyan-dark">
-            {me.hasAccount ? 'Avatar bearbeiten' : 'Konto & eigenen Avatar erstellen'}
+          <button onClick={editAvatar} className="mt-1 text-sm font-extrabold text-cyan-dark">
+            {me.avatar ? 'Avatar bearbeiten' : 'Eigenen Avatar bauen'}
           </button>
         </div>
       </div>
@@ -169,6 +174,27 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
             }
           }}
         />
+      </Modal>
+      <Modal open={avatarOpen} onClose={() => setAvatarOpen(false)} title="Dein Avatar" subtitle="Er erscheint statt Initialen in der Lobby, im Spiel und auf dem Fernseher.">
+        <AvatarEditor
+          initial={me.avatar ?? getGuestAvatar()}
+          saveLabel="Übernehmen"
+          onCancel={() => setAvatarOpen(false)}
+          onSave={(avatar) => {
+            saveGuestAvatar(avatar);
+            getSocket().emit('player:setAvatar', { avatar });
+            setAvatarOpen(false);
+          }}
+        />
+        <button
+          onClick={() => {
+            setAvatarOpen(false);
+            setAccountOpen(true);
+          }}
+          className="mt-4 w-full text-center text-sm font-extrabold text-home-muted underline"
+        >
+          Konto erstellen – Avatar auf allen Geräten behalten
+        </button>
       </Modal>
       <Modal open={wordsOpen} onClose={() => setWordsOpen(false)} title="Eigene Wörter" subtitle="Für den Modus „Eigene Wörter“ oder „Mix“.">
         <WordManager />

@@ -27,11 +27,14 @@ export interface ClientToServerEvents {
   'host:resume': (data: HostSessionData, ack: Ack<HostSessionData>) => void;
   'host:closeRoom': () => void;
   /** authToken = angemeldetes Konto (Name + Avatar kommen dann vom Konto) */
-  'player:join': (data: { code: string; name: string; authToken?: string | null }, ack: Ack<PlayerSessionData>) => void;
+  /** avatar = selbst gebauter Avatar (Gäste ohne Konto) */
+  'player:join': (data: { code: string; name: string; authToken?: string | null; avatar?: unknown }, ack: Ack<PlayerSessionData>) => void;
   'player:resume': (data: { code: string; token: string }, ack: Ack<PlayerSessionData>) => void;
   'player:leave': () => void;
   /** Avatar/Name nach Änderung im Konto neu laden */
   'player:refreshProfile': (data: { authToken: string }) => void;
+  /** Gast ändert seinen Avatar in der Lobby */
+  'player:setAvatar': (data: { avatar: unknown }) => void;
   'room:selectGame': (data: { gameId: string }) => void;
   'room:setHostControl': (data: { enabled: boolean }) => void;
   'room:updateSettings': (data: { gameId: string; settings: unknown }, ack?: Ack) => void;

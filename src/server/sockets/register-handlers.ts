@@ -2,6 +2,7 @@
  * Socket.IO-Handler: übersetzt Client-Events in Raum-Aktionen.
  * Jede Aktion wird hier auf Berechtigung und Eingabeformat geprüft.
  */
+import { parseAvatar } from '../../shared/avatar';
 import { ACTION_BURST, ACTION_RATE_PER_SECOND } from '../../shared/constants';
 import type { Ack } from '../../shared/events';
 import { RoomError, type TypedServer, type TypedSocket } from '../rooms/room';
@@ -109,7 +110,7 @@ export function registerSocketHandlers(io: TypedServer, rooms: RoomManager, opts
           account = { id: doc.id, username: doc.username, avatar: doc.avatar };
         }
         leaveCurrent();
-        const player = room.addPlayer(data?.name, socket, account);
+        const player = room.addPlayer(data?.name, socket, account, parseAvatar(data?.avatar));
         return { code: room.code, playerId: player.id, token: player.token };
       }),
     );
@@ -131,6 +132,13 @@ export function registerSocketHandlers(io: TypedServer, rooms: RoomManager, opts
       const accountId = rooms.services.tokens.verify(data?.authToken);
       const doc = accountId ? rooms.services.accounts.get(accountId) : undefined;
       if (doc) room.refreshProfile(socket.data.playerId, { id: doc.id, username: doc.username, avatar: doc.avatar });
+    });
+
+    socket.on('player:setAvatar', (data) => {
+      const room = currentRoom();
+      if (!room || socket.data.role !== 'player' || !socket.data.playerId) return;
+      const avatar = parseAvatar(data?.avatar);
+      if (avatar) room.setGuestAvatar(socket.data.playerId, avatar);
     });
 
     socket.on('player:leave', () => {

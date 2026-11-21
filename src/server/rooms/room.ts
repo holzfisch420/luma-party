@@ -165,7 +165,7 @@ export class Room implements SessionHost {
    * Spieler hinzufügen. Mit `account` kommen Name und Avatar aus dem Konto;
    * ist das Konto schon im Raum (z. B. anderes Gerät), wird dieser Platz übernommen.
    */
-  addPlayer(rawName: unknown, socket: TypedSocket, account?: { id: string; username: string; avatar: AvatarConfig } | null): PlayerRecord {
+  addPlayer(rawName: unknown, socket: TypedSocket, account?: { id: string; username: string; avatar: AvatarConfig } | null, guestAvatar?: AvatarConfig | null): PlayerRecord {
     if (account) {
       const mine = [...this.players.values()].find((p) => p.accountId === account.id);
       if (mine) {
@@ -180,6 +180,7 @@ export class Room implements SessionHost {
     if (existing) {
       // getrennter Gast mit gleichem Namen darf seinen Platz zurückholen (nicht bei Konten)
       if (existing.socketId === null && !account && existing.accountId === null) {
+        if (guestAvatar) existing.avatar = guestAvatar;
         this.attachPlayer(existing, socket);
         return existing;
       }
@@ -191,7 +192,7 @@ export class Room implements SessionHost {
       id: randomUUID(),
       name,
       accountId: account?.id ?? null,
-      avatar: account?.avatar ?? null,
+      avatar: account?.avatar ?? guestAvatar ?? null,
       token: token(),
       avatarColor: this.nextColor(),
       joinedAt: Date.now(),
@@ -222,6 +223,14 @@ export class Room implements SessionHost {
     const newName = account.username.slice(0, PLAYER_NAME_MAX);
     if (newName !== record.name && ![...this.players.values()].some((p) => p !== record && p.name.toLowerCase() === newName.toLowerCase())) record.name = newName;
     record.avatar = account.avatar;
+    this.broadcast();
+  }
+
+  /** Gast (ohne Konto) ändert seinen selbst gebauten Avatar */
+  setGuestAvatar(playerId: PlayerId, avatar: AvatarConfig): void {
+    const record = this.players.get(playerId);
+    if (!record || record.accountId !== null) return;
+    record.avatar = avatar;
     this.broadcast();
   }
 

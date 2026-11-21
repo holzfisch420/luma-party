@@ -1,5 +1,10 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, Share, UserRound, X } from 'lucide-react';
+import { ArrowRight, Dices, Pencil, Share, UserRound, X } from 'lucide-react';
+import { getGuestAvatar, saveGuestAvatar } from '../../app/account/guest-avatar';
+import { randomAvatar, type AvatarConfig } from '../../shared/avatar';
+import { AvatarEditor } from '../avatar/AvatarEditor';
+import { AvatarFace, avatarBackground } from '../avatar/AvatarFace';
+import { Modal } from '../ui/Modal';
 import { Link } from 'react-router-dom';
 import { accountActions, getAuthToken, useAccount } from '../../app/account/account-store';
 import { PlayerAvatar } from '../lobby/PlayerAvatar';
@@ -10,7 +15,7 @@ import { Logo } from '../ui/Logo';
 
 interface Props {
   initialCode?: string;
-  onJoin: (code: string, name: string, authToken?: string | null) => Promise<void>;
+  onJoin: (code: string, name: string, authToken?: string | null, avatar?: AvatarConfig | null) => Promise<void>;
   notice?: string | null;
 }
 
@@ -33,6 +38,13 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
   });
   const [error, setError] = useState<string | null>(notice ?? null);
   const [busy, setBusy] = useState(false);
+  const [avatar, setAvatarState] = useState<AvatarConfig>(getGuestAvatar);
+  const [editing, setEditing] = useState(false);
+  const [spin, setSpin] = useState(0);
+  const setAvatar = (a: AvatarConfig) => {
+    setAvatarState(a);
+    saveGuestAvatar(a);
+  };
   const { account } = useAccount();
   const valid = code.length === ROOM_CODE_LENGTH && (!!account || name.trim().length > 0);
 
@@ -42,7 +54,7 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
     setBusy(true);
     setError(null);
     try {
-      await onJoin(code, account ? account.username : name.trim(), account ? getAuthToken() : null);
+      await onJoin(code, account ? account.username : name.trim(), account ? getAuthToken() : null, account ? null : avatar);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -58,7 +70,7 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
       <motion.form onSubmit={submit} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-7">
         <div>
           <h1 className="text-4xl font-black tracking-tight">Mitspielen</h1>
-          <p className="mt-1 font-bold text-home-muted">Code vom Fernseher und deinen Namen eingeben.</p>
+          <p className="mt-1 font-bold text-home-muted">Code vom Fernseher eingeben, Namen wählen und Avatar bauen.</p>
         </div>
 
         <label className="flex flex-col gap-2.5">
@@ -104,25 +116,74 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
           </div>
         ) : (
           <>
-            <label className="flex flex-col gap-2.5">
-              <span className="text-xs font-black uppercase tracking-[0.16em] text-cyan-dark">Dein Name</span>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value.slice(0, PLAYER_NAME_MAX))}
-                maxLength={PLAYER_NAME_MAX}
-                placeholder="z. B. Max"
-                autoComplete="nickname"
-                enterKeyHint="go"
-                autoFocus={!!code}
-                className="home-input !h-16 !rounded-[20px] !text-xl font-bold"
-              />
-            </label>
+            <div className="flex flex-col gap-2.5">
+              <span className="text-xs font-black uppercase tracking-[0.16em] text-cyan-dark">Du &amp; dein Avatar</span>
+              <div className="home-tile flex items-center gap-4 rounded-[28px] p-3">
+                {/* Avatar: antippen = bauen */}
+                <button type="button" onClick={() => setEditing(true)} aria-label="Avatar bauen" className="relative shrink-0">
+                  <motion.div
+                    key={spin}
+                    initial={{ scale: 0.8, rotate: spin ? -12 : 0 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', stiffness: 380, damping: 14 }}
+                    className="relative size-28 overflow-hidden rounded-full border-4 border-white shadow-[0_6px_16px_-4px_rgba(40,50,70,0.45)]"
+                    style={{ background: avatarBackground(avatar) }}
+                  >
+                    <AvatarFace avatar={avatar} crop="bust" className="absolute inset-0 size-full" />
+                  </motion.div>
+                  <span className="absolute -bottom-0.5 -right-0.5 grid size-9 place-items-center rounded-full border-[3px] border-white bg-cyan text-white shadow">
+                    <Pencil className="size-4" />
+                  </span>
+                </button>
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value.slice(0, PLAYER_NAME_MAX))}
+                    maxLength={PLAYER_NAME_MAX}
+                    placeholder="z. B. Max"
+                    aria-label="Dein Name"
+                    autoComplete="nickname"
+                    enterKeyHint="go"
+                    autoFocus={!!code}
+                    className="home-input !h-14 !rounded-[18px] !text-xl font-bold"
+                  />
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setEditing(true)} className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-cyan px-3 py-2 text-sm font-black text-white shadow">
+                      <Pencil className="size-4" /> Bauen
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAvatar(randomAvatar());
+                        setSpin((n) => n + 1);
+                      }}
+                      aria-label="Zufälliger Avatar"
+                      className="flex items-center justify-center gap-1.5 rounded-full border-2 border-home-line bg-white px-3 py-2 text-sm font-black text-home-muted"
+                    >
+                      <Dices className="size-4" /> Würfeln
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
             <Link
               to={`/konto?back=${encodeURIComponent(`/play${code ? `?code=${code}` : ''}`)}`}
-              className="-mt-3 flex items-center gap-2 self-start text-sm font-extrabold text-cyan-dark"
+              className="-mt-3 flex items-center gap-2 self-start text-sm font-extrabold text-home-muted"
             >
-              <UserRound className="size-4" /> Mit Konto &amp; eigenem Avatar spielen
+              <UserRound className="size-4" /> Lieber mit Konto spielen (Avatar auf allen Geräten)
             </Link>
+            <Modal open={editing} onClose={() => setEditing(false)} title="Bau deinen Avatar" subtitle="Er erscheint statt Initialen in der Lobby, im Spiel und auf dem Fernseher.">
+              <AvatarEditor
+                initial={avatar}
+                saveLabel="Übernehmen"
+                onCancel={() => setEditing(false)}
+                onSave={(a) => {
+                  setAvatar(a);
+                  setSpin((n) => n + 1);
+                  setEditing(false);
+                }}
+              />
+            </Modal>
           </>
         )}
 

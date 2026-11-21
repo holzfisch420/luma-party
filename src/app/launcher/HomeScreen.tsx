@@ -8,6 +8,8 @@ import { LaunchPanel } from '../../components/launcher/LaunchPanel';
 import { TileArt } from '../../components/launcher/TileArt';
 import { JoinInstructions, QrCode, QrZoom, useJoinUrl } from '../../components/lobby/JoinInstructions';
 import { PlayerList } from '../../components/lobby/PlayerList';
+import { PlayerAvatar } from '../../components/lobby/PlayerAvatar';
+import { AnimatePresence, motion } from 'framer-motion';
 import { SettingRow, Toggle } from '../../components/ui/Controls';
 import { ConnectionStatusBadge } from '../../components/ui/Feedback';
 import { Modal } from '../../components/ui/Modal';
@@ -132,10 +134,33 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
     </div>
   );
   const statusCorner = (
-    <div className="flex flex-col items-end gap-1">
-      <Clock />
-      {status !== 'connected' && <ConnectionStatusBadge status={status} />}
-      {controllerName && <div className="text-xs font-bold text-home-muted">{controllerName} wählt per Handy</div>}
+    <div className="flex items-center gap-[1.2vw]">
+      {/* wer ist da: Avatare der Mitspielenden */}
+        {room.players.length > 0 && (
+          <button onClick={() => setSheet('players')} className="flex items-center" aria-label="Spieler anzeigen" title={room.players.map((p) => p.name).join(', ')}>
+            <AnimatePresence initial={false}>
+              {room.players.slice(0, 8).map((p, i) => (
+                <motion.div
+                  key={p.id}
+                  initial={{ scale: 0, y: 10 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 16 }}
+                  className={i > 0 ? '-ml-[0.9vw]' : ''}
+                  style={{ zIndex: 20 - i }}
+                >
+                  <PlayerAvatar name={p.name} color={p.avatarColor} avatar={p.avatar} size="lg" dimmed={!p.isConnected} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            {room.players.length > 8 && <span className="-ml-[0.6vw] grid size-12 place-items-center rounded-full border-2 border-white bg-cyan text-sm font-black text-white shadow">+{room.players.length - 8}</span>}
+          </button>
+        )}
+      <div className="flex flex-col items-end gap-1">
+        <Clock />
+        {status !== 'connected' && <ConnectionStatusBadge status={status} />}
+        {controllerName && <div className="text-xs font-bold text-home-muted">{controllerName} wählt per Handy</div>}
+      </div>
     </div>
   );
 
