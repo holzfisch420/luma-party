@@ -25,4 +25,5 @@ export const panzerModule: ClientGameModule<PanzerPublicState, PanzerPrivateStat
     'Feuer-Knopf schießt (max. 3 Kugeln gleichzeitig), Item-Knopf setzt das eingesammelte Power-up ein. Kugeln prallen nicht ab.',
     'Fahr über Kisten, um Power-ups einzusammeln. Der letzte Panzer gewinnt die Runde.',
   ],
+  spectating: ({ public: p }, me) => { const r = p.players.find((x) => x.playerId === me); return p.phase === 'battle' && (!r || !r.inRound || !r.alive); },
 };

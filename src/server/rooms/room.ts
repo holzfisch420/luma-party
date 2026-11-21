@@ -2,6 +2,7 @@
  * Ein Raum = eine Party-Session mit Hauptbildschirm (Host) und Spielern.
  * Verwaltet Spieler, Verbindungen, Spielauswahl, Einstellungen und die laufende Partie.
  */
+import { EFFECT_IDS, EMOTE_COOLDOWN_MS, EMOTE_IDS } from '../../shared/emotes';
 import { randomBytes, randomUUID } from 'node:crypto';
 import type { Server, Socket } from 'socket.io';
 import { AVATAR_COLORS, MAX_PLAYERS_PER_ROOM, PLAYER_NAME_MAX, PLAYER_RECONNECT_GRACE_MS } from '../../shared/constants';
@@ -56,6 +57,10 @@ export class Room implements SessionHost {
   private hostDisconnectedAt: number | null = Date.now();
   private players = new Map<PlayerId, PlayerRecord>();
   private phase: RoomPhase = 'lobby';
+  /** Emotes: letzte Sendezeit je Spieler; Effekte: wer im laufenden Spiel schon einen geschickt hat */
+  private emoteAt = new Map<PlayerId, number>();
+  private effectUsed = new Set<PlayerId>();
+  private emoteKey = 0;
   private selectedGameId = DEFAULT_GAME_ID;
   private hostHasControl = false;
   private settings: Record<string, unknown> = {};
@@ -369,6 +374,7 @@ export class Room implements SessionHost {
       this.session = await GameSession.create(this, module, settings, this.services);
       this.phase = 'playing';
       this.results = null;
+      this.effectUsed.clear();
       this.selectedGameId = gameId;
       this.broadcast();
       // Raumstatus vor dem ersten Spielzustand versenden
@@ -407,6 +413,23 @@ export class Room implements SessionHost {
     const record = this.players.get(socket.data.playerId);
     if (!record || record.socketId !== socket.id) return;
     this.session.handleAction(record.id, type, payload);
+  }
+
+  /** Zuschauer-Emote bzw. Bildschirmeffekt an den Fernseher */
+  sendEmote(playerId: PlayerId, kind: 'emote' | 'effect', id: string): void {
+    if (this.phase !== 'playing' || !this.players.has(playerId)) throw new RoomError('Gerade läuft kein Spiel.');
+    if (kind === 'emote') {
+      if (!EMOTE_IDS.has(id)) throw new RoomError('Unbekanntes Emote.');
+      const last = this.emoteAt.get(playerId) ?? 0;
+      // kleine Toleranz für Uhren/Netz
+      if (Date.now() - last < EMOTE_COOLDOWN_MS - 500) throw new RoomError('Kurz warten …');
+      this.emoteAt.set(playerId, Date.now());
+    } else {
+      if (!EFFECT_IDS.has(id)) throw new RoomError('Unbekannter Effekt.');
+      if (this.effectUsed.has(playerId)) throw new RoomError('Deinen Effekt hast du in diesem Spiel schon verschickt.');
+      this.effectUsed.add(playerId);
+    }
+    this.io.to(this.hostRoom).emit('room:emote', { key: ++this.emoteKey, playerId, kind, id });
   }
 
   // ------------------------------------------------------------------ SessionHost

@@ -110,6 +110,32 @@ describe('Gast-Avatar', () => {
   });
 });
 
+describe('Zuschauer-Emotes', () => {
+  it('Emotes mit Abklingzeit, Effekt einmal pro Spiel, nur während eines Spiels', async () => {
+    const { host, players } = await setupRoom(['Anna', 'Ben', 'Cleo']);
+    const got: any[] = [];
+    host.socket.on('room:emote', (e) => got.push(e));
+    // in der Lobby geht nichts
+    expect((await emitAck(players[2]!, 'player:emote', { kind: 'emote', id: 'lachen' })).ok).toBe(false);
+    players[0]!.socket.emit('room:selectGame', { gameId: 'schach' });
+    await host.waitFor(() => host.room!.selectedGameId === 'schach');
+    expect((await emitAck(host, 'room:startGame')).ok).toBe(true);
+    await host.waitFor(() => host.room!.phase === 'playing');
+    expect((await emitAck(players[2]!, 'player:emote', { kind: 'emote', id: 'lachen' })).ok).toBe(true);
+    // zu schnell hintereinander
+    expect((await emitAck(players[2]!, 'player:emote', { kind: 'emote', id: 'wow' })).ok).toBe(false);
+    expect((await emitAck(players[2]!, 'player:emote', { kind: 'emote', id: 'gibtsnicht' })).ok).toBe(false);
+    expect((await emitAck(players[2]!, 'player:emote', { kind: 'effect', id: 'konfetti' })).ok).toBe(true);
+    expect((await emitAck(players[2]!, 'player:emote', { kind: 'effect', id: 'laser' })).ok).toBe(false);
+    await host.waitFor(() => got.length === 2);
+    expect(got.map((e) => [e.kind, e.id, e.playerId])).toEqual([
+      ['emote', 'lachen', players[2]!.id],
+      ['effect', 'konfetti', players[2]!.id],
+    ]);
+    [host, ...players].forEach((c) => c.close());
+  });
+});
+
 describe('Montagsmaler', () => {
   it('kompletter Spielablauf mit geheimem Wort, Punkten und Zeichnen', async () => {
     const { host, players } = await setupRoom(['Anna', 'Ben', 'Cleo']);

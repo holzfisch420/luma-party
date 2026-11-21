@@ -25,4 +25,5 @@ export const vollmondModule: ClientGameModule<VollmondPublicState, VollmondPriva
     'Tagsüber wird diskutiert – wer lügt, wer ist verdächtig? Danach stimmt das Dorf ab, wer verbannt wird. Stirbt der Jäger, nimmt er jemanden mit.',
     'Das Dorf gewinnt, wenn alle Werwölfe weg sind. Die Werwölfe gewinnen, sobald sie mindestens so viele sind wie der Rest. Tote schweigen!',
   ],
+  spectating: ({ public: p }, me) => !p.order.includes(me) || !p.alive.includes(me),
 };

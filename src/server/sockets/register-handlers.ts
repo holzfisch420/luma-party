@@ -141,6 +141,15 @@ export function registerSocketHandlers(io: TypedServer, rooms: RoomManager, opts
       if (avatar) room.setGuestAvatar(socket.data.playerId, avatar);
     });
 
+    socket.on('player:emote', (data, ack) =>
+      reply(ack, () => {
+        const room = currentRoom();
+        if (!room || socket.data.role !== 'player' || !socket.data.playerId) throw new RoomError('Nicht im Raum.');
+        if (data?.kind !== 'emote' && data?.kind !== 'effect') throw new RoomError('Ungültig.');
+        room.sendEmote(socket.data.playerId, data.kind, String(data.id ?? ''));
+      }),
+    );
+
     socket.on('player:leave', () => {
       const room = currentRoom();
       if (room && socket.data.role === 'player' && socket.data.playerId) room.removePlayer(socket.data.playerId);

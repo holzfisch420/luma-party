@@ -16,6 +16,9 @@ import { ploppModule } from './plopp';
 import { wortModule } from './wort';
 import { klingenModule } from './klingen';
 import { vollmondModule } from './vollmond';
+import { schachModule } from './schach';
+import { muehleModule } from './muehle';
+import { kinoModule } from './kino';
 
 const modules = new Map<string, ClientGameModule>();
 
@@ -34,6 +37,9 @@ registerClientGame(ploppModule);
 registerClientGame(wortModule);
 registerClientGame(klingenModule);
 registerClientGame(vollmondModule);
+registerClientGame(schachModule);
+registerClientGame(muehleModule);
+registerClientGame(kinoModule);
 
 export function getClientGame(id: string | null | undefined): ClientGameModule | undefined {
   return id ? modules.get(id) : undefined;

@@ -25,4 +25,5 @@ export const huhnModule: ClientGameModule<HuhnPublicState, HuhnPrivateState, Huh
     'Wer in eine Lücke fällt, einem Polizisten in die Arme läuft oder hinten von der Polizei eingeholt wird, ist raus.',
     'Hühner rempeln sich gegenseitig – wer zuletzt noch frei ist, gewinnt die Runde.',
   ],
+  spectating: ({ public: p }, me) => { const r = p.players.find((x) => x.playerId === me); return p.phase === 'run' && (!r || !r.inRound || !r.alive); },
 };

@@ -30,4 +30,5 @@ export const racerModule: ClientGameModule<RacerPublicState, RacerPrivateState, 
     'Alle Checkpoints in der richtigen Reihenfolge durchfahren. Ohne Bande kann man runterfallen – „Reset“ bringt dich zum letzten Checkpoint.',
     'Punkte je Platz (10, 8, 6, 5, 4, 3, 2, 1). Strecken wählt der Spielleiter oder der Fernseher im Startbildschirm.',
   ],
+  spectating: ({ public: p }, me) => { const r = p.players.find((x) => x.playerId === me); return p.phase === 'race' && (!r || !r.inRace || r.finished || r.dnf); },
 };

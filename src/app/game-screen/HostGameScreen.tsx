@@ -7,6 +7,7 @@ import { QuitButton } from '../../components/game/QuitButton';
 import { getSocket } from '../session/socket';
 import { useSession } from '../session/session-store';
 import { useMusic } from '../audio/music';
+import { HostEmoteLayer } from '../../components/emotes/HostEmoteLayer';
 
 /**
  * Rendert die TV-Ansicht des aktiven Spiels bildschirmfüllend – im eigenen Stil des Spiels.
@@ -31,6 +32,8 @@ export function HostGameScreen({ room, onMenu }: { room: RoomSnapshot; onMenu: (
           <View room={room} state={game as never} />
         </Suspense>
       )}
+      {/* Emotes und Effekte der Zuschauer */}
+      <HostEmoteLayer room={room} />
       {/* klein in der Ecke, damit nichts vom Spiel verdeckt wird */}
       <QuitButton size="sm" className="absolute right-10 top-1 z-30 opacity-60 transition hover:opacity-100 focus-within:opacity-100" onQuit={() => getSocket().emit('room:backToLauncher')} />
       <button

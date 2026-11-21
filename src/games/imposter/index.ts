@@ -25,4 +25,5 @@ export const imposterModule: ClientGameModule<ImposterPublicState, ImposterPriva
     'Reihum sagt jede Person ein Wort, das passt. Der Imposter muss bluffen.',
     'Dann wird diskutiert und abgestimmt. Wird der Imposter enttarnt, darf er noch das Wort raten.',
   ],
+  spectating: ({ public: p }, me) => !p.order.includes(me),
 };

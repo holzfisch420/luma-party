@@ -24,4 +24,5 @@ export const echtModule: ClientGameModule<EchtPublicState, EchtPrivateState, Ech
     'Alle anderen schreiben eine Fälschung, die nach dieser Person klingt. Dann stimmen alle ab: Welche Antwort ist echt?',
     'Richtig geraten: +1 für dich und die Person, die dran ist. Jede Person, die auf deine Fälschung reinfällt: +1. Genau dieselbe Antwort: +2.',
   ],
+  spectating: ({ public: p }, me) => !(me in p.scores),
 };

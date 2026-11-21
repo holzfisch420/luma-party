@@ -268,6 +268,32 @@ mit eigenen Grafiken, eigenem Namen und eigenen Arenen.
 - Technik: Server-Simulation mit 60 Hz, Positionsdaten mit 20 Hz an den Fernseher (dort auf 60 fps interpoliert),
   Handys senden nur den Knopfzustand.
 
+### Couch-Match (Film- & Serien-Tinder)
+
+Gemeinsam entscheiden, was ihr schaut (1–12 Spieler).
+
+- Vorher wählt die Spielleitung Filme, Serien oder beides sowie beliebig viele Genres (14 Genres).
+- Alle bekommen dieselben 25 Titel in eigener, zufälliger Reihenfolge aufs Handy und wischen nach rechts (♥) oder links (✕). Jede Karte zeigt Titel, Jahr, Genres und eine Kurzbeschreibung in zwei Sätzen.
+- Sind alle durch, zeigt der Fernseher die Rangliste nach Matches (Top 3 groß mit Beschreibung und wer sie sehen will, dann Platz 4–11). „Neue 25 Titel“ startet eine frische Runde.
+- Datenbank: rund 390 Filme und Serien in `src/games/kino/data/` (Titel und Jahre sind Fakten, die Beschreibungen eigene Kurzfassungen).
+
+### Schach
+
+Klassisches Schach zu zweit, alle anderen schauen zu.
+
+- Die ersten zwei Personen im Raum spielen (Farben zufällig oder „Erste:r hat Weiß“). Bedenkzeit: Bullet 1 min, Blitz 3+2 / 5 min, Schnell 10 / 15+10 oder ohne Uhr.
+- Handy: Brett aus der eigenen Sicht, Figur antippen → erlaubte Felder werden markiert → Ziel antippen; Umwandlung mit Auswahl, Remis anbieten, Aufgeben.
+- Fernseher: großes grün/cremefarbenes Brett mit letztem Zug, Schach-Markierung, Uhren, geschlagenen Figuren, Materialvorteil und Zugliste.
+- Regeln (Rochade, en passant, Matt, Patt, Wiederholung, 50 Züge) über die Bibliothek chess.js; Sieg 3 Punkte, Remis 1.
+
+### Mühle
+
+Neunsteinmühle zu zweit auf einem Holzbrett.
+
+- Erst je 9 Steine setzen, dann entlang der Linien ziehen; mit 3 Steinen springen (abschaltbar). Mühle = gegnerischen Stein wegnehmen (Steine in einer Mühle nur, wenn es keine anderen gibt).
+- Verloren hat, wer nur noch zwei Steine hat oder nicht mehr ziehen kann; 50 Züge ohne Mühle = Remis.
+- Regeln als reine Logik in `src/games/muehle/logic/rules.ts` (getestet).
+
 ### Textprobe (Theater-Text lernen)
 Karaoke-artiges Lernprogramm für Theaterskripte – Rolle und Text erscheinen groß auf dem Fernseher,
 gesteuert wird Zeile für Zeile per Handy.
@@ -283,6 +309,14 @@ gesteuert wird Zeile für Zeile per Handy.
   Regieanweisungen überspringen, eigene Rolle(n) hervorheben, Probe beenden.
 - **Fernseher:** Bühne mit Vorhang, aktuelle Zeile im Scheinwerferlicht, zwei Zeilen davor und
   drei danach; ausgeblendete Zeilen zeigen nur die Rolle und Platzhalter.
+
+## Zuschauer-Emotes & Bildschirmeffekte
+
+In allen Spielen: Wer gerade nicht mitspielt, rausgeflogen oder schon fertig ist, bekommt auf dem Handy ein Emote-Menü.
+
+- **10 Emotes** (3×3-Raster plus „GG!“), jeweils vom eigenen Avatar gespielt (Lachen, Jubeln, Wütend, Weinen, Staunen, Verliebt, Daumen hoch, Gähnen, Ätsch, GG). Beliebig oft, aber mit 8 Sekunden Abklingzeit. Das Emote fliegt auf dem Handy nach oben aus dem Bildschirm und erscheint dann als Sprechblase mit Avatar am Rand des Fernsehers – nie in der Mitte.
+- **Bildschirmeffekte**, einmal pro Spiel und Person: Konfetti, Laserlampen, Discokugel, Feuerwerk, Herzregen, Seifenblasen.
+- Jedes Spiel meldet über `spectating(state, meId)` im Client-Modul, wann jemand nur zuschaut; der Server prüft Abklingzeit und Effekt-Limit (`player:emote`).
 
 ## Musik & Geräusche
 

@@ -2,6 +2,7 @@
  * Typisierte Socket.IO-Events zwischen Client und Server.
  * Generisch gehalten: Spiele kommunizieren nur über `game:action`, `game:state` und `game:event`.
  */
+import type { EmoteEvent } from '../emotes';
 import type { GameEventPayload, GameStatePayload, Notice, RoomSnapshot } from '../types/room';
 
 export type Ack<T = void> = (res: AckResult<T>) => void;
@@ -43,6 +44,8 @@ export interface ClientToServerEvents {
   'room:backToLauncher': () => void;
   'room:kickPlayer': (data: { playerId: string }) => void;
   'game:action': (action: GameActionMessage) => void;
+  /** Zuschauer schickt ein Emote (Abklingzeit) oder einen Bildschirmeffekt (1× pro Spiel) */
+  'player:emote': (data: { kind: 'emote' | 'effect'; id: string }, ack?: Ack) => void;
 }
 
 export interface ServerToClientEvents {
@@ -52,4 +55,5 @@ export interface ServerToClientEvents {
   'session:ended': (data: { reason: string }) => void;
   'game:state': (state: GameStatePayload) => void;
   'game:event': (event: GameEventPayload) => void;
+  'room:emote': (event: EmoteEvent) => void;
 }

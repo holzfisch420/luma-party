@@ -1,5 +1,8 @@
 import { LogOut, MonitorX } from 'lucide-react';
-import { Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
+
+// Emote-Menü erst laden, wenn jemand zuschaut
+const EmotePanel = lazy(() => import('../../components/emotes/EmotePanel').then((m) => ({ default: m.EmotePanel })));
 import { useSearchParams } from 'react-router-dom';
 import { GameResults } from '../../components/game/GameResults';
 import { QuitButton } from '../../components/game/QuitButton';
@@ -67,6 +70,8 @@ export function PlayerApp() {
 function PlayerGame({ room, me, canControl }: { room: RoomSnapshot; me: PublicPlayer; canControl: boolean }) {
   const game = useSession((s) => s.game);
   const module = getClientGame(room.activeGameId);
+  // Bildschirmeffekt: einmal pro Spiel (diese Komponente lebt genau ein Spiel lang)
+  const [effectUsed, setEffectUsed] = useState(false);
   if (!module) return <div className="p-8 text-center font-bold text-home-muted">Dieses Spiel wird auf dem Smartphone nicht unterstützt.</div>;
   if (!game || game.gameId !== module.meta.id) {
     return (
@@ -76,8 +81,19 @@ function PlayerGame({ room, me, canControl }: { room: RoomSnapshot; me: PublicPl
     );
   }
   const View = module.PlayerView;
+  let spectating = false;
+  try {
+    spectating = !!module.spectating?.(game as never, me.id);
+  } catch {
+    spectating = false;
+  }
   return (
     <div className="min-h-dvh">
+      {spectating && (
+        <Suspense fallback={null}>
+          <EmotePanel me={me} effectUsed={effectUsed} onEffectUsed={() => setEffectUsed(true)} />
+        </Suspense>
+      )}
       <Suspense fallback={<LoadingScreen label="Spiel wird geladen …" />}>
         <View room={room} me={me} state={game as never} sendAction={sendGameAction} />
       </Suspense>

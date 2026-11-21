@@ -26,4 +26,5 @@ export const klingenModule: ClientGameModule<KlingenPublicState, KlingenPrivateS
     'Triffst du ein Messer, verlierst du ein Leben – die Stufe läuft aber weiter. Goldene Sterne im Rad treffen gibt Bonuspunkte.',
     'Ein Rad: Alle werfen per Handy ins große Rad auf dem Fernseher. Runde 1 hat jede Person 1 Messer, Runde 2 zwei und so weiter. Wer ein Messer trifft, ist raus – die letzte Person gewinnt.',
   ],
+  spectating: ({ public: p }, me) => p.phase !== 'pick' && (p.mode === 'solo' ? !p.solo[me] || p.solo[me]!.done : !p.shared[me] || !p.shared[me]!.alive),
 };

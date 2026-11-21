@@ -14,8 +14,11 @@ import { ploppMeta } from './plopp/game-config';
 import { wortMeta } from './wort/game-config';
 import { klingenMeta } from './klingen/game-config';
 import { vollmondMeta } from './vollmond/game-config';
+import { schachMeta } from './schach/game-config';
+import { muehleMeta } from './muehle/game-config';
+import { kinoMeta } from './kino/game-config';
 
-export const GAME_CATALOG: GameMeta[] = [montagsmalerMeta, vollmondMeta, imposterMeta, echtMeta, ploppMeta, wortMeta, klingenMeta, racerMeta, huhnMeta, panzerMeta, theaterMeta];
+export const GAME_CATALOG: GameMeta[] = [montagsmalerMeta, vollmondMeta, imposterMeta, echtMeta, ploppMeta, wortMeta, klingenMeta, racerMeta, huhnMeta, panzerMeta, theaterMeta, kinoMeta, schachMeta, muehleMeta];
 
 export const DEFAULT_GAME_ID = montagsmalerMeta.id;
 

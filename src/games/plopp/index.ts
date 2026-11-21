@@ -26,4 +26,5 @@ export const ploppModule: ClientGameModule<PloppPublicState, PloppPrivateState, 
     'Jede Person hat ihre eigene geheime Zündschnur – sie brennt nur, solange DU den Fisch hältst. Wessen Schnur zuerst abbrennt, bei dem platzt er: ein Leben weniger. Die letzte Person im Wasser gewinnt.',
     'Der Fernseher liest jede gültige Antwort laut vor.',
   ],
+  spectating: ({ public: p }, me) => !p.order.includes(me) || (p.lives[me] ?? 0) <= 0,
 };

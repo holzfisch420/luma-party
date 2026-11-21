@@ -25,4 +25,5 @@ export const wortModule: ClientGameModule<WortPublicState, WortPrivateState, Wor
     'Nur echte Wörter zählen als Versuch. Der Fernseher zeigt nur die Farben der anderen, die Buchstaben erst bei der Auflösung.',
     'Punkte: im 1. Versuch 6, im 6. Versuch 1 – plus 2 für die schnellste und 1 für die zweitschnellste Person.',
   ],
+  spectating: ({ public: p }, me) => { const b = p.boards[me]; return !b || b.solved || b.failed; },
 };

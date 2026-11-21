@@ -64,4 +64,9 @@ export interface ClientGameModule<Pub = any, Priv = any, S = any> {
   rules?: string[];
   /** Hintergrundmusik auf dem Hauptbildschirm (Phasen können sie mit useMusic überschreiben) */
   music?: TrackId;
+  /**
+   * Schaut diese Person gerade nur zu (nicht dabei, rausgeflogen oder schon fertig)?
+   * Dann erscheinen auf ihrem Handy die Emotes und Bildschirmeffekte.
+   */
+  spectating?: (state: GameStatePayload<Pub, Priv>, meId: string) => boolean;
 }

@@ -143,3 +143,23 @@ export function parseAvatar(raw: unknown): AvatarConfig | null {
   const old = legacySchema.safeParse(raw);
   return old.success ? migrateV1(old.data) : null;
 }
+
+/** fester Knubbel aus einer Kennung (für Leute ohne eigenen Avatar) – immer derselbe */
+export function avatarFromSeed(seed: string): AvatarConfig {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  const next = (n: number) => {
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h >>> 0) % n + n) % n;
+  };
+  return {
+    ...DEFAULT_AVATAR,
+    shape: next(AVATAR_PARTS.shape.length),
+    color: next(BODY_COLORS.length - 2),
+    bg: next(BG_COLORS.length - 2),
+    eyes: next(3),
+    eyeColor: next(EYE_COLORS.length),
+    mouth: next(2),
+    extra: next(AVATAR_PARTS.extra.length),
+  };
+}

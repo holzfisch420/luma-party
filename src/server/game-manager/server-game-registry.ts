@@ -14,6 +14,9 @@ import { ploppServerModule } from '../../games/plopp/game-engine';
 import { wortServerModule } from '../../games/wort/game-engine';
 import { klingenServerModule } from '../../games/klingen/game-engine';
 import { vollmondServerModule } from '../../games/vollmond/game-engine';
+import { schachServerModule } from '../../games/schach/game-engine';
+import { muehleServerModule } from '../../games/muehle/game-engine';
+import { kinoServerModule } from '../../games/kino/game-engine';
 
 const modules = new Map<string, ServerGameModule<any>>();
 
@@ -41,3 +44,6 @@ registerServerGame(ploppServerModule);
 registerServerGame(wortServerModule);
 registerServerGame(klingenServerModule);
 registerServerGame(vollmondServerModule);
+registerServerGame(schachServerModule);
+registerServerGame(muehleServerModule);
+registerServerGame(kinoServerModule);

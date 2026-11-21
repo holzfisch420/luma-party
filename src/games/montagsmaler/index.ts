@@ -28,4 +28,5 @@ export const montagsmalerModule: ClientGameModule<MontagsmalerPublicState, Monta
     'Alle anderen raten über ihr Smartphone – die Zeichnung erscheint live auf dem TV.',
     'Je schneller du richtig rätst, desto mehr Punkte. Der Zeichner punktet mit.',
   ],
+  spectating: ({ public: p }, me) => !p.scores.some((s) => s.playerId === me),
 };
