@@ -13,13 +13,28 @@ function fakeFetch(handler: (url: URL, init?: RequestInit) => unknown) {
   return { f, calls };
 }
 
+/** ohne die im Projekt gespeicherten Pfade – prüft nur die Live-Abfrage */
+const live = (s: PosterService) => {
+  (s as unknown as { precomputed: Record<string, string | null> }).precomputed = {};
+  return s;
+};
+
 describe('Couch-Match – Cover (TMDB)', () => {
   const film = MEDIA.find((m) => m.title === 'Inception')!;
   const serie = MEDIA.find((m) => m.title === 'Breaking Bad')!;
 
-  it('ohne Schlüssel: aus, keine Anfragen', async () => {
+  it('gespeicherte Pfade werden ohne Schlüssel und ohne Anfrage genutzt', async () => {
     const { f, calls } = fakeFetch(() => ({ results: [] }));
     const s = new PosterService(undefined, f);
+    (s as unknown as { precomputed: Record<string, string | null> }).precomputed = { [film.id]: '/vorab.jpg' };
+    expect(s.enabled).toBe(true);
+    expect(await s.poster(film.id)).toBe(`${IMAGE_BASE}/vorab.jpg`);
+    expect(calls).toHaveLength(0);
+  });
+
+  it('ohne Schlüssel: aus, keine Anfragen', async () => {
+    const { f, calls } = fakeFetch(() => ({ results: [] }));
+    const s = live(new PosterService(undefined, f));
     expect(s.enabled).toBe(false);
     expect(await s.poster(film.id)).toBeNull();
     expect(calls).toHaveLength(0);
@@ -27,7 +42,7 @@ describe('Couch-Match – Cover (TMDB)', () => {
 
   it('Film über /search/movie mit Jahr und deutscher Sprache; Ergebnis wird gemerkt', async () => {
     const { f, calls } = fakeFetch(() => ({ results: [{ poster_path: null }, { poster_path: '/abc.jpg' }] }));
-    const s = new PosterService('kurzerschluessel', f);
+    const s = live(new PosterService('kurzerschluessel', f));
     expect(await s.poster(film.id)).toBe(`${IMAGE_BASE}/abc.jpg`);
     expect(await s.poster(film.id)).toBe(`${IMAGE_BASE}/abc.jpg`);
     expect(calls).toHaveLength(1);
@@ -43,7 +58,7 @@ describe('Couch-Match – Cover (TMDB)', () => {
     const token = 'eyJ' + 'x'.repeat(60);
     let n = 0;
     const { f, calls } = fakeFetch(() => (n++ === 0 ? { results: [] } : { results: [{ poster_path: '/bb.jpg' }] }));
-    const s = new PosterService(token, f);
+    const s = live(new PosterService(token, f));
     expect(await s.poster(serie.id)).toBe(`${IMAGE_BASE}/bb.jpg`);
     expect(calls).toHaveLength(2);
     expect(calls[0]!.url.pathname).toBe('/3/search/tv');

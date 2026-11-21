@@ -9,6 +9,7 @@
  */
 import { Router } from 'express';
 import { MEDIA_BY_ID, type Media } from '../../games/kino/data/catalog';
+import { POSTER_PATHS } from '../../games/kino/data/posters';
 
 const API = 'https://api.themoviedb.org/3';
 export const IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
@@ -24,8 +25,11 @@ export class PosterService {
     private readonly fetcher: Fetch = fetch,
   ) {}
 
+  /** vorab geholte Cover (im Projekt gespeichert) – funktionieren auch ohne Schlüssel */
+  private readonly precomputed: Record<string, string | null> = POSTER_PATHS;
+
   get enabled(): boolean {
-    return !!this.key;
+    return !!this.key || Object.keys(this.precomputed).length > 0;
   }
 
   private async search(path: string, params: Record<string, string>): Promise<{ poster_path?: string | null }[]> {
@@ -56,7 +60,9 @@ export class PosterService {
 
   /** Cover-Adresse eines Titels (null = keins gefunden bzw. ohne Schlüssel) */
   async poster(id: string): Promise<string | null> {
-    if (!this.enabled) return null;
+    const pre = this.precomputed[id];
+    if (pre !== undefined) return pre ? `${IMAGE_BASE}${pre}` : null;
+    if (!this.key) return null;
     if (this.cache.has(id)) return this.cache.get(id)!;
     const m = MEDIA_BY_ID.get(id);
     if (!m) return null;
