@@ -5,6 +5,8 @@
 import { FILMS_A } from './films-a';
 import { FILMS_B } from './films-b';
 import { FILMS_C } from './films-c';
+import { FILMS_D } from './films-d';
+import { FILMS_FRANCHISE } from './films-franchise';
 import { SERIES } from './series';
 
 import { GENRES, type Genre } from './genres';
@@ -41,7 +43,7 @@ function build(rows: [string, number, string, string][], type: MediaType): Media
   }));
 }
 
-export const MEDIA: Media[] = [...build([...FILMS_A, ...FILMS_B, ...FILMS_C], 'film'), ...build(SERIES, 'serie')];
+export const MEDIA: Media[] = [...build([...FILMS_A, ...FILMS_B, ...FILMS_C, ...FILMS_FRANCHISE, ...FILMS_D], 'film'), ...build(SERIES, 'serie')];
 export const MEDIA_BY_ID = new Map(MEDIA.map((m) => [m.id, m]));
 
 /** Auswahl nach Typ und Genres (leere Genre-Liste = alle) */

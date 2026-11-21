@@ -117,4 +117,22 @@ export const SERIES: [string, number, string, string][] = [
   ['Atlanta', 2016, 'komoedie drama', 'Earn versucht in Atlanta, die Rapkarriere seines Cousins zu managen. Zwischen Alltag und Surrealem.'],
   ['Fleabag', 2016, 'komoedie drama', 'Eine junge Londonerin versucht, ihr Café und ihr chaotisches Leben im Griff zu behalten. Dabei spricht sie direkt zum Publikum.'],
   ['The Good Place', 2016, 'komoedie fantasy', 'Eleanor landet nach ihrem Tod im Himmel – offenbar aus Versehen. Sie versucht, schnell ein guter Mensch zu werden.'],
+  // Marvel
+  ['The Falcon and the Winter Soldier', 2021, 'action scifi', 'Sam Wilson und Bucky Barnes müssen nach Captain Americas Abschied zusammenarbeiten. Eine Gruppe Supersoldaten stellt die Welt vor neue Fragen.'],
+  ['Hawkeye', 2021, 'action komoedie', 'Clint Barton will Weihnachten mit seiner Familie verbringen. Doch eine junge Bogenschützin zieht ihn in einen Fall mit der New Yorker Unterwelt.'],
+  ['Moon Knight', 2022, 'action fantasy mystery', 'Ein schüchterner Museumsangestellter merkt, dass er sich ein Leben mit einem Söldner teilt. Ägyptische Götter mischen sich ein.'],
+  ['Ms. Marvel', 2022, 'action komoedie familie', 'Die Schülerin Kamala Khan schwärmt für Captain Marvel. Ein Armreif ihrer Großmutter verleiht ihr plötzlich eigene Kräfte.'],
+  ['She-Hulk: Die Anwältin', 2022, 'komoedie action', 'Anwältin Jennifer Walters wird durch das Blut ihres Cousins Bruce Banner zur She-Hulk. Im Gerichtssaal vertritt sie fortan Superhelden.'],
+  ['Agatha All Along', 2024, 'fantasy komoedie mystery', 'Die Hexe Agatha Harkness hat ihre Kräfte verloren. Mit einem Zirkel ungleicher Hexen geht sie den legendären Hexenweg.'],
+  ['Daredevil: Born Again', 2025, 'action krimi drama', 'Matt Murdock hat das Kostüm an den Nagel gehängt. Doch sein Erzfeind Wilson Fisk wird Bürgermeister von New York.'],
+  ['What If…?', 2021, 'animation action scifi', 'Ein kosmischer Beobachter zeigt, wie Marvel-Geschichten anders hätten verlaufen können. Jede Folge spielt in einem anderen Universum.'],
+  // Star Wars
+  ['Star Wars: The Clone Wars', 2008, 'animation scifi action', 'Die Jedi führen die Klonarmee gegen die Separatisten an. Anakin Skywalker und seine Schülerin Ahsoka stehen im Mittelpunkt.'],
+  ['Das Buch von Boba Fett', 2021, 'scifi action abenteuer', 'Der berüchtigte Kopfgeldjäger Boba Fett will die Unterwelt von Tatooine übernehmen. Mit Fennec Shand baut er sein Reich auf.'],
+  ['Obi-Wan Kenobi', 2022, 'scifi abenteuer drama', 'Zehn Jahre nach dem Fall der Jedi lebt Obi-Wan versteckt auf Tatooine. Als Prinzessin Leia entführt wird, muss er sich wieder zeigen.'],
+  ['Ahsoka', 2023, 'scifi abenteuer action', 'Die frühere Jedi Ahsoka Tano jagt einer neuen Bedrohung nach. Ein verschollener imperialer Großadmiral könnte zurückkehren.'],
+  ['Star Wars: The Bad Batch', 2021, 'animation scifi action', 'Eine Einheit besonderer Klonkrieger widersetzt sich dem Imperium. Auf der Flucht beschützen sie ein junges Mädchen.'],
+  ['Skeleton Crew', 2024, 'scifi abenteuer familie', 'Vier Kinder entdecken ein verborgenes Raumschiff und landen in der unbekannten Galaxis. Sie suchen verzweifelt den Weg nach Hause.'],
+  // weitere
+  ['The Penguin', 2024, 'krimi drama', 'Nach dem Tod eines Mafiabosses wittert Oswald Cobb seine Chance in Gothams Unterwelt. Er kämpft sich skrupellos nach oben.'],
 ];

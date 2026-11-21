@@ -167,6 +167,19 @@ describe('Couch-Match', () => {
     for (const g of GENRE_IDS) expect(filterMedia('beide', [g]).length, g).toBeGreaterThanOrEqual(5);
   });
 
+  it('Filmreihen vollständig: MCU, Star Wars (Episoden I–IX + Ableger), Harry Potter (alle 8)', () => {
+    const titles = new Set(MEDIA.filter((m) => m.type === 'film').map((m) => m.title));
+    const hp = [...titles].filter((t) => t.startsWith('Harry Potter'));
+    expect(hp).toHaveLength(8);
+    const sw = [...titles].filter((t) => /^Star Wars: Episode/.test(t));
+    expect(sw).toHaveLength(9);
+    for (const t of ['Rogue One: A Star Wars Story', 'Solo: A Star Wars Story', 'Iron Man 3', 'Marvel\'s The Avengers', 'Avengers: Endgame', 'Thunderbolts*', 'The Fantastic Four: First Steps', 'Deadpool & Wolverine'])
+      expect(titles.has(t), t).toBe(true);
+    // keine doppelten Titel gleichen Typs
+    const keys = MEDIA.map((m) => `${m.type}|${m.title}`);
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
   it('alle bekommen dieselben 25 Titel in eigener Reihenfolge, Rangliste nach Matches', () => {
     const t = setup(3);
     const e = new KinoEngine(t.ctx, { type: 'film', genres: [] });

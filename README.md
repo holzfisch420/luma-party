@@ -275,7 +275,7 @@ Gemeinsam entscheiden, was ihr schaut (1–12 Spieler).
 - Vorher wählt die Spielleitung Filme, Serien oder beides sowie beliebig viele Genres (14 Genres).
 - Alle bekommen dieselben 25 Titel in eigener, zufälliger Reihenfolge aufs Handy und wischen nach rechts (♥) oder links (✕). Jede Karte zeigt Titel, Jahr, Genres und eine Kurzbeschreibung in zwei Sätzen.
 - Sind alle durch, zeigt der Fernseher die Rangliste nach Matches (Top 3 groß mit Beschreibung und wer sie sehen will, dann Platz 4–11). „Neue 25 Titel“ startet eine frische Runde.
-- Datenbank: rund 390 Filme und Serien in `src/games/kino/data/` (Titel und Jahre sind Fakten, die Beschreibungen eigene Kurzfassungen).
+- Datenbank: rund 510 Filme und Serien (alle MCU-Filme bis 2025, alle Star-Wars- und Harry-Potter-Filme samt Ablegern und Serien) in `src/games/kino/data/` (Titel und Jahre sind Fakten, die Beschreibungen eigene Kurzfassungen).
 
 ### Schach
 
