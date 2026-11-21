@@ -7,17 +7,22 @@ import type { HostViewProps } from '../../../game-types';
 import { MEDIA_BY_ID } from '../../data/catalog';
 import type { KinoPublicState } from '../../types';
 import { MediaCard } from '../MediaCard';
+import { usePosters } from '../posters';
 
 export function KinoHostView({ room, state }: HostViewProps<KinoPublicState>) {
   const pub = state.public;
+  const posters = usePosters(pub.deck);
+  const withCovers = Object.values(posters).some(Boolean);
   useMusic(pub.phase === 'results' ? 'results' : null, 0.8);
   return (
     <div className="relative flex h-dvh flex-col overflow-hidden bg-[radial-gradient(circle_at_50%_-10%,#6b1240,#14060f_70%)] text-white">
       <header className="flex items-center gap-4 px-[3vw] pt-5">
         <span className="text-5xl font-black tracking-tight [text-shadow:0_4px_20px_rgba(255,77,109,0.6)]">Couch-Match</span>
         <span className="rounded-full bg-white/10 px-4 py-1.5 text-lg font-black">{pub.phase === 'swipe' ? `${pub.deck.length} Titel – alle wischen auf dem Handy` : 'Eure Rangliste'}</span>
+        {withCovers && <span className="ml-auto mr-[8vw] max-w-[22vw] text-right text-[10px] font-bold leading-tight text-white/40">Cover: TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.</span>}
       </header>
-      {pub.phase === 'swipe' ? <Swiping room={room} pub={pub} /> : <Results room={room} pub={pub} />}
+      {pub.phase === 'swipe' ? <Swiping room={room} pub={pub} posters={posters} /> : <Results room={room} pub={pub} posters={posters} />}
+
     </div>
   );
 }
@@ -27,7 +32,7 @@ function Avatar({ room, id, size = 'md' }: { room: RoomSnapshot; id: string; siz
   return <PlayerAvatar name={p?.name ?? '?'} color={p?.avatarColor ?? '#ff4d6d'} avatar={p?.avatar} size={size} dimmed={p ? !p.isConnected : true} />;
 }
 
-function Swiping({ room, pub }: { room: RoomSnapshot; pub: KinoPublicState }) {
+function Swiping({ room, pub, posters }: { room: RoomSnapshot; pub: KinoPublicState; posters: Record<string, string | null> }) {
   const total = pub.deck.length;
   // ein paar Karten als Deko-Fächer
   const deco = pub.deck.slice(0, 5).map((id) => MEDIA_BY_ID.get(id)!);
@@ -43,7 +48,7 @@ function Swiping({ room, pub }: { room: RoomSnapshot; pub: KinoPublicState }) {
             transition={{ type: 'spring', stiffness: 120, damping: 14, delay: i * 0.08 }}
           >
             <div className="size-full blur-[6px] brightness-75">
-              <MediaCard media={m} className="size-full" />
+              <MediaCard media={m} poster={posters[m.id]} className="size-full" />
             </div>
             <div className="absolute inset-0 grid place-items-center text-7xl font-black text-white/80">?</div>
           </motion.div>
@@ -70,7 +75,7 @@ function Swiping({ room, pub }: { room: RoomSnapshot; pub: KinoPublicState }) {
   );
 }
 
-function Results({ room, pub }: { room: RoomSnapshot; pub: KinoPublicState }) {
+function Results({ room, pub, posters }: { room: RoomSnapshot; pub: KinoPublicState; posters: Record<string, string | null> }) {
   const liked = (pub.results ?? []).filter((r) => r.likers.length > 0);
   const top = liked.slice(0, 3);
   const rest = liked.slice(3, 11);
@@ -103,7 +108,7 @@ function Results({ room, pub }: { room: RoomSnapshot; pub: KinoPublicState }) {
                   </span>
                 )}
               </div>
-              <MediaCard media={m} size="md" className="min-h-0 flex-1" />
+              <MediaCard media={m} poster={posters[r.id]} size="md" className="min-h-0 flex-1" />
               <div className="flex flex-wrap gap-1">
                 {r.likers.map((id) => (
                   <Avatar key={id} room={room} id={id} size="sm" />
@@ -121,13 +126,18 @@ function Results({ room, pub }: { room: RoomSnapshot; pub: KinoPublicState }) {
             return (
               <motion.div key={r.id} initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 1.6 + i * 0.1 }} className="rounded-2xl bg-white/[0.07] px-4 py-2.5">
                 <div className="flex items-center gap-3">
-                  <span className="w-6 text-lg font-black text-white/50">{i + 4}</span>
-                  <span className="min-w-0 flex-1 truncate text-xl font-black">{m.title}</span>
-                  <span className="flex items-center gap-1 text-lg font-black text-[#ff8fa3]">
-                    <Heart className="size-4" fill="currentColor" /> {r.likers.length}
-                  </span>
+                  <span className="w-6 shrink-0 text-lg font-black text-white/50">{i + 4}</span>
+                  {posters[r.id] && <img src={posters[r.id]!} alt="" className="h-14 w-10 shrink-0 rounded-md object-cover" />}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="min-w-0 flex-1 truncate text-xl font-black">{m.title}</span>
+                      <span className="flex shrink-0 items-center gap-1 text-lg font-black text-[#ff8fa3]">
+                        <Heart className="size-4" fill="currentColor" /> {r.likers.length}
+                      </span>
+                    </div>
+                    <div className="line-clamp-2 text-sm font-semibold text-white/60">{m.desc}</div>
+                  </div>
                 </div>
-                <div className="ml-9 line-clamp-2 text-sm font-semibold text-white/60">{m.desc}</div>
               </motion.div>
             );
           })}

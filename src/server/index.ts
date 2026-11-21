@@ -22,6 +22,7 @@ import { ScriptStore } from './storage/script-store';
 import { createScriptRouter } from './routes/scripts';
 import { StatementStore } from './storage/statement-store';
 import { createStatementRouter } from './routes/statements';
+import { createPosterRouter, PosterService } from './kino/posters';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '../..');
@@ -117,6 +118,8 @@ export async function startServer(portOrOptions: number | ServerOptions = PORT) 
   });
   app.use('/api/auth', createAuthRouter(accounts, tokens));
   app.use('/api/word-lists', createWordListRouter(wordLists, { publicMode, tokens }));
+  // Couch-Match: Cover von TMDB (nur mit TMDB_API_KEY)
+  app.use('/api/kino', createPosterRouter(new PosterService(process.env.TMDB_API_KEY?.trim() || undefined)));
 
   // Desktop-Programm: Frontend aus dem Speicher ausliefern
   const assets = opts.assets;

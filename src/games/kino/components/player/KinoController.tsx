@@ -7,6 +7,7 @@ import type { PlayerViewProps } from '../../../game-types';
 import { MEDIA_BY_ID } from '../../data/catalog';
 import type { KinoPrivateState, KinoPublicState } from '../../types';
 import { MediaCard } from '../MediaCard';
+import { preloadPosters, usePosters } from '../posters';
 
 type Props = PlayerViewProps<KinoPublicState, KinoPrivateState>;
 
@@ -19,8 +20,11 @@ export function KinoController({ room, me, state, sendAction }: Props) {
   useEffect(() => setLocal({}), [pub.round]);
   const votes = { ...(priv?.votes ?? {}), ...local };
   const queue = useMemo(() => (priv?.order ?? []).filter((id) => !(id in votes)), [priv?.order, votes]);
+  const posters = usePosters(pub.deck);
+  // die nächsten Cover vorladen
+  useEffect(() => preloadPosters(queue.slice(0, 4).map((id) => posters[id])), [queue, posters]);
 
-  if (pub.phase === 'results') return <PhoneResults pub={pub} meId={me.id} canControl={canControl} onAgain={() => sendAction('again')} />;
+  if (pub.phase === 'results') return <PhoneResults pub={pub} meId={me.id} canControl={canControl} posters={posters} onAgain={() => sendAction('again')} />;
   if (!priv) return <Center title="Gleich geht’s los" text="Du wischst in der nächsten Runde mit." />;
 
   const done = Object.keys(votes).length;
@@ -60,11 +64,11 @@ export function KinoController({ room, me, state, sendAction }: Props) {
           if (!m) return null;
           return top ? (
             <SwipeCard key={id} onSwipe={(like) => swipe(id, like)}>
-              <MediaCard media={m} className="size-full" />
+              <MediaCard media={m} poster={posters[id]} className="size-full" />
             </SwipeCard>
           ) : (
             <div key={id} className="absolute inset-0" style={{ transform: `scale(${1 - (arr.length - 1 - i) * 0.04}) translateY(${(arr.length - 1 - i) * 14}px)`, opacity: 0.6 }}>
-              <MediaCard media={m} className="size-full" />
+              <MediaCard media={m} poster={posters[id]} className="size-full" />
             </div>
           );
         })}
@@ -112,7 +116,7 @@ function SwipeCard({ children, onSwipe }: { children: React.ReactNode; onSwipe: 
   );
 }
 
-function PhoneResults({ pub, meId, canControl, onAgain }: { pub: KinoPublicState; meId: string; canControl: boolean; onAgain: () => void }) {
+function PhoneResults({ pub, meId, canControl, posters, onAgain }: { pub: KinoPublicState; meId: string; canControl: boolean; posters: Record<string, string | null>; onAgain: () => void }) {
   const list = (pub.results ?? []).filter((r) => r.likers.length > 0).slice(0, 10);
   return (
     <div className="fixed inset-0 flex flex-col bg-[radial-gradient(circle_at_50%_0%,#4a0f2e,#14060f)] px-4 pb-4 text-white safe-pt safe-pb">
@@ -127,6 +131,7 @@ function PhoneResults({ pub, meId, canControl, onAgain }: { pub: KinoPublicState
           return (
             <div key={r.id} className="flex items-center gap-3 rounded-2xl bg-white/10 px-3 py-2">
               <span className="w-6 text-center text-lg font-black text-white/60">{i + 1}</span>
+              {posters[r.id] && <img src={posters[r.id]!} alt="" className="h-12 w-8 shrink-0 rounded-md object-cover" />}
               <div className="min-w-0 flex-1">
                 <div className="truncate font-black">{m.title}</div>
                 <div className="text-xs font-bold text-white/60">

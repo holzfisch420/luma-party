@@ -19,3 +19,7 @@ services:
       # Wird beim Einrichten abgefragt; ohne sie gehen Konten bei einem Neustart verloren.
       - key: DATABASE_URL
         sync: false
+      # Optional: Cover für „Couch-Match“. Kostenloser Schlüssel von themoviedb.org
+      # (Einstellungen → API). Ohne ihn zeigt das Spiel gezeichnete Karten.
+      - key: TMDB_API_KEY
+        sync: false

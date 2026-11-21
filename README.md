@@ -276,6 +276,7 @@ Gemeinsam entscheiden, was ihr schaut (1–12 Spieler).
 - Alle bekommen dieselben 25 Titel in eigener, zufälliger Reihenfolge aufs Handy und wischen nach rechts (♥) oder links (✕). Jede Karte zeigt Titel, Jahr, Genres und eine Kurzbeschreibung in zwei Sätzen.
 - Sind alle durch, zeigt der Fernseher die Rangliste nach Matches (Top 3 groß mit Beschreibung und wer sie sehen will, dann Platz 4–11). „Neue 25 Titel“ startet eine frische Runde.
 - Datenbank: rund 510 Filme und Serien (alle MCU-Filme bis 2025, alle Star-Wars- und Harry-Potter-Filme samt Ablegern und Serien) in `src/games/kino/data/` (Titel und Jahre sind Fakten, die Beschreibungen eigene Kurzfassungen).
+- **Cover (optional):** Mit einem kostenlosen TMDB-Schlüssel zeigen die Karten echte Cover, der Titel steht darunter. Schlüssel auf themoviedb.org anlegen (Einstellungen → API; der kurze „API-Schlüssel“ oder der lange „API-Lesezugriffstoken“ gehen beide) und auf dem Server als Umgebungsvariable `TMDB_API_KEY` setzen (Render: Dienst → Environment). Der Server schlägt die Cover nach (`/api/kino/posters`, deutsche Cover bevorzugt) und merkt sie sich; ohne Schlüssel gibt es gezeichnete Karten. Hinweis gemäß TMDB: *This product uses the TMDB API but is not endorsed or certified by TMDB.*
 
 ### Schach
 
