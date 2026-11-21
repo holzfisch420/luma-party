@@ -5,8 +5,9 @@ import { BOSSES } from '../../logic/bosses';
 import { WheelSim, type Outcome } from '../../logic/sim';
 import { makeStage } from '../../logic/wheel';
 import { BOSS_ART } from '../bosses-draw';
-import { drawKnife, drawWheel, fitCanvas } from '../draw';
+import { drawKnife, drawWheel, fitCanvas, KNIFE_LEN } from '../draw';
 import { klingenSounds } from '../sounds';
+import type { LiveFrame } from '../../types';
 
 type Mode = 'intro' | 'play' | 'clear' | 'over';
 
@@ -17,7 +18,11 @@ interface Props {
   lives: number;
   maxLives: number;
   active: boolean;
-  color: string;
+  /** gewähltes Messer */
+  skin: number;
+  /** auf Platz 1: Spiel live an den Fernseher schicken */
+  live: boolean;
+  onLive: (frame: Omit<LiveFrame, 'playerId'>) => void;
   onProgress: (stage: number, stuck: number) => void;
   onClear: (stage: number, stars: number) => void;
   onFail: (stage: number) => void;
@@ -52,7 +57,7 @@ const WOOD = ['#c98a4b', '#8a4b24', '#f3e3c3', '#b3161f'];
  * Einzelspiel auf dem Handy: komplett lokal berechnet (keine Verzögerung).
  * Tippen irgendwo = Messer werfen. Ein Treffer kostet ein Leben – die Stufe läuft aber weiter.
  */
-export function SoloGame({ seed, startStage, lives, maxLives, active, color, onProgress, onClear, onFail }: Props) {
+export function SoloGame({ seed, startStage, lives, maxLives, active, skin, live, onLive, onProgress, onClear, onFail }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hud, setHud] = useState<Hud>({ stage: startStage, left: 0, mode: 'play', lives, stars: 0, bomb: null, msg: null });
   const game = useRef({
@@ -71,9 +76,30 @@ export function SoloGame({ seed, startStage, lives, maxLives, active, color, onP
     particles: [] as Particle[],
     last: performance.now(),
     lastBomb: -1,
+    lastLive: 0,
   });
-  const cb = useRef({ onProgress, onClear, onFail, active });
-  cb.current = { onProgress, onClear, onFail, active };
+  const cb = useRef({ onProgress, onClear, onFail, onLive, active, live });
+  cb.current = { onProgress, onClear, onFail, onLive, active, live };
+
+  /** Momentaufnahme an den Fernseher (nur auf Platz 1) */
+  const sendLive = (ev?: LiveFrame['ev'], hit?: string) => {
+    if (!cb.current.live) return;
+    const g = game.current;
+    g.lastLive = performance.now();
+    const r3 = (v: number) => Math.round(v * 1000) / 1000;
+    cb.current.onLive({
+      stage: g.sim.stage.n,
+      t: r3(g.sim.t),
+      angle: r3(g.sim.angle),
+      knives: g.sim.knives.filter((k) => !k.fixed).map((k) => r3(k.base)),
+      stars: g.sim.stars.map(r3),
+      left: g.left,
+      lives: g.lives,
+      mode: g.mode,
+      ev,
+      hit,
+    });
+  };
 
   const patchHud = (p: Partial<Hud>) => setHud((s) => ({ ...s, ...p }));
 
@@ -128,6 +154,7 @@ export function SoloGame({ seed, startStage, lives, maxLives, active, color, onP
     g.attemptStart = g.sim.t;
     haptics.play('error');
     cb.current.onFail(g.sim.stage.n);
+    sendLive('hit', kind);
     const msg = kind === 'bomb' ? 'BUMM! Zu langsam!' : kind === 'shield' ? 'Am Schild abgeprallt!' : kind === 'moon' ? 'Mond im Weg!' : kind === 'tentacle' ? 'Vom Fangarm erwischt!' : 'Klirr!';
     if (g.lives <= 0) {
       g.mode = 'over';
@@ -157,7 +184,7 @@ export function SoloGame({ seed, startStage, lives, maxLives, active, color, onP
       const r = r0 * sim.radiusScale();
       const cx = w / 2;
       const cy = h * 0.32;
-      const len = r0 * 0.95;
+      const len = r0 * KNIFE_LEN;
       const startY = h - len - 34;
       const impactY = cy + r * 0.72;
 
@@ -194,7 +221,7 @@ export function SoloGame({ seed, startStage, lives, maxLives, active, color, onP
           const outcome = sim.outcome(g.flying.mid ?? undefined);
           g.flying = null;
           if (outcome === 'stick') {
-            const star = sim.stick(color);
+            const star = sim.stick(skin);
             g.left--;
             g.bump = 1;
             klingenSounds.stick();
@@ -208,6 +235,7 @@ export function SoloGame({ seed, startStage, lives, maxLives, active, color, onP
             }
             setHud((s) => ({ ...s, left: g.left }));
             cb.current.onProgress(sim.stage.n, sim.stage.knives - g.left);
+            sendLive(g.left === 0 ? 'clear' : star ? 'star' : 'stick');
             if (g.left === 0) {
               g.mode = 'clear';
               g.modeAt = now;
@@ -231,6 +259,9 @@ export function SoloGame({ seed, startStage, lives, maxLives, active, color, onP
           }
         }
       }
+
+      // live an den Fernseher
+      if (cb.current.live && now - g.lastLive > TIMING.liveEveryMs) sendLive();
 
       // Übergänge
       if (g.mode === 'clear' && now - g.modeAt > (def ? 1500 : 850)) {
@@ -265,22 +296,22 @@ export function SoloGame({ seed, startStage, lives, maxLives, active, color, onP
       if (g.bounce) {
         const k = (now - g.bounce.at) / 1000;
         if (k > 1) g.bounce = null;
-        else drawKnife(ctx, cx + k * 170, impactY + 40 + k * k * 900, -Math.PI / 2 + k * 10, len, color, Math.max(0, 1 - k));
+        else drawKnife(ctx, cx + k * 170, impactY + 40 + k * k * 900, -Math.PI / 2 + k * 10, len, skin, Math.max(0, 1 - k));
       }
       // fliegendes oder bereitliegendes Messer
       if (g.mode === 'play') {
         if (g.flying) {
           const k = Math.min(1, (now - g.flying.at) / TIMING.flightMs);
-          drawKnife(ctx, cx, startY + (impactY - startY) * k, -Math.PI / 2, len, color);
+          drawKnife(ctx, cx, startY + (impactY - startY) * k, -Math.PI / 2, len, skin);
         } else if (g.left > 0 && cb.current.active) {
           const ready = now >= g.stunUntil;
-          drawKnife(ctx, cx, startY + (ready ? 0 : 20), -Math.PI / 2, len, color, ready ? 1 : 0.35);
+          drawKnife(ctx, cx, startY + (ready ? 0 : 20), -Math.PI / 2, len, skin, ready ? 1 : 0.35);
         }
       }
       // übrige Messer unten links
       if (g.mode === 'play' || g.mode === 'intro') {
         const rest = g.left - (g.flying ? 1 : 0) - 1;
-        for (let i = 0; i < rest; i++) drawKnife(ctx, 20 + i * 13, h - 76, -Math.PI / 2, 44, 'rgba(255,247,230,0.8)');
+        for (let i = 0; i < rest; i++) drawKnife(ctx, 20 + i * 13, h - 76, -Math.PI / 2, 44, skin, 0.85);
       }
 
       // Partikel
@@ -315,13 +346,14 @@ export function SoloGame({ seed, startStage, lives, maxLives, active, color, onP
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color]);
+  }, [skin]);
 
   const throwKnife = () => {
     const g = game.current;
     const now = performance.now();
     if (!cb.current.active || g.mode !== 'play' || g.flying || g.left <= 0 || now < g.stunUntil) return;
     g.flying = { at: now, mid: null };
+    sendLive('throw');
     klingenSounds.throw();
     haptics.play('tick');
   };

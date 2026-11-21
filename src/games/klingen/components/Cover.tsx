@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { CoverProps } from '../../game-types';
 import { drawKnife, drawWheel, fitCanvas } from './draw';
 
-const KNIVES = [0.3, 1.4, 2.2, 3.5, 4.6, 5.5].map((a, i) => ({ a, color: ['#e8590c', '#36a9f0', '#2fb67c', '#f2c14e', '#b583ff', '#ff5fa2'][i]! }));
+const KNIVES = [0.3, 1.4, 2.2, 3.5, 4.6, 5.5].map((a, i) => ({ a, skin: [0, 3, 8, 2, 14, 12][i], accent: ['#e8590c', '#36a9f0', '#2fb67c', '#f2c14e', '#b583ff', '#ff5fa2'][i]! }));
 
 /** Kachel: Holzrad mit Messern, dreht sich bei Auswahl */
 export function KlingenCover({ focused }: CoverProps) {
@@ -25,7 +25,7 @@ export function KlingenCover({ focused }: CoverProps) {
       const r = Math.min(w, h) * 0.26;
       const angle = focused ? (performance.now() - t0) / 700 : 0.4;
       drawWheel(ctx, w / 2, h * 0.4, r, angle, KNIVES, { knifeLen: r * 0.85 });
-      drawKnife(ctx, w / 2, h * 0.86, -Math.PI / 2, r * 0.85, '#e8590c');
+      drawKnife(ctx, w / 2, h * 0.86, -Math.PI / 2, r * 0.85, 3);
       if (focused) raf = requestAnimationFrame(draw);
     };
     draw();

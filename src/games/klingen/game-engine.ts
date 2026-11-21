@@ -9,11 +9,15 @@
 import type { GameContext, GameEngine, GamePlayer, ServerGameModule, TimerHandle } from '../../server/game-engine/types';
 import type { PlayerId } from '../../shared/types/room';
 import { DEFAULT_KLINGEN_SETTINGS, klingenMeta, parseKlingenSettings, TIMING, type KlingenSettings } from './game-config';
+import { KNIFE_COUNT, validSkin } from './logic/knives';
 import { BOSS_EVERY, makeStage } from './logic/wheel';
-import type { KlingenPrivateState, KlingenPublicState, SharedRow, SoloRow, ThrowEvent } from './types';
+import type { KlingenPrivateState, KlingenPublicState, LiveFrame, SharedRow, SoloRow, ThrowEvent } from './types';
 
 export class KlingenEngine implements GameEngine<KlingenPublicState, KlingenPrivateState> {
-  private phase: KlingenPublicState['phase'] = 'countdown';
+  private phase: KlingenPublicState['phase'] = 'pick';
+  private knives = new Map<PlayerId, number>();
+  private picked = new Set<PlayerId>();
+  private lastLiveAt = 0;
   private phaseEndsAt: number | null = null;
   private spinStartedAt: number | null = null;
   private readonly seed = Math.floor(Math.random() * 1e9);
@@ -35,10 +39,18 @@ export class KlingenEngine implements GameEngine<KlingenPublicState, KlingenPriv
 
   start(): void {
     const players = this.ctx.getPlayers().filter((p) => p.isConnected);
-    for (const p of players) {
+    players.forEach((p, i) => {
       if (this.settings.mode === 'solo') this.solo.set(p.id, { stage: 1, cleared: 0, stuck: 0, lives: this.settings.lives, done: false, stars: 0, bosses: 0 });
       else this.shared.set(p.id, { alive: true, left: 0, stuckTotal: 0, outRound: null });
-    }
+      // Vorschlag, bis selbst gewählt wird: alle verschieden
+      this.knives.set(p.id, (i * 5) % KNIFE_COUNT);
+    });
+    // zuerst 10 Sekunden Messer aussuchen
+    this.setPhase('pick', TIMING.pickMs, () => this.afterPick());
+  }
+
+  private afterPick() {
+    if (this.phase !== 'pick') return;
     if (this.settings.mode === 'solo') {
       this.setPhase('countdown', TIMING.countdownMs, () => {
         this.spinStartedAt = this.ctx.now();
@@ -72,6 +84,9 @@ export class KlingenEngine implements GameEngine<KlingenPublicState, KlingenPriv
       round: this.round,
       shared: Object.fromEntries(this.shared),
       lastOut: this.lastOut,
+      knives: Object.fromEntries(this.knives),
+      picked: [...this.picked],
+      spotlight: this.spotlight(),
     };
   }
 
@@ -81,9 +96,29 @@ export class KlingenEngine implements GameEngine<KlingenPublicState, KlingenPriv
 
   // ------------------------------------------------------------------ Einzeln
 
+  /** Platz 1 (noch im Spiel) – dessen Handy überträgt live an den Fernseher */
+  private spotlight(): PlayerId | null {
+    if (this.settings.mode !== 'solo' || this.phase !== 'play') return null;
+    const rows = [...this.solo].filter(([id, r]) => !r.done && this.ctx.getPlayer(id)?.isConnected);
+    rows.sort((a, b) => b[1].cleared - a[1].cleared || b[1].stars - a[1].stars || b[1].stuck - a[1].stuck);
+    return rows[0]?.[0] ?? null;
+  }
+
   handleAction(playerId: PlayerId, type: string, payload: unknown): void {
     if (this.finished) return;
     const data = (payload && typeof payload === 'object' ? payload : {}) as Record<string, unknown>;
+    if (type === 'knife') {
+      const skin = validSkin(data.skin);
+      if (this.phase !== 'pick' || skin === null || !this.knives.has(playerId)) return;
+      this.knives.set(playerId, skin);
+      this.picked.add(playerId);
+      // alle haben gewählt: sofort weiter
+      const everyone = [...this.knives.keys()].filter((id) => this.ctx.getPlayer(id)?.isConnected);
+      if (everyone.every((id) => this.picked.has(id))) this.afterPick();
+      else this.ctx.publishState();
+      return;
+    }
+    if (type === 'live') return this.forwardLive(playerId, data);
     if (this.settings.mode === 'shared') {
       if (type === 'throw') this.throwShared(playerId);
       return;
@@ -111,6 +146,33 @@ export class KlingenEngine implements GameEngine<KlingenPublicState, KlingenPriv
       }
     } else return;
     this.ctx.publishState();
+  }
+
+  /** Bild vom Handy des Erstplatzierten an den Fernseher weiterreichen */
+  private forwardLive(playerId: PlayerId, data: Record<string, unknown>) {
+    if (this.settings.mode !== 'solo' || this.phase !== 'play' || playerId !== this.spotlight()) return;
+    const now = this.ctx.now();
+    const ev = typeof data.ev === 'string' && ['throw', 'stick', 'star', 'hit', 'clear'].includes(data.ev) ? (data.ev as LiveFrame['ev']) : undefined;
+    // höchstens ~20 Bilder pro Sekunde (Ereignisse immer)
+    if (!ev && now - this.lastLiveAt < 45) return;
+    this.lastLiveAt = now;
+    const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
+    const nums = (v: unknown, max: number) => (Array.isArray(v) ? v.slice(0, max).map(num) : []);
+    const modes = ['intro', 'play', 'clear', 'over'] as const;
+    const frame: LiveFrame = {
+      playerId,
+      stage: Math.max(1, Math.floor(num(data.stage))),
+      t: num(data.t),
+      angle: num(data.angle),
+      knives: nums(data.knives, 40),
+      stars: nums(data.stars, 6),
+      left: Math.max(0, Math.floor(num(data.left))),
+      lives: Math.max(0, Math.floor(num(data.lives))),
+      mode: modes.includes(data.mode as never) ? (data.mode as LiveFrame['mode']) : 'play',
+      ev,
+      hit: typeof data.hit === 'string' ? data.hit.slice(0, 12) : undefined,
+    };
+    this.ctx.emit('live', frame, { to: 'host' });
   }
 
   private allSoloDone() {
@@ -192,6 +254,7 @@ export class KlingenEngine implements GameEngine<KlingenPublicState, KlingenPriv
     // Einzeln: wer später kommt, steigt direkt ein
     if (this.settings.mode === 'solo' && !this.solo.has(p.id) && this.phase !== 'done')
       this.solo.set(p.id, { stage: 1, cleared: 0, stuck: 0, lives: this.settings.lives, done: false, stars: 0, bosses: 0 });
+    if (!this.knives.has(p.id)) this.knives.set(p.id, this.knives.size % KNIFE_COUNT);
     this.ctx.publishState();
   }
 

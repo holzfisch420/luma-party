@@ -23,3 +23,38 @@ export const ploppSounds = {
   isMuted: () => getAudioSettings().muted,
   setMuted: (m: boolean) => setAudioSettings({ muted: m }),
 };
+
+/** deutsche Stimme (einmal gesucht) */
+let voice: SpeechSynthesisVoice | null | undefined;
+function germanVoice(): SpeechSynthesisVoice | null {
+  const synth = window.speechSynthesis;
+  const list = synth.getVoices();
+  if (!list.length) return null; // Stimmen noch nicht geladen – Browser-Standard mit lang=de
+  if (voice !== undefined) return voice;
+  const de = list.filter((v) => v.lang?.toLowerCase().startsWith('de'));
+  // möglichst natürliche Stimme bevorzugen
+  voice = de.find((v) => /google|natural|neural|online|premium|enhanced/i.test(v.name)) ?? de[0] ?? null;
+  return voice;
+}
+
+/** Antwort am Fernseher vorlesen (Text-to-Speech des Browsers) */
+export function speak(text: string) {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+  const s = getAudioSettings();
+  if (s.muted || s.sfx <= 0) return;
+  try {
+    const synth = window.speechSynthesis;
+    // nicht aufstauen: Neues ersetzt, was noch wartet
+    if (synth.pending || synth.speaking) synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'de-DE';
+    const v = germanVoice();
+    if (v) u.voice = v;
+    u.rate = 1.08;
+    u.pitch = 1.05;
+    u.volume = Math.min(1, s.sfx * 1.2);
+    synth.speak(u);
+  } catch {
+    /* ohne Sprachausgabe weiter */
+  }
+}

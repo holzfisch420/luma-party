@@ -39,7 +39,7 @@ export function PloppSettingsPanel(props: SettingsPanelProps<PloppSettings>) {
     <div className="divide-y divide-home-line/70">
       <div className="pb-2">
         <SectionTitle>Spielablauf</SectionTitle>
-        <SettingRow label="Zündschnur" hint="Wie lange es ungefähr dauert, bis der Fisch platzt – genau weiß es niemand">
+        <SettingRow label="Zündschnur" hint="Wie viel Zeit jede Person ungefähr hat – sie läuft nur, solange man den Fisch hält. Genau weiß es niemand.">
           <Segmented layoutId="plopp-fuse" value={settings.fuse} options={FUSES.map((f) => ({ value: f, label: FUSE_RANGES[f].label.split(' ')[0] }))} onChange={(fuse) => set({ fuse })} disabled={disabled} />
         </SettingRow>
         <SettingRow label="Buchstaben-Aufgaben" hint="Zum Beispiel „Ein Tier mit B“">

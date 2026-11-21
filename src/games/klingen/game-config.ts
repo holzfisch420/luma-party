@@ -41,6 +41,10 @@ export function parseKlingenSettings(raw: unknown): KlingenSettings {
 }
 
 export const TIMING = {
+  /** Messer aussuchen */
+  pickMs: 10_000,
+  /** Einzeln: so oft schickt das Handy des Erstplatzierten ein Bild an den Fernseher */
+  liveEveryMs: 100,
   countdownMs: 3500,
   roundIntroMs: 3000,
   roundEndMs: 3500,

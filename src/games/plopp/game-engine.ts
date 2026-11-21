@@ -1,9 +1,10 @@
 /**
  * „Plopp!“ – Server-Engine.
  *
- * Ablauf je Runde: Aufgabe zeigen → Fisch wandert reihum, jede gültige Antwort gibt ihn weiter →
- * eine versteckte Zündschnur (zufällig) läuft ab → wer den Fisch hält, verliert ein Leben.
- * Die Zündschnur läuft über alle Weitergaben hinweg und pausiert nur während einer Abstimmung.
+ * Ablauf je Runde: Aufgabe zeigen → Fisch wandert reihum, jede gültige Antwort gibt ihn weiter.
+ * Jede Person hat pro Runde ihre EIGENE versteckte Zündschnur (zufällig lang). Sie brennt nur,
+ * solange man selbst den Fisch hält – wie eine Schachuhr. Wessen Schnur zuerst abbrennt, verliert
+ * ein Leben. Langsame Mitspieler kosten dich also keine Zeit. Während einer Abstimmung ruht sie.
  */
 import type { GameContext, GameEngine, GamePlayer, ServerGameModule, TimerHandle } from '../../server/game-engine/types';
 import type { PlayerId } from '../../shared/types/room';
@@ -43,8 +44,12 @@ export class PloppEngine implements GameEngine<PloppPublicState, PloppPrivateSta
   private eventId = 0;
   private event: PloppEvent | null = null;
 
-  // Zündschnur
-  private fuseLeft = 0;
+  // Zündschnur – pro Person
+  /** restliche (geheime) Zeit je Person in ms */
+  private budget = new Map<PlayerId, number>();
+  /** schon verbrannte Zeit je Person in ms (öffentlich, für die Anzeige) */
+  private spent = new Map<PlayerId, number>();
+  private running = false;
   private runStartedAt = 0;
   private fuse: PloppPublicState['fuse'] = null;
   private fuseTimer: TimerHandle | null = null;
@@ -142,6 +147,7 @@ export class PloppEngine implements GameEngine<PloppPublicState, PloppPrivateSta
       maxLives: this.settings.lives,
       used: this.used,
       fuse: this.fuse,
+      clocks: Object.fromEntries(this.spent),
       phaseEndsAt: this.phaseEndsAt,
       vote: this.vote ? { playerId: this.vote.playerId, text: this.vote.text, voters: [...this.vote.votes.keys()], eligible: this.vote.eligible } : null,
       pop: this.pop,
@@ -221,7 +227,7 @@ export class PloppEngine implements GameEngine<PloppPublicState, PloppPrivateSta
     this.used.push(entry);
     const to = this.nextAfter(playerId);
     this.emitEvent({ kind: 'pass', playerId, text: entry.typed ?? entry.text, answer: entry.text, to: to ?? undefined });
-    if (to) this.holderId = to;
+    if (to) this.handTo(to);
     this.ctx.publishState();
   }
 
@@ -275,6 +281,8 @@ export class PloppEngine implements GameEngine<PloppPublicState, PloppPrivateSta
     this.pop = null;
     this.vote = null;
     this.fuse = null;
+    this.running = false;
+    this.spent.clear();
     if (!this.holderId || !this.active(this.holderId)) this.holderId = this.nextAfter(this.holderId);
     this.phase = 'intro';
     this.phaseEndsAt = this.ctx.now() + TIMING.introMs;
@@ -285,40 +293,65 @@ export class PloppEngine implements GameEngine<PloppPublicState, PloppPrivateSta
 
   private beginPlay() {
     const range = FUSE_RANGES[this.settings.fuse];
-    this.fuseLeft = (range.min + Math.random() * (range.max - range.min)) * 1000;
-    const now = this.ctx.now();
-    this.fuse = { startedAt: now, pausedAt: null, pausedMs: 0, max: range.max * 1000 };
+    // jede Person bekommt ihre eigene, geheime Zündschnur
+    this.budget.clear();
+    this.spent.clear();
+    for (const id of this.order) {
+      this.budget.set(id, (range.min + Math.random() * (range.max - range.min)) * 1000);
+      this.spent.set(id, 0);
+    }
     this.phase = 'play';
     this.phaseEndsAt = null;
-    this.runFuse();
+    this.startClock();
     this.ctx.publishState();
   }
 
-  private runFuse() {
-    this.runStartedAt = this.ctx.now();
+  /** Uhr der Person mit Fisch starten */
+  private startClock() {
+    const id = this.holderId;
+    if (!id || this.running || this.phase !== 'play') return;
+    const now = this.ctx.now();
+    this.running = true;
+    this.runStartedAt = now;
+    this.fuse = { startedAt: now - (this.spent.get(id) ?? 0), pausedAt: null, pausedMs: 0, max: FUSE_RANGES[this.settings.fuse].max * 1000 };
     this.fuseTimer?.cancel();
-    this.fuseTimer = this.ctx.setTimer(Math.max(0, this.fuseLeft), () => this.explode());
+    this.fuseTimer = this.ctx.setTimer(Math.max(0, this.budget.get(id) ?? 0), () => this.explode());
+  }
+
+  /** Uhr der Person mit Fisch anhalten und verbrauchte Zeit verbuchen */
+  private stopClock() {
+    if (!this.running) return;
+    this.running = false;
+    this.fuseTimer?.cancel();
+    const id = this.holderId;
+    const now = this.ctx.now();
+    const used = now - this.runStartedAt;
+    if (id) {
+      this.budget.set(id, (this.budget.get(id) ?? 0) - used);
+      this.spent.set(id, (this.spent.get(id) ?? 0) + used);
+    }
+    if (this.fuse) this.fuse = { ...this.fuse, pausedAt: now };
+  }
+
+  /** Fisch an jemand anderen – Uhren umschalten */
+  private handTo(to: PlayerId) {
+    const wasRunning = this.running;
+    this.stopClock();
+    this.holderId = to;
+    if (wasRunning) this.startClock();
   }
 
   private pauseFuse() {
-    if (!this.fuse || this.fuse.pausedAt !== null) return;
-    this.fuseTimer?.cancel();
-    const now = this.ctx.now();
-    this.fuseLeft -= now - this.runStartedAt;
-    this.fuse = { ...this.fuse, pausedAt: now };
+    this.stopClock();
   }
 
   private resumeFuse() {
-    if (!this.fuse || this.fuse.pausedAt === null) return;
-    const now = this.ctx.now();
-    this.fuse = { ...this.fuse, pausedMs: this.fuse.pausedMs + (now - this.fuse.pausedAt), pausedAt: null };
-    this.runFuse();
+    this.startClock();
   }
 
   private explode() {
     if (this.phase !== 'play' || this.finished) return;
-    this.fuseTimer?.cancel();
-    if (this.fuse) this.fuse = { ...this.fuse, pausedAt: this.ctx.now() };
+    this.stopClock();
     const loser = this.holderId;
     this.phase = 'pop';
     if (loser) {
@@ -348,7 +381,7 @@ export class PloppEngine implements GameEngine<PloppPublicState, PloppPrivateSta
     const from = this.holderId;
     const to = this.nextAfter(from);
     if (!to) return;
-    this.holderId = to;
+    this.handTo(to);
     if (from) this.emitEvent({ kind: 'skip', playerId: from, text: '', to });
   }
 

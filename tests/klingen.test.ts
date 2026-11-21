@@ -4,6 +4,9 @@ import { DEFAULT_KLINGEN_SETTINGS, TIMING } from '../src/games/klingen/game-conf
 import { angleAt, angleDist, BOSS_EVERY, bossOrder, collides, localImpact, makeStage, MIN_GAP } from '../src/games/klingen/logic/wheel';
 import { BOSS_IDS, BOSSES } from '../src/games/klingen/logic/bosses';
 import { stepFor, WheelSim } from '../src/games/klingen/logic/sim';
+import { KNIFE_SKINS } from '../src/games/klingen/logic/knives';
+import { knifeHalfWidth } from '../src/games/klingen/components/knife-skins';
+import { KNIFE_LEN } from '../src/games/klingen/components/draw';
 
 /** Bot: wirft, sobald die Vorschau ein Steckenbleiben mit Sicherheitsabstand zeigt */
 function botPlays(seed: number, n: number): { left: number; time: number } {
@@ -24,7 +27,7 @@ function botPlays(seed: number, n: number): { left: number; time: number } {
       const mid = sim.clone();
       stepFor(sim, 0.065);
       if (sim.outcome(mid) !== 'stick') return { left, time: sim.t };
-      sim.stick('#fff');
+      sim.stick(0);
       left--;
       stepFor(sim, 0.05);
     } else stepFor(sim, 1 / 120);
@@ -133,6 +136,12 @@ describe('Klingenrad – Einzeln', () => {
   it('zählt geschaffte Stufen, Leben und endet nach Ablauf der Zeit', () => {
     const s = setup(2, { mode: 'solo', lives: 1, minutes: 2 });
     s.engine.start();
+    // zuerst Messer aussuchen
+    expect(s.pub().phase).toBe('pick');
+    s.engine.handleAction('p0', 'knife', { skin: 7 });
+    s.engine.handleAction('p0', 'knife', { skin: 99 }); // ungültig
+    expect(s.pub().knives.p0).toBe(7);
+    s.advance(TIMING.pickMs);
     expect(s.pub().phase).toBe('countdown');
     s.advance(TIMING.countdownMs);
     expect(s.pub().phase).toBe('play');
@@ -151,7 +160,7 @@ describe('Klingenrad – Leben und Sterne', () => {
   it('ein Fehlwurf kostet ein Leben, die Stufe läuft aber weiter; Sterne zählen mit', () => {
     const s = setup(1, { mode: 'solo', lives: 3 });
     s.engine.start();
-    s.advance(TIMING.countdownMs);
+    s.advance(TIMING.pickMs + TIMING.countdownMs);
     s.engine.handleAction('p0', 'progress', { stage: 1, stuck: 3 });
     s.engine.handleAction('p0', 'fail', { stage: 1 });
     expect(s.pub().solo.p0).toMatchObject({ stage: 1, stuck: 3, lives: 2, done: false });
@@ -161,11 +170,49 @@ describe('Klingenrad – Leben und Sterne', () => {
   });
 });
 
+describe('Klingenrad – Messer & Live-Übertragung', () => {
+  it('16 Messer; wenn alle gewählt haben, geht es sofort los', () => {
+    expect(KNIFE_SKINS).toHaveLength(16);
+    const s = setup(2, { mode: 'solo' });
+    s.engine.start();
+    expect(s.pub().phase).toBe('pick');
+    s.engine.handleAction('p0', 'knife', { skin: 3 });
+    expect(s.pub().phase).toBe('pick');
+    s.engine.handleAction('p1', 'knife', { skin: 15 });
+    expect(s.pub().phase).toBe('countdown');
+    expect(s.pub().knives).toEqual({ p0: 3, p1: 15 });
+    // nach der Auswahl lässt sich nichts mehr ändern
+    s.engine.handleAction('p0', 'knife', { skin: 4 });
+    expect(s.pub().knives.p0).toBe(3);
+  });
+
+  it('nur Platz 1 wird live an den Fernseher übertragen', () => {
+    const s = setup(2, { mode: 'solo' });
+    s.engine.start();
+    s.advance(TIMING.pickMs + TIMING.countdownMs);
+    s.engine.handleAction('p1', 'clear', { stage: 1 });
+    expect(s.pub().spotlight).toBe('p1');
+    const frame = { stage: 2, t: 1.5, angle: 2, knives: [0.1, 1.2], stars: [], left: 4, lives: 2, mode: 'play', ev: 'stick' };
+    s.engine.handleAction('p0', 'live', frame);
+    expect(s.events.filter((e) => e.name === 'live')).toHaveLength(0);
+    s.engine.handleAction('p1', 'live', frame);
+    const live = s.events.filter((e) => e.name === 'live');
+    expect(live).toHaveLength(1);
+    expect(live[0]!.payload).toMatchObject({ playerId: 'p1', stage: 2, knives: [0.1, 1.2], ev: 'stick' });
+  });
+
+  it('Trefferzone ist kleiner als die gezeichneten Messer', () => {
+    // halbe Klingenbreite am Radrand im Verhältnis zum Radius → Winkel, ab dem sich Messer sichtbar berühren
+    const visualTouch = 2 * knifeHalfWidth(KNIFE_LEN);
+    expect(MIN_GAP).toBeLessThan(visualTouch);
+  });
+});
+
 describe('Klingenrad – gemeinsames Rad', () => {
   it('Würfe gehen an den Fernseher, Ergebnis kommt zurück; wer trifft, ist raus', () => {
     const s = setup(3, { mode: 'shared' });
     s.engine.start();
-    s.advance(TIMING.roundIntroMs);
+    s.advance(TIMING.pickMs + TIMING.roundIntroMs);
     expect(s.pub()).toMatchObject({ phase: 'play', round: 1 });
     expect(s.pub().shared.p0.left).toBe(1);
     s.engine.handleAction('p0', 'throw', {});
@@ -203,7 +250,7 @@ describe('Klingenrad – gemeinsames Rad', () => {
   it('antwortet der Fernseher nicht, gilt der Wurf als steckend', () => {
     const s = setup(2, { mode: 'shared' });
     s.engine.start();
-    s.advance(TIMING.roundIntroMs);
+    s.advance(TIMING.pickMs + TIMING.roundIntroMs);
     s.engine.handleAction('p0', 'throw', {});
     s.advance(TIMING.resultTimeoutMs);
     expect(s.pub().shared.p0).toMatchObject({ alive: true, stuckTotal: 1 });

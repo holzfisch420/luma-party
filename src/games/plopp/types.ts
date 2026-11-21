@@ -34,8 +34,10 @@ export interface PloppPublicState {
   lives: Record<PlayerId, number>;
   maxLives: number;
   used: PloppUsed[];
-  /** Aufblasen: Startzeit, ggf. Pause, max. Zündschnur (nicht die echte!) */
+  /** Fisch der Person, die ihn gerade hält: Startzeit (inkl. ihrer schon verbrauchten Zeit), Pause, max. Zündschnur (nicht die echte!) */
   fuse: { startedAt: number; pausedAt: number | null; pausedMs: number; max: number } | null;
+  /** verbrauchte Zeit je Person in dieser Runde (ms, Stand beim letzten Weitergeben) */
+  clocks: Record<PlayerId, number>;
   phaseEndsAt: number | null;
   vote: { playerId: PlayerId; text: string; voters: PlayerId[]; eligible: PlayerId[] } | null;
   pop: { playerId: PlayerId; livesLeft: number; eliminated: boolean } | null;

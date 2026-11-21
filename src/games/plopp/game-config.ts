@@ -13,7 +13,7 @@ export const ploppMeta: GameMeta = {
   name: 'Plopp!',
   tagline: 'Antwort tippen, Fisch weitergeben – bevor er platzt!',
   description:
-    'Eine Aufgabe für alle, zum Beispiel „Ein Tier“. Wer den Kugelfisch hat, tippt eine passende Antwort aufs Handy und gibt ihn damit weiter. Irgendwann platzt er – wann, weiß niemand. Wer ihn dann hält, verliert ein Leben. Die letzte Person im Wasser gewinnt.',
+    'Eine Aufgabe für alle, zum Beispiel „Ein Tier“. Wer den Kugelfisch hat, tippt eine passende Antwort aufs Handy und gibt ihn damit weiter. Jede Person hat ihre eigene geheime Zündschnur, die nur brennt, solange sie den Fisch hält. Wessen Schnur zuerst abbrennt, verliert ein Leben. Die letzte Person im Wasser gewinnt.',
   minPlayers: 2,
   maxPlayers: 12,
   durationMinutes: [5, 20],
@@ -25,9 +25,10 @@ export const ploppMeta: GameMeta = {
 export const FUSES = ['kurz', 'mittel', 'lang'] as const;
 export type Fuse = (typeof FUSES)[number];
 export const FUSE_RANGES: Record<Fuse, { min: number; max: number; label: string }> = {
-  kurz: { min: 6, max: 18, label: 'Kurz (6–18 s)' },
-  mittel: { min: 10, max: 30, label: 'Mittel (10–30 s)' },
-  lang: { min: 20, max: 45, label: 'Lang (20–45 s)' },
+  // Zeit pro Person und Runde – brennt nur, solange man den Fisch hält
+  kurz: { min: 5, max: 12, label: 'Kurz (5–12 s pro Person)' },
+  mittel: { min: 8, max: 18, label: 'Mittel (8–18 s pro Person)' },
+  lang: { min: 12, max: 28, label: 'Lang (12–28 s pro Person)' },
 };
 
 export const ploppSettingsSchema = z.object({

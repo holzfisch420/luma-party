@@ -5,8 +5,13 @@
 
 import { BOSS_IDS, BOSSES, type BossId } from './bosses';
 
-/** Mindestabstand zweier Messer im Rad (Bogenmaß) */
-export const MIN_GAP = 0.19;
+/**
+ * Trefferzone: zwei Messer kollidieren, wenn sie näher als das beieinander stecken (Bogenmaß).
+ * Bewusst etwas kleiner als die gezeichneten Messer – knappe Würfe zählen noch.
+ */
+export const MIN_GAP = 0.12;
+/** Abstand für vorgegebene Hindernisse und Sterne (wie früher, damit Stufen nicht verstopfen) */
+const PLACE_GAP = 0.19;
 const TAU = Math.PI * 2;
 
 export function mulberry32(seed: number) {
@@ -106,17 +111,17 @@ export function makeStage(seed: number, n: number): Stage {
   const power = 1 + Math.min(0.6, n * 0.012) + lap * 0.15;
   if (boss) {
     const def = BOSSES[boss];
-    const obstacles = placeFree(rnd, def.obstacles + lap, [], MIN_GAP * 2.1);
-    const stars = placeFree(rnd, 2, obstacles, MIN_GAP * 1.6);
+    const obstacles = placeFree(rnd, def.obstacles + lap, [], PLACE_GAP * 2.1);
+    const stars = placeFree(rnd, 2, obstacles, PLACE_GAP * 1.6);
     const dir = rnd() < 0.5 ? -1 : 1;
     const base = dir * def.speed * power;
     const spin: Spin = { base, amp: Math.abs(base) * (def.wave ?? 0), freq: 0.8 + rnd() * 0.7, phase: rnd() * TAU };
     return { n, knives: def.knives + lap, obstacles, stars, spin, boss, power, seed: seed * 31 + n };
   }
-  const knives = Math.min(11, 5 + Math.floor(n * 0.45));
+  const knives = Math.min(12, 6 + Math.floor(n * 0.45));
   const obstacleCount = n < 2 ? 0 : Math.min(6, 1 + Math.floor(n / 3));
-  const obstacles = placeFree(rnd, obstacleCount, [], MIN_GAP * 2.2);
-  const stars = n < 2 ? [] : placeFree(rnd, rnd() < 0.5 ? 1 : 2, obstacles, MIN_GAP * 1.6);
+  const obstacles = placeFree(rnd, obstacleCount, [], PLACE_GAP * 2.2);
+  const stars = n < 2 ? [] : placeFree(rnd, rnd() < 0.5 ? 1 : 2, obstacles, PLACE_GAP * 1.6);
   const dir = rnd() < 0.5 ? -1 : 1;
   const base = dir * Math.min(3.2, 1.5 + n * 0.1);
   // ab Stufe 4 schwankt die Geschwindigkeit

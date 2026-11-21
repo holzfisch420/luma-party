@@ -29,7 +29,8 @@ export interface SharedRow {
 export interface KlingenPublicState {
   mode: KlingenMode;
   seed: number;
-  phase: 'countdown' | 'play' | 'roundEnd' | 'done';
+  /** pick = Messer aussuchen (am Anfang, 10 s) */
+  phase: 'pick' | 'countdown' | 'play' | 'roundEnd' | 'done';
   phaseEndsAt: number | null;
   /** Startzeit der Drehung (Serverzeit) – gemeinsames Rad */
   spinStartedAt: number | null;
@@ -37,6 +38,12 @@ export interface KlingenPublicState {
   solo: Record<PlayerId, SoloRow>;
   round: number;
   shared: Record<PlayerId, SharedRow>;
+  /** gewähltes Messer je Person (Index in KNIFE_SKINS) */
+  knives: Record<PlayerId, number>;
+  /** wer schon bewusst gewählt hat */
+  picked: PlayerId[];
+  /** Einzeln: wessen Spiel live am Fernseher läuft (Platz 1) */
+  spotlight: PlayerId | null;
   /** wer zuletzt rausgeflogen ist (für Meldungen) */
   lastOut: PlayerId | null;
 }
@@ -50,4 +57,24 @@ export interface KlingenPrivateState {
 export interface ThrowEvent {
   id: number;
   playerId: PlayerId;
+}
+
+/** Einzeln: Momentaufnahme vom Handy des Erstplatzierten für den Fernseher */
+export interface LiveFrame {
+  playerId: PlayerId;
+  stage: number;
+  /** Simulationszeit und Drehwinkel */
+  t: number;
+  angle: number;
+  /** geworfene Messer: Ruheposition im Rad */
+  knives: number[];
+  /** noch vorhandene Bonus-Sterne */
+  stars: number[];
+  left: number;
+  lives: number;
+  mode: 'intro' | 'play' | 'clear' | 'over';
+  /** Ereignis seit dem letzten Bild */
+  ev?: 'throw' | 'stick' | 'star' | 'hit' | 'clear';
+  /** Art des Fehlwurfs */
+  hit?: string;
 }

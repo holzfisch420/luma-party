@@ -23,6 +23,7 @@ export const ploppModule: ClientGameModule<PloppPublicState, PloppPrivateState, 
     'Alle sehen dieselbe Aufgabe, zum Beispiel „Ein Tier“ oder „Eine Stadt mit Z“.',
     'Wer den Kugelfisch hat, tippt eine passende Antwort aufs Handy – stimmt sie, wandert der Fisch zur nächsten Person. Jede Antwort gilt nur einmal pro Runde.',
     'Tippfehler werden automatisch korrigiert („Tigger“ → „Tiger“). Kennt das Spiel eine Antwort nicht, stimmen die anderen ab.',
-    'Irgendwann platzt der Fisch – wann, weiß niemand. Wer ihn dann hält, verliert ein Leben. Die letzte Person im Wasser gewinnt.',
+    'Jede Person hat ihre eigene geheime Zündschnur – sie brennt nur, solange DU den Fisch hältst. Wessen Schnur zuerst abbrennt, bei dem platzt er: ein Leben weniger. Die letzte Person im Wasser gewinnt.',
+    'Der Fernseher liest jede gültige Antwort laut vor.',
   ],
 };

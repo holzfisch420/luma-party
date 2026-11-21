@@ -129,6 +129,23 @@ describe('Plopp! – Ablauf', () => {
     expect(ended.scores[winner]).toBeGreaterThan(ended.scores[loser]);
   });
 
+  it('Zündschnur pro Person: die Zeit der anderen zählt nicht für dich', () => {
+    const s = setup(3, { fuse: 'kurz' });
+    s.engine.start();
+    s.advance(TIMING.introMs);
+    const safe = FUSE_RANGES.kurz.min * 1000 - 200;
+    // 4 Weitergaben, jede knapp unter der kürzesten Schnur – zusammen weit über der längsten
+    for (let i = 0; i < 4; i++) {
+      s.advance(i === 3 ? 100 : safe / 2);
+      if (i < 3) s.advance(safe / 2);
+      expect(s.pub().phase).toBe('play');
+      s.engine.handleAction(s.pub().holderId!, 'answer', { text: s.freshAnswer() });
+    }
+    expect(s.pub().phase).toBe('play');
+    // die erste Person hat ihre Zeit schon fast verbraucht – Anzeige weiß das
+    expect(Object.values(s.pub().clocks).some((ms) => ms >= safe - 1)).toBe(true);
+  });
+
   it('unbekannte Antwort: Abstimmung pausiert die Zündschnur; Ja lässt sie gelten', () => {
     const s = setup(3);
     s.engine.start();

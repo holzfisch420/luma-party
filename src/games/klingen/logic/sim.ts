@@ -19,7 +19,9 @@ export interface SimKnife {
   a: number;
   /** Ruheposition (für pendelnde Messer) */
   base: number;
-  color: string;
+  skin?: number;
+  /** Spielerfarbe (gemeinsames Rad) */
+  accent?: string;
   fixed?: boolean;
 }
 
@@ -33,7 +35,7 @@ export class WheelSim {
 
   constructor(readonly stage: Stage) {
     this.def = stage.boss ? BOSSES[stage.boss] : null;
-    this.knives = stage.obstacles.map((a) => ({ a, base: a, color: '#5b6170', fixed: true }));
+    this.knives = stage.obstacles.map((a) => ({ a, base: a, fixed: true }));
     this.stars = [...stage.stars];
     if (this.def?.spin === 'jitter') {
       // zufällige, aber feste Zeitpunkte für Richtungswechsel
@@ -176,9 +178,9 @@ export class WheelSim {
   }
 
   /** Messer steckt – gibt zurück, ob ein Stern eingesammelt wurde */
-  stick(color: string): boolean {
+  stick(skin = 0): boolean {
     const local = this.impactLocal();
-    this.knives.push({ a: local, base: local, color });
+    this.knives.push({ a: local, base: local, skin });
     const i = this.stars.findIndex((s) => angleDist(s, local) < STAR_RANGE);
     if (i >= 0) {
       this.stars.splice(i, 1);

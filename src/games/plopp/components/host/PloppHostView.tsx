@@ -7,13 +7,15 @@ import type { HostViewProps } from '../../../game-types';
 import { PACK_LABELS } from '../../prompt-types';
 import type { PloppPublicState } from '../../types';
 import { Avatar, Lives, nameOf, Ocean, PACK_COLORS, Puffer, useTension } from '../shared';
-import { ploppSounds } from '../sounds';
+import { ploppSounds, speak } from '../sounds';
 
 /** Fernseher: Aufgabe, Spielerkreis mit Kugelfisch, genannte Antworten, Abstimmung und Plopp. */
 export function PloppHostView({ room, state }: HostViewProps<PloppPublicState>) {
   const pub = state.public;
   const tension = useTension(pub.fuse);
   const [muted, setMuted] = useState(ploppSounds.isMuted());
+  // Sprachausgabe beim Verlassen abbrechen
+  useEffect(() => () => window.speechSynthesis?.cancel(), []);
   usePloppSounds(pub, tension);
 
   return (
@@ -47,7 +49,7 @@ export function PloppHostView({ room, state }: HostViewProps<PloppPublicState>) 
       </main>
 
       <footer className="relative z-10 flex items-center justify-between gap-4 bg-black/25 px-[3vw] py-2.5">
-        <span className="text-sm font-bold text-white/85">Wer den Fisch hat, tippt eine Antwort aufs Handy – Tippfehler werden automatisch korrigiert.</span>
+        <span className="text-sm font-bold text-white/85">Wer den Fisch hat, tippt eine Antwort aufs Handy. Jede Person hat ihre eigene Zündschnur – sie brennt nur, solange man den Fisch hält.</span>
         <span className="flex shrink-0 items-center gap-2 text-sm font-bold text-white/80">
           <Smartphone className="size-4" /> Code <span className="tracking-[0.2em] text-[#ffd23f]">{room.code}</span>
         </span>
@@ -167,9 +169,23 @@ function Ring({ room, pub, tension }: { room: RoomSnapshot; pub: PloppPublicStat
             </div>
             <span className={`max-w-[9rem] truncate rounded-full px-3 py-0.5 text-lg font-black ${holder ? 'bg-[#ffd23f] text-[#0b3d6b]' : 'bg-black/30'}`}>{nameOf(room, id)}</span>
             {out ? <span className="text-sm font-black uppercase tracking-widest text-white/80">raus</span> : <Lives left={lives} max={pub.maxLives} />}
+            {!out && pub.fuse && <ClockBar value={holder ? tension : (pub.clocks[id] ?? 0) / pub.fuse.max} active={holder} />}
           </motion.div>
         );
       })}
+    </div>
+  );
+}
+
+/** eigene Zündschnur einer Person: wie viel sie schon verbraucht hat (gemessen an der längsten möglichen) */
+function ClockBar({ value, active }: { value: number; active: boolean }) {
+  const v = Math.min(1, Math.max(0, value));
+  return (
+    <div className="h-2 w-20 overflow-hidden rounded-full bg-black/30" title="verbrauchte Zeit">
+      <div
+        className="h-full rounded-full transition-[width] duration-200"
+        style={{ width: `${v * 100}%`, background: v > 0.66 ? '#ff6b6b' : v > 0.33 ? '#ffb02e' : '#7fe3ff', boxShadow: active ? '0 0 10px rgba(255,210,63,.9)' : undefined }}
+      />
     </div>
   );
 }
@@ -288,7 +304,10 @@ function usePloppSounds(pub: PloppPublicState, tension: number) {
     const ev = pub.event;
     if (!ev || ev.id === lastEvent.current) return;
     lastEvent.current = ev.id;
-    if (ev.kind === 'pass') ploppSounds.pass();
+    if (ev.kind === 'pass') {
+      ploppSounds.pass();
+      if (ev.answer) speak(ev.answer);
+    }
     else if (ev.kind !== 'skip') ploppSounds.nope();
   }, [pub.event]);
 

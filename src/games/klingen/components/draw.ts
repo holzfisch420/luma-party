@@ -3,52 +3,18 @@ import { canvasDpr } from '../../../app/canvas-dpr';
 import type { BossId } from '../logic/bosses';
 import type { WheelSim } from '../logic/sim';
 import { BOSS_ART } from './bosses-draw';
+import { paintSkin } from './knife-skins';
+import { OBSTACLE_SKIN } from '../logic/knives';
 
 export interface StuckKnife {
   /** Position im Rad (Bogenmaß) */
   a: number;
-  color: string;
+  /** Messer-Aussehen (siehe logic/knives.ts) */
+  skin?: number;
+  /** Spielerfarbe am Griff (gemeinsames Rad) */
+  accent?: string;
   /** Hindernis (vorgegeben) */
   fixed?: boolean;
-}
-
-/** malt ein Messer direkt (teuer – wird nur für vorgezeichnete Bilder benutzt) */
-function paintKnife(ctx: CanvasRenderingContext2D, x: number, y: number, dir: number, len: number, color: string, alpha = 1) {
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.translate(x, y);
-  ctx.rotate(dir + Math.PI); // Spitze am Ursprung, Griff nach hinten
-  const blade = len * 0.56;
-  const w = len * 0.11;
-  // Klinge
-  const g = ctx.createLinearGradient(0, -w, 0, w);
-  g.addColorStop(0, '#f4f7fb');
-  g.addColorStop(0.5, '#c3ccd8');
-  g.addColorStop(1, '#8e9aab');
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.quadraticCurveTo(blade * 0.35, -w * 1.05, blade, -w * 0.75);
-  ctx.lineTo(blade, w * 0.75);
-  ctx.lineTo(blade * 0.2, w * 0.35);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(40,50,70,0.35)';
-  ctx.lineWidth = Math.max(1, len * 0.012);
-  ctx.stroke();
-  // Parierstange
-  ctx.fillStyle = '#3a3f4a';
-  ctx.fillRect(blade - len * 0.02, -w * 1.25, len * 0.05, w * 2.5);
-  // Griff in Spielerfarbe
-  ctx.fillStyle = color;
-  const hx = blade + len * 0.03;
-  const hl = len - hx;
-  ctx.beginPath();
-  ctx.roundRect(hx, -w * 0.85, hl, w * 1.7, w * 0.8);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  ctx.fillRect(hx + hl * 0.1, -w * 0.55, hl * 0.8, w * 0.35);
-  ctx.restore();
 }
 
 /** Rad mit steckenden Messern; `boss` zeigt einen Käselaib statt Holz */
@@ -138,7 +104,7 @@ const sprites = new Map<string, HTMLCanvasElement>();
 function sprite(key: string, w: number, h: number, scale: number, paint: (c: CanvasRenderingContext2D) => void): HTMLCanvasElement {
   let c = sprites.get(key);
   if (c) return c;
-  if (sprites.size > 60) sprites.clear();
+  if (sprites.size > 120) sprites.clear();
   c = document.createElement('canvas');
   c.width = Math.max(1, Math.ceil(w * scale));
   c.height = Math.max(1, Math.ceil(h * scale));
@@ -153,14 +119,17 @@ function sprite(key: string, w: number, h: number, scale: number, paint: (c: Can
 const scaleOf = (ctx: CanvasRenderingContext2D) => Math.max(1, Math.min(3, Math.abs(ctx.getTransform().a)));
 
 /** Messer, Spitze bei (x, y), zeigt in Richtung `dir` (Bogenmaß, 0 = rechts) */
-export function drawKnife(ctx: CanvasRenderingContext2D, x: number, y: number, dir: number, len: number, color: string, alpha = 1) {
+export function drawKnife(ctx: CanvasRenderingContext2D, x: number, y: number, dir: number, len: number, skin: number, alpha = 1, accent?: string) {
   const s = scaleOf(ctx);
-  const pad = 2;
+  const pad = Math.max(2, len * 0.06);
   const w = len + pad * 2;
-  const h = len * 0.3;
-  const img = sprite(`k|${Math.round(len)}|${color}|${s}`, w, h, s, (g) => paintKnife(g, pad, h / 2, -Math.PI, len, color));
+  const h = len * 0.42;
+  const img = sprite(`k|${Math.round(len)}|${skin}|${accent ?? ''}|${s}`, w, h, s, (g) => {
+    g.translate(pad, h / 2);
+    paintSkin(g, len, skin, accent);
+  });
   ctx.save();
-  ctx.globalAlpha = alpha;
+  ctx.globalAlpha *= alpha;
   ctx.translate(x, y);
   ctx.rotate(dir + Math.PI);
   ctx.drawImage(img, -pad, -h / 2, w, h);
@@ -176,6 +145,9 @@ function starPath(g: CanvasRenderingContext2D, x: number, y: number, r: number) 
   }
   g.closePath();
 }
+
+/** Messerlänge relativ zum Radius */
+export const KNIFE_LEN = 0.78;
 
 export interface WheelOpts {
   /** Boss-Aussehen (sonst bemalte Zielscheibe) */
@@ -196,13 +168,13 @@ export interface WheelOpts {
 
 /** Rad mit steckenden Messern, Boss-Aussehen und Bonus-Sternen */
 export function drawWheel(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number, angle: number, knives: readonly StuckKnife[], opts: WheelOpts = {}) {
-  const len = opts.knifeLen ?? r * 0.95;
+  const len = opts.knifeLen ?? r * KNIFE_LEN;
   const art = opts.bossId ? BOSS_ART[opts.bossId] : null;
   // Messer zuerst (hinter dem Rad hervorstehend)
   for (const k of knives) {
     const wa = k.a + angle;
     const tipR = r * 0.72;
-    drawKnife(ctx, cx + Math.cos(wa) * tipR, cy + Math.sin(wa) * tipR, wa + Math.PI, len, k.fixed ? '#5b6170' : k.color);
+    drawKnife(ctx, cx + Math.cos(wa) * tipR, cy + Math.sin(wa) * tipR, wa + Math.PI, len, k.fixed ? OBSTACLE_SKIN : (k.skin ?? 0), 1, k.accent);
   }
   const s = scaleOf(ctx);
   const R = r * 1.25; // Platz für den Schatten
