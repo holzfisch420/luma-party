@@ -79,6 +79,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior: none;
+  /* nichts darf die Seite seitlich verschiebbar machen */
+  overflow-x: clip;
 }
 
 /* ------------------------------------------------------------------ Launcher (Home-Menü) */
@@ -86,6 +88,8 @@ body {
 .home-bg {
   position: relative;
   isolation: isolate;
+  /* Deko-Verläufe ragen über den Rand – nie seitlich verschiebbar machen */
+  overflow-x: clip;
   background:
     radial-gradient(1100px 700px at 85% 10%, rgba(255, 255, 255, 0.95), transparent 60%),
     linear-gradient(160deg, #f6f8fb 0%, #e8edf3 55%, #e0e6ee 100%);

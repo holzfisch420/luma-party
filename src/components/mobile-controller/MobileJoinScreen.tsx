@@ -126,7 +126,7 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
                     initial={{ scale: 0.8, rotate: spin ? -12 : 0 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: 'spring', stiffness: 380, damping: 14 }}
-                    className="relative size-28 overflow-hidden rounded-full border-4 border-white shadow-[0_6px_16px_-4px_rgba(40,50,70,0.45)]"
+                    className="relative size-24 overflow-hidden rounded-full min-[380px]:size-28 border-4 border-white shadow-[0_6px_16px_-4px_rgba(40,50,70,0.45)]"
                     style={{ background: avatarBackground(avatar) }}
                   >
                     <AvatarFace avatar={avatar} crop="bust" className="absolute inset-0 size-full" />
@@ -148,7 +148,7 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
                     className="home-input !h-14 !rounded-[18px] !text-xl font-bold"
                   />
                   <div className="flex gap-2">
-                    <button type="button" onClick={() => setEditing(true)} className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-cyan px-3 py-2 text-sm font-black text-white shadow">
+                    <button type="button" onClick={() => setEditing(true)} className="flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full bg-cyan px-3 py-2 text-sm font-black text-white shadow">
                       <Pencil className="size-4" /> Bauen
                     </button>
                     <button
@@ -158,9 +158,9 @@ export function MobileJoinScreen({ initialCode = '', onJoin, notice }: Props) {
                         setSpin((n) => n + 1);
                       }}
                       aria-label="Zufälliger Avatar"
-                      className="flex items-center justify-center gap-1.5 rounded-full border-2 border-home-line bg-white px-3 py-2 text-sm font-black text-home-muted"
+                      className="flex shrink-0 items-center justify-center gap-1.5 rounded-full border-2 border-home-line bg-white px-3 py-2 text-sm font-black text-home-muted"
                     >
-                      <Dices className="size-4" /> Würfeln
+                      <Dices className="size-4" /> <span className="hidden min-[380px]:inline">Würfeln</span>
                     </button>
                   </div>
                 </div>

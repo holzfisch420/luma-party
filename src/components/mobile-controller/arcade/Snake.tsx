@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { playSfx } from '../../../app/audio/sfx';
 import { haptics } from '../../../app/haptics';
 import { getBest, submitScore } from './scores';
+import { useFit } from './fit';
 
 /** „Schlange“: wischen oder Pfeiltasten, Früchte fressen, nicht beißen. */
 const N = 15;
@@ -16,6 +17,7 @@ export function Snake() {
   const [best, setBest] = useState(() => getBest('snake'));
   const api = useRef<{ turn: (d: Dir) => void; tap: () => void }>({ turn: () => {}, tap: () => {} });
   const touch = useRef<{ x: number; y: number } | null>(null);
+  const [area, fit] = useFit(1);
 
   useEffect(() => {
     const cv = ref.current!;
@@ -196,12 +198,13 @@ export function Snake() {
   );
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <canvas
-        ref={ref}
-        style={{ width: 'min(100%, 320px, 48dvh)' }}
-        className="aspect-square touch-none select-none rounded-2xl shadow-lg"
+    <div className="flex h-full flex-col items-center gap-3">
+      {/* Wischen funktioniert auf der ganzen Spielfläche */}
+      <div
+        ref={area}
+        className="grid min-h-0 w-full flex-1 place-items-center"
         onPointerDown={(e) => {
+          e.preventDefault();
           touch.current = { x: e.clientX, y: e.clientY };
           api.current.tap();
         }}
@@ -210,20 +213,22 @@ export function Snake() {
           if (!s) return;
           const dx = e.clientX - s.x;
           const dy = e.clientY - s.y;
-          if (Math.hypot(dx, dy) < 22) return;
+          if (Math.hypot(dx, dy) < 18) return;
           api.current.turn(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? DIRS.right : DIRS.left) : dy > 0 ? DIRS.down : DIRS.up);
           touch.current = { x: e.clientX, y: e.clientY };
         }}
         onPointerUp={() => (touch.current = null)}
         onPointerCancel={() => (touch.current = null)}
-      />
-      <div className="grid grid-cols-3 gap-1.5">
+      >
+        <canvas ref={ref} className="rounded-2xl shadow-lg" style={{ width: fit.w, height: fit.h }} />
+      </div>
+      <div className="grid shrink-0 grid-cols-3 gap-1.5">
         {btn('up', <ChevronUp className="size-7" />, 'col-start-2')}
         {btn('left', <ChevronLeft className="size-7" />, 'col-start-1 row-start-2')}
         {btn('down', <ChevronDown className="size-7" />, 'col-start-2 row-start-2')}
         {btn('right', <ChevronRight className="size-7" />, 'col-start-3 row-start-2')}
       </div>
-      <div className="text-xs font-extrabold text-white/60">Rekord: {best}</div>
+      <div className="shrink-0 text-xs font-extrabold text-white/60">Rekord: {best} · wischen oder Pfeile</div>
     </div>
   );
 }

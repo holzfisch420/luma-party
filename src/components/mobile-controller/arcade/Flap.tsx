@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { playSfx } from '../../../app/audio/sfx';
 import { haptics } from '../../../app/haptics';
 import { getBest, submitScore } from './scores';
+import { useFit } from './fit';
 
 /** „Flatterflug“: tippen zum Flattern, durch die Lücken fliegen. */
 const W = 300;
@@ -24,6 +25,7 @@ export function Flap() {
   const ref = useRef<HTMLCanvasElement>(null);
   const [best, setBest] = useState(() => getBest('flap'));
   const tapRef = useRef<() => void>(() => {});
+  const [area, fit] = useFit(W / H);
 
   useEffect(() => {
     const cv = ref.current!;
@@ -216,17 +218,19 @@ export function Flap() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <canvas
-        ref={ref}
-        style={{ width: 'min(100%, 340px, calc(62dvh * 300 / 420))' }}
-        className="aspect-[300/420] touch-none select-none rounded-2xl shadow-lg"
+    <div className="flex h-full flex-col items-center gap-2">
+      {/* die ganze Fläche ist die Taste */}
+      <div
+        ref={area}
+        className="grid min-h-0 w-full flex-1 place-items-center"
         onPointerDown={(e) => {
           e.preventDefault();
           tapRef.current();
         }}
-      />
-      <div className="text-xs font-extrabold text-white/60">Rekord: {best}</div>
+      >
+        <canvas ref={ref} className="rounded-2xl shadow-lg" style={{ width: fit.w, height: fit.h }} />
+      </div>
+      <div className="text-xs font-extrabold text-white/60">Rekord: {best} · irgendwo tippen zum Flattern</div>
     </div>
   );
 }

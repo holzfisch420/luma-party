@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { playSfx } from '../../../app/audio/sfx';
 import { haptics } from '../../../app/haptics';
 import { getBest, submitScore } from './scores';
+import { useFit } from './fit';
 
 /** „Minensuche“: alle sicheren Felder aufdecken. Erster Tipp ist immer sicher. */
 const COLS = 9;
@@ -40,6 +41,7 @@ export function Mines() {
   const [now, setNow] = useState(0);
   const [boom, setBoom] = useState<number | null>(null);
   const [best, setBest] = useState(() => getBest('mines'));
+  const [area, fit] = useFit(COLS / ROWS);
   const press = useRef<{ i: number; timer: number; long: boolean } | null>(null);
 
   useEffect(() => {
@@ -122,19 +124,20 @@ export function Mines() {
   const face = state === 'won' ? '😎' : state === 'lost' ? '😵' : '🙂';
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <div className="flex w-full max-w-[340px] items-center justify-between rounded-2xl bg-black/30 px-3 py-2 font-black text-white">
+    <div className="flex h-full flex-col items-center gap-3">
+      <div className="flex w-full max-w-[420px] shrink-0 items-center justify-between rounded-2xl bg-black/30 px-3 py-2 font-black text-white">
         <span className="min-w-14 tabular-nums">💣 {MINES - flags}</span>
         <button onClick={reset} className="grid size-10 place-items-center rounded-xl bg-white/15 text-2xl active:bg-white/30" aria-label="Neu starten">
           {face}
         </button>
         <span className="min-w-14 text-right tabular-nums">⏱ {seconds}</span>
       </div>
-      <div className="grid w-full max-w-[340px] touch-none select-none gap-[3px] rounded-2xl bg-[#1b2336] p-1.5" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
+      <div ref={area} className="grid min-h-0 w-full flex-1 place-items-center">
+      <div className="grid touch-none select-none gap-[3px] rounded-2xl bg-[#1b2336] p-1.5" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)`, gridTemplateRows: `repeat(${ROWS}, 1fr)`, width: fit.w, height: fit.h }}>
         {cells.map((c, i) => (
           <button
             key={i}
-            className={`grid aspect-square place-items-center rounded-[6px] text-[15px] font-black leading-none ${
+            className={`grid place-items-center rounded-[6px] text-[15px] font-black leading-none ${
               c.open ? (c.mine ? (i === boom ? 'bg-red-500' : 'bg-[#3b2230]') : 'bg-[#2a3550]') : 'bg-gradient-to-b from-[#5b6b94] to-[#43507a] shadow-[inset_0_-2px_0_rgba(0,0,0,.25)] active:brightness-125'
             }`}
             style={c.open && !c.mine ? { color: NUM_COLORS[c.n] } : undefined}
@@ -164,7 +167,8 @@ export function Mines() {
           </button>
         ))}
       </div>
-      <div className="flex w-full max-w-[340px] items-center gap-2">
+      </div>
+      <div className="flex w-full max-w-[420px] shrink-0 items-center gap-2">
         <div className="flex flex-1 rounded-2xl bg-black/30 p-1">
           {[false, true].map((f) => (
             <button
@@ -180,7 +184,7 @@ export function Mines() {
           <RotateCcw className="size-5" />
         </button>
       </div>
-      <div className="text-xs font-extrabold text-white/60">
+      <div className="shrink-0 text-xs font-extrabold text-white/60">
         {state === 'won' ? `Geschafft in ${seconds} s! ` : state === 'lost' ? 'Bumm! ' : 'Lange drücken = Fahne · '}
         Rekord: {best ? `${best} s` : '–'}
       </div>
