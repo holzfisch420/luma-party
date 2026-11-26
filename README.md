@@ -97,9 +97,14 @@ Der Server liefert dann das gebaute Frontend aus und gibt die LAN-Adressen für 
 1. `/host` auf dem TV öffnen – ein Raum mit 4-stelligem Code (z. B. `KNBH`) wird erstellt.
 2. Mitspielende öffnen `/play` auf dem Smartphone (oder scannen den QR-Code), geben Code und Namen ein.
 3. Spiel wählen:
-   - **am TV** mit Maus, Tastatur oder Fernbedienung (`←` `→` wählen, `Enter` starten, `E` Einstellungen), oder
+   - **am TV** mit Maus, Tastatur oder Fernbedienung (`←` `→` wählen, `Enter` öffnen), oder
    - **per Smartphone**: Die zuerst beigetretene Person sieht die Spielauswahl auf dem Handy (Badge „Wahl“).
      Der Host kann die Auswahl jederzeit übernehmen (Menü → „Spielauswahl am Bildschirm“).
+   - **Titelbildschirm**: Ein geöffnetes Spiel zeigt am TV zuerst seinen eigenen Titelbildschirm im Spiel-Look
+     (z. B. Zirkuszelt beim Klingenrad, Kinosaal bei Couch-Match) mit den passenden Knöpfen – Spielen,
+     Spielmodi, Einstellungen, Regeln, Zurück. Das Handy mit „Wahl“ wird zur **Fernbedienung** und zeigt dieselben
+     Knöpfe; Einstellungen lassen sich dort direkt antippen, der TV zeigt dieselbe Seite. Alle anderen Handys
+     zeigen „Schau zum Fernseher!“. Am TV: Pfeile = Fokus, `Enter` = auslösen, `Esc`/Rücktaste = zurück.
    - **Warten mit Minispiel**: In der Lobby startet man auf dem Handy *Flatterflug*, *Schlange* oder *Minensuche* im Vollbild – dort scrollt und zoomt nichts, die Spiele passen sich dem Bildschirm an (Rekorde bleiben auf dem Handy). Die wählende Person kommt mit „Auswahl“ zurück zur Spielauswahl; startet ein Spiel, wechseln alle Handys automatisch.
 4. **Montagsmaler**: Wer dran ist, wählt ein Wort und zeichnet auf dem Handy. Die Zeichnung erscheint live auf dem TV,
    die anderen raten über ihr Handy. Vermutungen erscheinen als Chat-Bubbles links oder rechts unten.
