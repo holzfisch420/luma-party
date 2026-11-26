@@ -2,12 +2,14 @@
  * „Mühle“ – Client-Modul.
  */
 import type { ClientGameModule } from '../game-types';
+import { BookOpen, Play, SlidersHorizontal } from 'lucide-react';
 import { lazyView } from '../lazy-view';
 import { MuehleCover } from './components/Cover';
 import { MuehleSettingsPanel } from './components/SettingsPanel';
 import { muehleMeta, type MuehleSettings } from './game-config';
 import type { MuehlePublicState } from './types';
 
+const MuehleTitleScreen = lazyView(() => import('./components/TitleScreen'), 'MuehleTitleScreen');
 const MuehleHostView = lazyView(() => import('./components/host/MuehleHostView'), 'MuehleHostView');
 const MuehleController = lazyView(() => import('./components/player/MuehleController'), 'MuehleController');
 
@@ -26,4 +28,12 @@ export const muehleModule: ClientGameModule<MuehlePublicState, null, MuehleSetti
     'Mit nur noch drei Steinen darfst du springen. Wer nur noch zwei Steine hat oder nicht mehr ziehen kann, verliert.',
   ],
   spectating: ({ public: p }, me) => p.players.w !== me && p.players.b !== me,
+  TitleScreen: MuehleTitleScreen,
+  menu: {
+    items: [
+      { id: 'play', label: 'Spielen', icon: Play, action: { kind: 'start' } },
+      { id: 'settings', label: 'Einstellungen', icon: SlidersHorizontal, action: { kind: 'view', view: 'settings' } },
+      { id: 'rules', label: 'Regeln', icon: BookOpen, action: { kind: 'view', view: 'rules' } },
+    ],
+  },
 };

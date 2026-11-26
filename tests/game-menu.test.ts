@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { resolveMenu } from '../src/components/game-menu/menu-model';
 import type { ClientGameModule } from '../src/games/game-types';
-import { getClientGame } from '../src/games/game-registry';
+import { getClientGame, listLauncherGames } from '../src/games/game-registry';
 
 const base = { meta: { id: 'x', name: 'X' }, HostView: () => null, PlayerView: () => null } as unknown as ClientGameModule;
 
@@ -32,8 +32,9 @@ describe('Spielmenü – Knöpfe und Seiten', () => {
     expect(m.view('gibtsnicht')).toBeUndefined();
   });
 
-  it('jedes Spiel hat Titelbildschirm, Start-Knopf und nur erreichbare Seiten', () => {
-    for (const id of ['montagsmaler', 'vollmond', 'imposter', 'echt', 'plopp', 'wort', 'klingen', 'racer', 'huhn', 'panzer', 'theater', 'kino', 'schach', 'muehle']) {
+  it('alle 14 Spiele haben Titelbildschirm, Start-Knopf und nur erreichbare Seiten', () => {
+    expect(listLauncherGames()).toHaveLength(14);
+    for (const id of listLauncherGames().map((g) => g.id)) {
       const mod = getClientGame(id)!;
       expect(mod.TitleScreen, id).toBeTruthy();
       const m = resolveMenu(mod);
