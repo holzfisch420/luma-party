@@ -2,12 +2,14 @@
  * „Vollmond“ – Client-Modul.
  */
 import type { ClientGameModule } from '../game-types';
+import { BookOpen, Play, Users } from 'lucide-react';
 import { lazyView } from '../lazy-view';
 import { VollmondCover } from './components/Cover';
 import { VollmondQuickSettings } from './components/SettingsPanel';
 import { vollmondMeta, type VollmondSettings } from './game-config';
 import type { VollmondPrivateState, VollmondPublicState } from './types';
 
+const VollmondTitleScreen = lazyView(() => import('./components/TitleScreen'), 'VollmondTitleScreen');
 const VollmondHostView = lazyView(() => import('./components/host/VollmondHostView'), 'VollmondHostView');
 const VollmondController = lazyView(() => import('./components/player/VollmondController'), 'VollmondController');
 
@@ -26,4 +28,13 @@ export const vollmondModule: ClientGameModule<VollmondPublicState, VollmondPriva
     'Das Dorf gewinnt, wenn alle Werwölfe weg sind. Die Werwölfe gewinnen, sobald sie mindestens so viele sind wie der Rest. Tote schweigen!',
   ],
   spectating: ({ public: p }, me) => !p.order.includes(me) || !p.alive.includes(me),
+  TitleScreen: VollmondTitleScreen,
+  menu: {
+    items: [
+      { id: 'play', label: 'Spielen', icon: Play, action: { kind: 'start' } },
+      { id: 'roles', label: 'Rollen', icon: Users, action: { kind: 'view', view: 'settings' } },
+      { id: 'rules', label: 'Regeln', icon: BookOpen, action: { kind: 'view', view: 'rules' } },
+    ],
+    views: [{ id: 'settings', title: 'Rollen & Ablauf' }],
+  },
 };
