@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { ui } from '../../app/audio/sfx';
 import { getClientGame } from '../../games/game-registry';
 import type { RoomSnapshot } from '../../shared/types/room';
@@ -68,7 +68,9 @@ function Open({ room, gameId, view }: { room: RoomSnapshot; gameId: string; view
   const t = module.meta.theme;
   return (
     <motion.div className="fixed inset-0 z-40 overflow-hidden" initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.35 }}>
-      <Title meta={module.meta} room={room} items={items} focus={focus} setFocus={setFocus} activate={activate} blocked={blocked} starting={starting} />
+      <Suspense fallback={<div className="absolute inset-0" style={{ background: `linear-gradient(150deg, ${t.from}, ${t.to})` }} />}>
+        <Title meta={module.meta} room={room} items={items} focus={focus} setFocus={setFocus} activate={activate} blocked={blocked} starting={starting} />
+      </Suspense>
       <AnimatePresence>
         {page && (
           <motion.div key={page.id} className="absolute inset-0 z-20 flex items-center justify-center p-[4vh]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>

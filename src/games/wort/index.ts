@@ -2,12 +2,14 @@
  * „Wortknacker“ – Client-Modul.
  */
 import type { ClientGameModule } from '../game-types';
+import { BookOpen, Play, SlidersHorizontal } from 'lucide-react';
 import { lazyView } from '../lazy-view';
 import { WortCover } from './components/Cover';
 import { WortQuickSettings } from './components/SettingsPanel';
 import { wortMeta, type WortSettings } from './game-config';
 import type { WortPrivateState, WortPublicState } from './types';
 
+const WortTitleScreen = lazyView(() => import('./components/TitleScreen'), 'WortTitleScreen');
 const WortHostView = lazyView(() => import('./components/host/WortHostView'), 'WortHostView');
 const WortController = lazyView(() => import('./components/player/WortController'), 'WortController');
 
@@ -26,4 +28,12 @@ export const wortModule: ClientGameModule<WortPublicState, WortPrivateState, Wor
     'Punkte: im 1. Versuch 6, im 6. Versuch 1 – plus 2 für die schnellste und 1 für die zweitschnellste Person.',
   ],
   spectating: ({ public: p }, me) => { const b = p.boards[me]; return !b || b.solved || b.failed; },
+  TitleScreen: WortTitleScreen,
+  menu: {
+    items: [
+      { id: 'play', label: 'Spielen', icon: Play, action: { kind: 'start' } },
+      { id: 'settings', label: 'Einstellungen', icon: SlidersHorizontal, action: { kind: 'view', view: 'settings' } },
+      { id: 'rules', label: 'Regeln', icon: BookOpen, action: { kind: 'view', view: 'rules' } },
+    ],
+  },
 };
