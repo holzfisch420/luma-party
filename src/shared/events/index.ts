@@ -37,6 +37,10 @@ export interface ClientToServerEvents {
   /** Gast ändert seinen Avatar in der Lobby */
   'player:setAvatar': (data: { avatar: unknown }) => void;
   'room:selectGame': (data: { gameId: string }) => void;
+  /** Titelbildschirm eines Spiels öffnen / Seite wechseln / schließen (Fernseher oder Spielleitung) */
+  'room:openMenu': (data: { gameId: string }) => void;
+  'room:menuView': (data: { view: string }) => void;
+  'room:closeMenu': () => void;
   'room:setHostControl': (data: { enabled: boolean }) => void;
   'room:updateSettings': (data: { gameId: string; settings: unknown }, ack?: Ack) => void;
   'room:startGame': (ack?: Ack) => void;

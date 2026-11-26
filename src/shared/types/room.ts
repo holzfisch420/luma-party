@@ -32,6 +32,8 @@ export interface RoomSnapshot {
   gameSettings: Record<string, unknown>;
   activeGameId: string | null;
   results: GameResults | null;
+  /** geöffnetes Spielmenü (Titelbildschirm) und die gezeigte Seite – auf Fernseher und Fernbedienung gleich */
+  menu: { gameId: string; view: string } | null;
   serverTime: number;
 }
 

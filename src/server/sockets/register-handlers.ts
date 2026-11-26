@@ -167,6 +167,26 @@ export function registerSocketHandlers(io: TypedServer, rooms: RoomManager, opts
       }
     });
 
+    socket.on('room:openMenu', (data) => {
+      const room = currentRoom();
+      if (!room || !room.canControl(socket) || typeof data?.gameId !== 'string') return;
+      try {
+        room.openMenu(data.gameId);
+      } catch (err) {
+        socket.emit('room:notice', { kind: 'error', message: errorMessage(err) });
+      }
+    });
+
+    socket.on('room:menuView', (data) => {
+      const room = currentRoom();
+      if (room && room.canControl(socket) && typeof data?.view === 'string') room.setMenuView(data.view);
+    });
+
+    socket.on('room:closeMenu', () => {
+      const room = currentRoom();
+      if (room && room.canControl(socket)) room.closeMenu();
+    });
+
     socket.on('room:setHostControl', (data) => {
       const room = currentRoom();
       if (!room || !room.isHost(socket)) return;

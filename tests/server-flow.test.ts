@@ -110,6 +110,48 @@ describe('Gast-Avatar', () => {
   });
 });
 
+describe('Spielmenü', () => {
+  it('wird zwischen Fernseher und Spielleitung abgeglichen und beim Start geschlossen', async () => {
+    const { host, players } = await setupRoom(['Anna', 'Ben']);
+    const [lead, other] = players as [TestClient, TestClient];
+    expect(host.room!.menu).toBeNull();
+    // Nicht-Spielleitung darf nicht
+    other.socket.emit('room:openMenu', { gameId: 'plopp' });
+    await sleep(100);
+    expect(host.room!.menu).toBeNull();
+    lead.socket.emit('room:openMenu', { gameId: 'plopp' });
+    await host.waitFor(() => host.room!.menu?.gameId === 'plopp');
+    expect(host.room!.menu).toEqual({ gameId: 'plopp', view: 'title' });
+    expect(host.room!.selectedGameId).toBe('plopp');
+    lead.socket.emit('room:menuView', { view: 'settings' });
+    await host.waitFor(() => host.room!.menu?.view === 'settings');
+    // ungültige Seiten werden ignoriert
+    lead.socket.emit('room:menuView', { view: 'BÖSE <script>' });
+    lead.socket.emit('room:menuView', { view: '' });
+    await sleep(100);
+    expect(host.room!.menu?.view).toBe('settings');
+    // Host übernimmt → Handy darf nicht mehr
+    host.socket.emit('room:setHostControl', { enabled: true });
+    await host.waitFor(() => host.room!.hostHasControl);
+    lead.socket.emit('room:menuView', { view: 'rules' });
+    await sleep(100);
+    expect(host.room!.menu?.view).toBe('settings');
+    host.socket.emit('room:menuView', { view: 'title' });
+    await host.waitFor(() => host.room!.menu?.view === 'title');
+    // Start schließt das Menü
+    expect((await emitAck(host, 'room:startGame')).ok).toBe(true);
+    await host.waitFor(() => host.room!.phase === 'playing');
+    expect(host.room!.menu).toBeNull();
+    host.socket.emit('room:backToLauncher');
+    await host.waitFor(() => host.room!.phase === 'lobby');
+    host.socket.emit('room:openMenu', { gameId: 'wort' });
+    await host.waitFor(() => host.room!.menu?.gameId === 'wort');
+    host.socket.emit('room:closeMenu');
+    await host.waitFor(() => host.room!.menu === null);
+    [host, ...players].forEach((c) => c.close());
+  });
+});
+
 describe('Zuschauer-Emotes', () => {
   it('Emotes mit Abklingzeit, Effekt einmal pro Spiel, nur während eines Spiels', async () => {
     const { host, players } = await setupRoom(['Anna', 'Ben', 'Cleo']);

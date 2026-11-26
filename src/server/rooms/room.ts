@@ -63,6 +63,7 @@ export class Room implements SessionHost {
   private emoteKey = 0;
   private selectedGameId = DEFAULT_GAME_ID;
   private hostHasControl = false;
+  private menu: { gameId: string; view: string } | null = null;
   private settings: Record<string, unknown> = {};
   private session: GameSession | null = null;
   private results: GameResults | null = null;
@@ -104,6 +105,7 @@ export class Room implements SessionHost {
       gameSettings: this.settings,
       activeGameId: this.session?.gameId ?? null,
       results: this.results,
+      menu: this.menu,
       serverTime: Date.now(),
     };
   }
@@ -338,6 +340,29 @@ export class Room implements SessionHost {
     if (this.phase === 'playing') throw new RoomError('Während eines Spiels kann nicht gewechselt werden.');
     if (!getGameMeta(gameId)) throw new RoomError('Unbekanntes Spiel.');
     this.selectedGameId = gameId;
+    if (this.menu && this.menu.gameId !== gameId) this.menu = null;
+    this.broadcast();
+  }
+
+  /** Titelbildschirm eines Spiels öffnen (wählt das Spiel auch aus) */
+  openMenu(gameId: string): void {
+    if (this.phase !== 'lobby') return;
+    if (!getGameMeta(gameId)) throw new RoomError('Unbekanntes Spiel.');
+    this.selectedGameId = gameId;
+    this.menu = { gameId, view: 'title' };
+    this.broadcast();
+  }
+
+  /** Seite im Spielmenü wechseln (Titel, Einstellungen, Regeln …) */
+  setMenuView(view: string): void {
+    if (!this.menu || !/^[a-z0-9-]{1,32}$/.test(view)) return;
+    this.menu = { ...this.menu, view };
+    this.broadcast();
+  }
+
+  closeMenu(): void {
+    if (!this.menu) return;
+    this.menu = null;
     this.broadcast();
   }
 
@@ -374,6 +399,7 @@ export class Room implements SessionHost {
       this.session = await GameSession.create(this, module, settings, this.services);
       this.phase = 'playing';
       this.results = null;
+      this.menu = null;
       this.effectUsed.clear();
       this.selectedGameId = gameId;
       this.broadcast();
