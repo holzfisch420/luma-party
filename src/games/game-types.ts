@@ -5,6 +5,7 @@
  * generisch und reicht nur Raum- und Spielzustand durch – er kennt keine Spielinterna.
  * Das Server-Gegenstück ist `ServerGameModule` in `src/server/game-engine/types.ts`.
  */
+import type { LucideIcon } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { TrackId } from '../app/audio/music';
 import type { GameMeta, GameResults } from '../shared/types/game';
@@ -49,6 +50,51 @@ export interface ResultsViewProps {
   onBack: () => void;
 }
 
+/** Was ein Knopf im Spielmenü tut */
+export type MenuAction =
+  | { kind: 'start'; patch?: Record<string, unknown> }
+  | { kind: 'view'; view: string }
+  | { kind: 'back' };
+
+export interface MenuItem {
+  id: string;
+  label: string;
+  icon?: LucideIcon;
+  /** kleine Zeile unter dem Knopf, z. B. aktueller Wert */
+  hint?: string;
+  action: MenuAction;
+}
+
+/** Inhalt einer Menü-Unterseite (Fernseher und Fernbedienung) */
+export interface MenuViewProps<S = any> {
+  room: RoomSnapshot;
+  gameId: string;
+  settings: S;
+  onChange: (next: S) => void;
+  disabled: boolean;
+  device: 'host' | 'phone';
+}
+
+export interface MenuView<S = any> {
+  id: string;
+  title: string;
+  /** ohne Inhalt: eingebaute Seite („settings“ = SettingsPanel, „rules“ = Regeln) */
+  Content?: ComponentType<MenuViewProps<S>>;
+}
+
+/** Titelbildschirm eines Spiels (Fernseher) */
+export interface TitleScreenProps {
+  meta: GameMeta;
+  room: RoomSnapshot;
+  items: MenuItem[];
+  focus: number;
+  setFocus: (i: number) => void;
+  activate: (i: number) => void;
+  /** Grund, warum (noch) nicht gestartet werden kann */
+  blocked: string | null;
+  starting: boolean;
+}
+
 export interface ClientGameModule<Pub = any, Priv = any, S = any> {
   meta: GameMeta;
   /** quadratische Kachel-Grafik; ohne Angabe wird eine generische aus `meta.theme` erzeugt */
@@ -69,4 +115,8 @@ export interface ClientGameModule<Pub = any, Priv = any, S = any> {
    * Dann erscheinen auf ihrem Handy die Emotes und Bildschirmeffekte.
    */
   spectating?: (state: GameStatePayload<Pub, Priv>, meId: string) => boolean;
+  /** Knöpfe und Unterseiten des Titelbildschirms (ohne Angabe: Spielen, Einstellungen, Regeln) */
+  menu?: { items: MenuItem[]; views?: MenuView<S>[] };
+  /** eigener Titelbildschirm im Look des Spiels */
+  TitleScreen?: ComponentType<TitleScreenProps>;
 }

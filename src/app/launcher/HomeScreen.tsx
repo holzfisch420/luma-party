@@ -1,10 +1,9 @@
 import { BookOpen, HelpCircle, Maximize, QrCode as QrIcon, Settings, Users } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppTileArt } from '../../components/launcher/AppTileArt';
-import { GameSettingsSheet } from '../../components/launcher/GameSettingsSheet';
 import { HomeDock, type DockItem } from '../../components/launcher/HomeDock';
 import { HomeGrid, type GridItem } from '../../components/launcher/HomeGrid';
-import { LaunchPanel } from '../../components/launcher/LaunchPanel';
+import { HostGameMenu } from '../../components/game-menu/HostGameMenu';
 import { TileArt } from '../../components/launcher/TileArt';
 import { JoinInstructions, QrCode, QrZoom, useJoinUrl } from '../../components/lobby/JoinInstructions';
 import { PlayerList } from '../../components/lobby/PlayerList';
@@ -13,12 +12,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { SettingRow, Toggle } from '../../components/ui/Controls';
 import { ConnectionStatusBadge } from '../../components/ui/Feedback';
 import { Modal } from '../../components/ui/Modal';
-import { useToast } from '../../components/ui/Toast';
 import { WordManager } from '../../components/word-manager/WordManager';
 import { getClientGame, listLauncherGames } from '../../games/game-registry';
 import type { RoomSnapshot } from '../../shared/types/room';
 import type { ConnectionStatus } from '../session/session-store';
-import { emitWithAck, getSocket } from '../session/socket';
+import { getSocket } from '../session/socket';
 import { useMusic } from '../audio/music';
 import { playSfx } from '../audio/sfx';
 
@@ -30,14 +28,10 @@ type Sheet = 'players' | 'words' | 'join' | 'help' | null;
 
 /** Hauptbildschirm im Home-Menü-Stil: Kachelraster, Sprechblase, Icon-Leiste. */
 export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomSnapshot; status: ConnectionStatus; onOpenMenu: () => void; menuOpen: boolean }) {
-  const toast = useToast();
   const [focusedId, setFocusedId] = useState<string>(room.selectedGameId);
-  const [launchId, setLaunchId] = useState<string | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [sheet, setSheet] = useState<Sheet>(null);
   const [qrZoom, setQrZoom] = useState(false);
   const [gridWidth, setGridWidth] = useState(0);
-  const [starting, setStarting] = useState(false);
   const joinUrl = useJoinUrl(room.code);
   const connected = room.players.filter((p) => p.isConnected).length;
   useMusic('menu', 1, 0);
@@ -84,21 +78,9 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
     if (id === APP_WORDS) return setSheet('words');
     if (id === APP_JOIN) return setSheet('join');
     if (id === APP_HELP) return setSheet('help');
-    setLaunchId(id);
+    // Titelbildschirm des Spiels öffnen (auch auf der Fernbedienung)
+    getSocket().emit('room:openMenu', { gameId: id });
   }, []);
-
-  const start = async () => {
-    setStarting(true);
-    playSfx('start');
-    try {
-      await emitWithAck('room:startGame');
-      setLaunchId(null);
-    } catch (e) {
-      toast((e as Error).message, 'error');
-    } finally {
-      setStarting(false);
-    }
-  };
 
   const dock: DockItem[] = [
     { id: 'players', label: 'Spieler', icon: Users, color: '#3fbf5a', onClick: () => setSheet('players') },
@@ -115,8 +97,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
     { id: 'settings', label: 'Einstellungen', icon: Settings, color: '#8a939d', onClick: onOpenMenu },
   ];
 
-  const launchMeta = GAMES.find((g) => g.id === launchId) ?? null;
-  const keyboard = !launchMeta && !settingsOpen && !sheet && !menuOpen && !qrZoom;
+  const keyboard = !room.menu && !sheet && !menuOpen && !qrZoom;
 
   const controllerName = !room.hostHasControl && room.controllerId ? room.players.find((p) => p.id === room.controllerId)?.name : null;
   const qrCorner = (
@@ -183,20 +164,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
       </footer>
       <QrZoom open={qrZoom} onClose={() => setQrZoom(false)} text={joinUrl} code={room.code} />
 
-      <LaunchPanel
-        meta={launchMeta}
-        room={room}
-        connectedPlayers={connected}
-        canStart
-        starting={starting}
-        keyboard={!settingsOpen}
-        onStart={() => void start()}
-        onSettings={() => setSettingsOpen(true)}
-        onClose={() => setLaunchId(null)}
-      />
-      {launchMeta && getClientGame(launchMeta.id)?.SettingsPanel && (
-        <GameSettingsSheet room={room} gameId={launchMeta.id} open={settingsOpen} onClose={() => setSettingsOpen(false)} />
-      )}
+      <HostGameMenu room={room} />
 
       <Modal open={sheet === 'players'} onClose={() => setSheet(null)} title="Spieler" subtitle={`${connected} verbunden · Raum ${room.code}`}>
         {room.players.length === 0 ? (

@@ -6,54 +6,38 @@ import { AvatarEditor } from '../avatar/AvatarEditor';
 import { getGuestAvatar, saveGuestAvatar } from '../../app/account/guest-avatar';
 import { useEffect, useState } from 'react';
 import type { ConnectionStatus } from '../../app/session/session-store';
-import { emitWithAck, getSocket } from '../../app/session/socket';
-import { getClientGame, listLauncherGames } from '../../games/game-registry';
+import { getSocket } from '../../app/session/socket';
+import { listLauncherGames } from '../../games/game-registry';
 import type { PublicPlayer, RoomSnapshot } from '../../shared/types/room';
-import { GameSettingsSheet } from '../launcher/GameSettingsSheet';
 import { HomeGrid } from '../launcher/HomeGrid';
 import { HomeTile } from '../launcher/HomeTile';
-import { LaunchPanel } from '../launcher/LaunchPanel';
+import { LookAtTv } from '../game-menu/LookAtTv';
+import { PhoneRemote } from '../game-menu/PhoneRemote';
 import { TileArt } from '../launcher/TileArt';
 import { PlayerAvatar } from '../lobby/PlayerAvatar';
 import { PlayerList } from '../lobby/PlayerList';
 import { Button } from '../ui/Button';
 import { ConnectionStatusBadge } from '../ui/Feedback';
 import { Modal } from '../ui/Modal';
-import { useToast } from '../ui/Toast';
 import { WordManager } from '../word-manager/WordManager';
 
 const GAMES = listLauncherGames();
 
 /** Lobby auf dem Handy – wie ein zweiter Bildschirm des Home-Menüs. */
 export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot; me: PublicPlayer; status: ConnectionStatus; onLeave: () => void }) {
-  const toast = useToast();
   const [wordsOpen, setWordsOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   /** Gast: eigenen Avatar bauen (ohne Konto) */
   const [avatarOpen, setAvatarOpen] = useState(false);
   const editAvatar = () => (me.hasAccount ? setAccountOpen(true) : setAvatarOpen(true));
-  const [launchOpen, setLaunchOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [starting, setStarting] = useState(false);
   const canSelect = room.controllerId === me.id && !room.hostHasControl;
   const controller = room.players.find((p) => p.id === room.controllerId);
-  const selected = GAMES.find((g) => g.id === room.selectedGameId) ?? GAMES[0]!;
-  const connected = room.players.filter((p) => p.isConnected).length;
-
+  // beim Öffnen eines Spielmenüs nach oben, damit der Hinweis sichtbar ist
+  const menuOpen = !!room.menu;
   useEffect(() => {
-    if (!canSelect) setLaunchOpen(false);
-  }, [canSelect]);
-
-  const start = async () => {
-    setStarting(true);
-    try {
-      await emitWithAck('room:startGame');
-    } catch (e) {
-      toast((e as Error).message, 'error');
-    } finally {
-      setStarting(false);
-    }
-  };
+    if (menuOpen) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [menuOpen]);
+  const selected = GAMES.find((g) => g.id === room.selectedGameId) ?? GAMES[0]!;
 
   return (
     <div className="home-bg min-h-dvh px-5 pb-10 safe-pt">
@@ -66,6 +50,13 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
           </button>
         </div>
       </header>
+
+      {/* Spielmenü offen: alle anderen schauen zum Fernseher – ganz oben */}
+      {room.menu && !canSelect && (
+        <div className="mt-2">
+          <LookAtTv room={room} />
+        </div>
+      )}
 
       <div className="mt-3 flex items-center gap-4">
         <button onClick={editAvatar} aria-label="Avatar bearbeiten" className="relative">
@@ -89,8 +80,11 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
         </div>
       )}
 
+      {/* Spielleitung: Fernbedienung fürs Spielmenü */}
+      {room.menu && canSelect && <PhoneRemote room={room} />}
+
       <section className="mt-8">
-        {canSelect ? (
+        {room.menu ? null : canSelect ? (
           <>
             <div className="mb-10 flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-amber-600">
               <Gamepad2 className="size-4" /> Du wählst das Spiel – tippen, dann nochmal tippen
@@ -99,7 +93,7 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
               items={GAMES.map((g) => ({ id: g.id, label: g.name, art: <TileArt meta={g} focused={g.id === selected.id} />, actionLabel: g.status === 'coming-soon' ? 'Bald' : 'Start' }))}
               focusedId={selected.id}
               onFocus={(id) => getSocket().emit('room:selectGame', { gameId: id })}
-              onActivate={() => setLaunchOpen(true)}
+              onActivate={(id) => getSocket().emit('room:openMenu', { gameId: id })}
               columns={3}
               rows={2}
               keyboard={false}
@@ -177,21 +171,7 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
         <WordManager />
       </Modal>
 
-      <LaunchPanel
-        meta={launchOpen ? selected : null}
-        room={room}
-        canEdit={canSelect}
-        connectedPlayers={connected}
-        canStart={canSelect}
-        starting={starting}
-        keyboard={!settingsOpen}
-        onStart={() => void start()}
-        onSettings={() => setSettingsOpen(true)}
-        onClose={() => setLaunchOpen(false)}
-      />
-      {getClientGame(selected.id)?.SettingsPanel && (
-        <GameSettingsSheet room={room} gameId={selected.id} open={settingsOpen} onClose={() => setSettingsOpen(false)} />
-      )}
+
     </div>
   );
 }
