@@ -4,7 +4,7 @@
  */
 import { z } from 'zod';
 import type { GameMeta } from '../../shared/types/game';
-import { WORD_CATEGORIES } from '../../shared/types/words';
+import { type WordCategory, WORD_CATEGORIES } from '../../shared/types/words';
 
 export const MONTAGSMALER_ID = 'montagsmaler';
 
@@ -68,13 +68,17 @@ export const DEFAULT_SCORING: ScoringConfig = {
   drawerPointsPerGuess: 25,
 };
 
+/** Kategorien, die es bei Montagsmaler nicht gibt (Redewendungen/Sprichwörter lassen sich schlecht zeichnen) */
+export const MONTAGSMALER_EXCLUDED: WordCategory[] = ['Redewendungen'];
+export const MONTAGSMALER_CATEGORIES = WORD_CATEGORIES.filter((c) => !MONTAGSMALER_EXCLUDED.includes(c));
+
 export const DEFAULT_MONTAGSMALER_SETTINGS: MontagsmalerSettings = {
   rounds: 3,
   drawTimeSeconds: 80,
   wordChoices: 3,
   wordMode: 'standard',
   // Geeker-Vocab nur auf Wunsch (im Startbildschirm zuschaltbar)
-  categories: WORD_CATEGORIES.filter((c) => c !== 'Geeker-Vocab'),
+  categories: MONTAGSMALER_CATEGORIES.filter((c) => c !== 'Geeker-Vocab'),
   // standardmäßig anspruchsvoll – „leicht“ lässt sich zuschalten
   difficulties: ['mittel', 'schwer'],
   customListIds: [],
@@ -86,9 +90,13 @@ export const DEFAULT_MONTAGSMALER_SETTINGS: MontagsmalerSettings = {
 export function parseMontagsmalerSettings(raw: unknown): MontagsmalerSettings {
   // fehlende Felder mit Defaults auffüllen, danach strikt validieren
   const obj = (raw && typeof raw === 'object' ? raw : {}) as Partial<MontagsmalerSettings>;
+  // ältere Einstellungen können noch ausgeschlossene Kategorien enthalten → still entfernen
+  const categories = Array.isArray(obj.categories) ? obj.categories.filter((c) => !MONTAGSMALER_EXCLUDED.includes(c)) : undefined;
   return montagsmalerSettingsSchema.parse({
     ...DEFAULT_MONTAGSMALER_SETTINGS,
     ...obj,
+    // nur dann auf Standard zurückfallen, wenn erst das Entfernen die Liste geleert hat
+    categories: categories && categories.length === 0 && obj.categories!.length > 0 ? DEFAULT_MONTAGSMALER_SETTINGS.categories : (categories ?? DEFAULT_MONTAGSMALER_SETTINGS.categories),
     scoring: { ...DEFAULT_SCORING, ...(obj.scoring ?? {}) },
   });
 }

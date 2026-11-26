@@ -3,6 +3,7 @@ import { DEFAULT_WORDS } from '../src/games/montagsmaler/words/default-words';
 import { evaluateGuess, buildMask, normalizeGuess } from '../src/games/montagsmaler/logic/word-utils';
 import { guesserPoints } from '../src/games/montagsmaler/logic/scoring';
 import { DEFAULT_SCORING, parseMontagsmalerSettings } from '../src/games/montagsmaler/game-config';
+import { buildWordPool } from '../src/games/montagsmaler/game-engine';
 import { applyDrawOp, sanitizeDrawOp } from '../src/games/montagsmaler/logic/draw-model';
 import { buildResults } from '../src/server/rooms/room';
 
@@ -11,6 +12,20 @@ describe('Wörterpool', () => {
     expect(DEFAULT_WORDS.length).toBeGreaterThanOrEqual(400);
     expect(new Set(DEFAULT_WORDS.map((w) => normalizeGuess(w.word))).size).toBe(DEFAULT_WORDS.length);
     expect(new Set(DEFAULT_WORDS.map((w) => w.id)).size).toBe(DEFAULT_WORDS.length);
+  });
+});
+
+describe('Montagsmaler ohne Redewendungen', () => {
+  it('Sprichwörter kommen nicht vor – auch nicht mit alten Einstellungen', () => {
+    const def = parseMontagsmalerSettings({});
+    expect(def.categories).not.toContain('Redewendungen');
+    const old = parseMontagsmalerSettings({ categories: ['Redewendungen', 'Tiere'] });
+    expect(old.categories).toEqual(['Tiere']);
+    // nur Redewendungen gewählt → Standardauswahl statt Fehler
+    expect(parseMontagsmalerSettings({ categories: ['Redewendungen'] }).categories).toEqual(def.categories);
+    const pool = buildWordPool({ ...def, difficulties: ['leicht', 'mittel', 'schwer'] }, { wordLists: { wordsFrom: () => [] } } as never);
+    expect(pool.length).toBeGreaterThan(100);
+    expect(pool.some((w) => w.category === 'Redewendungen')).toBe(false);
   });
 });
 

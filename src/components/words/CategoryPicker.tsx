@@ -15,9 +15,10 @@ function toggleIn<T>(list: T[], value: T): T[] {
 const DIFF_LABEL: Record<WordDifficulty, string> = { leicht: 'Leicht', mittel: 'Mittel', schwer: 'Schwer' };
 
 /** Kategorien und Schwierigkeit aus dem gemeinsamen Wörterpool – für alle Wort-Spiele */
-export function CategoryPicker<S extends WordFilterSettings>({ settings, onChange, disabled, tone = 'home' }: SettingsPanelProps<S> & { tone?: 'home' | 'dark' }) {
+export function CategoryPicker<S extends WordFilterSettings>({ settings, onChange, disabled, tone = 'home', exclude = [] }: SettingsPanelProps<S> & { tone?: 'home' | 'dark'; exclude?: WordCategory[] }) {
+  const cats = WORD_CATEGORIES.filter((c) => !exclude.includes(c));
   const set = (patch: Partial<WordFilterSettings>) => onChange({ ...settings, ...patch });
-  const all = settings.categories.length === WORD_CATEGORIES.length;
+  const all = cats.every((c) => settings.categories.includes(c));
   const count = (c: WordCategory) => DEFAULT_WORDS.filter((w) => w.category === c && settings.difficulties.includes(w.difficulty)).length;
   return (
     <div className="flex flex-col gap-3">
@@ -27,13 +28,13 @@ export function CategoryPicker<S extends WordFilterSettings>({ settings, onChang
           <button
             className={`text-xs font-black disabled:opacity-40 ${tone === 'dark' ? 'text-violet-300 hover:text-violet-200' : 'text-cyan-dark hover:text-cyan'}`}
             disabled={disabled}
-            onClick={() => set({ categories: all ? [WORD_CATEGORIES[0]] : [...WORD_CATEGORIES] })}
+            onClick={() => set({ categories: all ? [cats[0]!] : [...cats] })}
           >
             {all ? 'Nur eine' : 'Alle'}
           </button>
         </div>
         <div className="flex flex-wrap gap-2">
-          {WORD_CATEGORIES.map((c) => (
+          {cats.map((c) => (
             <Chip
               key={c}
               active={settings.categories.includes(c)}
