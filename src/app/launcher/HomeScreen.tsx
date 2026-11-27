@@ -9,6 +9,7 @@ import { JoinInstructions, QrCode, QrZoom, useJoinUrl } from '../../components/l
 import { PlayerList } from '../../components/lobby/PlayerList';
 import { PlayerAvatar } from '../../components/lobby/PlayerAvatar';
 import { AnimatePresence, motion } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import { SettingRow, Toggle } from '../../components/ui/Controls';
 import { ConnectionStatusBadge } from '../../components/ui/Feedback';
 import { Modal } from '../../components/ui/Modal';
@@ -17,6 +18,7 @@ import { getClientGame, listLauncherGames } from '../../games/game-registry';
 import type { RoomSnapshot } from '../../shared/types/room';
 import type { ConnectionStatus } from '../session/session-store';
 import { getSocket } from '../session/socket';
+import { WelcomeScreen } from './WelcomeScreen';
 import { useMusic } from '../audio/music';
 import { playSfx } from '../audio/sfx';
 
@@ -76,7 +78,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
 
   const activate = useCallback((id: string) => {
     if (id === APP_WORDS) return setSheet('words');
-    if (id === APP_JOIN) return setSheet('join');
+    if (id === APP_JOIN) return getSocket().emit('room:setWelcome', { open: true });
     if (id === APP_HELP) return setSheet('help');
     // Titelbildschirm des Spiels öffnen (auch auf der Fernbedienung)
     getSocket().emit('room:openMenu', { gameId: id });
@@ -84,7 +86,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
 
   const dock: DockItem[] = [
     { id: 'players', label: 'Spieler', icon: Users, color: '#3fbf5a', onClick: () => setSheet('players') },
-    { id: 'join', label: 'Beitreten', icon: QrIcon, color: '#1fb3d4', onClick: () => setSheet('join') },
+    { id: 'join', label: 'Beitreten', icon: QrIcon, color: '#1fb3d4', onClick: () => getSocket().emit('room:setWelcome', { open: true }) },
     { id: 'words', label: 'Eigene Wörter', icon: BookOpen, color: '#ff9a1f', onClick: () => setSheet('words') },
     {
       id: 'fullscreen',
@@ -97,7 +99,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
     { id: 'settings', label: 'Einstellungen', icon: Settings, color: '#8a939d', onClick: onOpenMenu },
   ];
 
-  const keyboard = !room.menu && !sheet && !menuOpen && !qrZoom;
+  const keyboard = !room.welcome && !room.menu && !sheet && !menuOpen && !qrZoom;
 
   const controllerName = !room.hostHasControl && room.controllerId ? room.players.find((p) => p.id === room.controllerId)?.name : null;
   const qrCorner = (
@@ -165,6 +167,7 @@ export function HomeScreen({ room, status, onOpenMenu, menuOpen }: { room: RoomS
       <QrZoom open={qrZoom} onClose={() => setQrZoom(false)} text={joinUrl} code={room.code} />
 
       <HostGameMenu room={room} />
+      {createPortal(<AnimatePresence>{room.welcome && <WelcomeScreen key="welcome" room={room} keys={!menuOpen} />}</AnimatePresence>, document.body)}
 
       <Modal open={sheet === 'players'} onClose={() => setSheet(null)} title="Spieler" subtitle={`${connected} verbunden · Raum ${room.code}`}>
         {room.players.length === 0 ? (

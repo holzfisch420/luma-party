@@ -8,6 +8,8 @@ const SIZES = {
   md: 'size-11 text-sm',
   lg: 'size-16 text-xl',
   xl: 'size-24 text-3xl',
+  /** füllt den umgebenden Rahmen (Größe bestimmt der Aufrufer) */
+  fill: 'size-full text-[clamp(1.5rem,5vh,4rem)]',
 };
 
 /**

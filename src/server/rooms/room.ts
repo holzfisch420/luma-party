@@ -64,6 +64,7 @@ export class Room implements SessionHost {
   private selectedGameId = DEFAULT_GAME_ID;
   private hostHasControl = false;
   private menu: { gameId: string; view: string } | null = null;
+  private welcome = true;
   private settings: Record<string, unknown> = {};
   private session: GameSession | null = null;
   private results: GameResults | null = null;
@@ -106,6 +107,7 @@ export class Room implements SessionHost {
       activeGameId: this.session?.gameId ?? null,
       results: this.results,
       menu: this.menu,
+      welcome: this.welcome,
       serverTime: Date.now(),
     };
   }
@@ -350,6 +352,7 @@ export class Room implements SessionHost {
     if (!getGameMeta(gameId)) throw new RoomError('Unbekanntes Spiel.');
     this.selectedGameId = gameId;
     this.menu = { gameId, view: 'title' };
+    this.welcome = false;
     this.broadcast();
   }
 
@@ -363,6 +366,14 @@ export class Room implements SessionHost {
   closeMenu(): void {
     if (!this.menu) return;
     this.menu = null;
+    this.broadcast();
+  }
+
+  /** Willkommensbildschirm „Wer spielt mit?“ */
+  setWelcome(open: boolean): void {
+    if (this.phase !== 'lobby' || this.welcome === open) return;
+    this.welcome = open;
+    if (open) this.menu = null;
     this.broadcast();
   }
 
@@ -400,6 +411,7 @@ export class Room implements SessionHost {
       this.phase = 'playing';
       this.results = null;
       this.menu = null;
+      this.welcome = false;
       this.effectUsed.clear();
       this.selectedGameId = gameId;
       this.broadcast();

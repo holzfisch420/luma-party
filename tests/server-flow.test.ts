@@ -152,6 +152,26 @@ describe('Spielmenü', () => {
   });
 });
 
+describe('Willkommensbildschirm', () => {
+  it('ist am Anfang offen, Spielleitung oder Fernseher schließen ihn, Beitreten-Knopf öffnet ihn wieder', async () => {
+    const { host, players } = await setupRoom(['Anna', 'Ben']);
+    const [lead, other] = players as [TestClient, TestClient];
+    expect(host.room!.welcome).toBe(true);
+    other.socket.emit('room:setWelcome', { open: false });
+    await sleep(100);
+    expect(host.room!.welcome).toBe(true);
+    lead.socket.emit('room:setWelcome', { open: false });
+    await host.waitFor(() => host.room!.welcome === false);
+    host.socket.emit('room:setWelcome', { open: true });
+    await host.waitFor(() => host.room!.welcome === true);
+    // ein Spielmenü zu öffnen schließt ihn ebenfalls
+    host.socket.emit('room:openMenu', { gameId: 'plopp' });
+    await host.waitFor(() => host.room!.menu?.gameId === 'plopp');
+    expect(host.room!.welcome).toBe(false);
+    [host, ...players].forEach((c) => c.close());
+  });
+});
+
 describe('Zuschauer-Emotes', () => {
   it('Emotes mit Abklingzeit, Effekt einmal pro Spiel, nur während eines Spiels', async () => {
     const { host, players } = await setupRoom(['Anna', 'Ben', 'Cleo']);

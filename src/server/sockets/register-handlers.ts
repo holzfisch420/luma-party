@@ -187,6 +187,11 @@ export function registerSocketHandlers(io: TypedServer, rooms: RoomManager, opts
       if (room && room.canControl(socket)) room.closeMenu();
     });
 
+    socket.on('room:setWelcome', (data) => {
+      const room = currentRoom();
+      if (room && room.canControl(socket)) room.setWelcome(Boolean(data?.open));
+    });
+
     socket.on('room:setHostControl', (data) => {
       const room = currentRoom();
       if (!room || !room.isHost(socket)) return;

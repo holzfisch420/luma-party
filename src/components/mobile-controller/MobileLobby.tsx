@@ -1,4 +1,4 @@
-import { BookOpen, Gamepad2, Joystick, LogOut, MonitorOff, Tv, UserRound } from 'lucide-react';
+import { BookOpen, Gamepad2, Joystick, LogOut, MonitorOff, Play, Tv, UserRound } from 'lucide-react';
 import { WaitingArcade } from './arcade/WaitingArcade';
 import { getAuthToken } from '../../app/account/account-store';
 import { AccountPanel } from '../avatar/AccountPanel';
@@ -55,6 +55,24 @@ export function MobileLobby({ room, me, status, onLeave }: { room: RoomSnapshot;
       {room.menu && !canSelect && (
         <div className="mt-2">
           <LookAtTv room={room} />
+        </div>
+      )}
+
+      {/* Willkommensbildschirm am TV: wer wählt, startet ins Menü */}
+      {room.welcome && !room.menu && (
+        <div className="mt-2 rounded-[28px] bg-[#17607f] p-5 text-white shadow-[0_18px_40px_-18px_rgba(15,61,82,0.8)]">
+          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-white/70">
+            <Tv className="size-4" /> Du bist auf dem Fernseher
+          </div>
+          <div className="mt-1 text-2xl font-black leading-tight">Wer spielt mit?</div>
+          <p className="mt-1 text-sm font-bold text-white/80">
+            {canSelect ? 'Warte, bis alle beigetreten sind – dann geht’s ins Menü.' : `Noch kurz warten – ${room.hostHasControl || !controller ? 'am Fernseher' : controller.name} startet, wenn alle da sind.`}
+          </p>
+          {canSelect && (
+            <button onClick={() => getSocket().emit('room:setWelcome', { open: false })} className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-lg font-black text-[#17607f] shadow active:scale-[0.98]">
+              <Play className="size-5 fill-current" /> Alle da – los geht’s
+            </button>
+          )}
         </div>
       )}
 

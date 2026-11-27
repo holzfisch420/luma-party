@@ -34,6 +34,8 @@ export interface RoomSnapshot {
   results: GameResults | null;
   /** geöffnetes Spielmenü (Titelbildschirm) und die gezeigte Seite – auf Fernseher und Fernbedienung gleich */
   menu: { gameId: string; view: string } | null;
+  /** Willkommensbildschirm „Wer spielt mit?“ mit großem QR-Code (am Anfang offen) */
+  welcome: boolean;
   serverTime: number;
 }
 

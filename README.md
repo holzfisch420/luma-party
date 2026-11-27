@@ -96,6 +96,7 @@ Der Server liefert dann das gebaute Frontend aus und gibt die LAN-Adressen für 
 
 1. `/host` auf dem TV öffnen – ein Raum mit 4-stelligem Code (z. B. `KNBH`) wird erstellt.
 2. Mitspielende öffnen `/play` auf dem Smartphone (oder scannen den QR-Code), geben Code und Namen ein.
+   Am Anfang zeigt der TV den Bildschirm **„Wer spielt mit?“** mit großem QR-Code; alle Beigetretenen erscheinen unten mit Avatar und Namen. Mit `Enter`, „Alle da – los geht’s“ am TV oder auf dem Handy mit „Wahl“ geht es ins Menü. Der Beitreten-Knopf in der Symbolleiste holt den Bildschirm zurück.
 3. Spiel wählen:
    - **am TV** mit Maus, Tastatur oder Fernbedienung (`←` `→` wählen, `Enter` öffnen), oder
    - **per Smartphone**: Die zuerst beigetretene Person sieht die Spielauswahl auf dem Handy (Badge „Wahl“).

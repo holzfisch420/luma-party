@@ -41,6 +41,8 @@ export interface ClientToServerEvents {
   'room:openMenu': (data: { gameId: string }) => void;
   'room:menuView': (data: { view: string }) => void;
   'room:closeMenu': () => void;
+  /** Willkommensbildschirm öffnen/schließen (Fernseher oder Spielleitung) */
+  'room:setWelcome': (data: { open: boolean }) => void;
   'room:setHostControl': (data: { enabled: boolean }) => void;
   'room:updateSettings': (data: { gameId: string; settings: unknown }, ack?: Ack) => void;
   'room:startGame': (ack?: Ack) => void;
